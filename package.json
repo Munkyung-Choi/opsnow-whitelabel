@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "type-check": "tsc --noEmit",
-    "gen:types": "npx supabase gen types typescript --project-id gzkmsiskdbtuxpeaqwcp > src/types/supabase.ts",
+    "gen:types": "bash scripts/gen-types.sh",
+    "check:env": "bash scripts/check-env.sh",
     "prepare": "husky"
   },
   "dependencies": {
