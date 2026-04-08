@@ -11,6 +11,9 @@
 -- Master Admin은 leads 테이블에 직접 접근 불가
 -- 반드시 이 뷰를 통해서만 리드 데이터 조회
 -- -----------------------------------------------------------------------------
+-- [보안 #1 수정] 뷰 자체에 master_admin 전용 접근 필터 내장
+-- View는 RLS 정책을 직접 적용할 수 없으므로 WHERE 절로 접근 제어를 구현한다.
+-- auth.uid()가 master_admin이 아닌 경우 결과 행이 0건으로 반환됨 (에러 없이 빈 결과)
 CREATE OR REPLACE VIEW leads_masked_view AS
 SELECT
   id,
@@ -49,4 +52,13 @@ SELECT
   status,
 
   created_at
-FROM leads;
+FROM leads
+WHERE EXISTS (
+  SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'master_admin'
+);
+
+-- [Gemini 감사 수정] security_invoker = true 명시적 선언 (PostgreSQL 15+)
+-- 뷰가 호출자(caller)의 권한으로 실행됨을 명시화. 기본값이 SECURITY INVOKER이나
+-- 명시적으로 고정하여 향후 실수로 SECURITY DEFINER로 전환되는 것을 방지.
+-- WHERE EXISTS로 master_admin 필터를 직접 구현한 설계를 보완.
+ALTER VIEW leads_masked_view SET (security_invoker = true);

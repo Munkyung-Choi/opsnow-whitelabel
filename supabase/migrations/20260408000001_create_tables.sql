@@ -62,6 +62,9 @@ CREATE TABLE contents (
   cta_text     TEXT,
   contact_info JSONB DEFAULT '{"email": "", "phone": "", "address": ""}',
 
+  -- 발행 상태: false(초안)인 콘텐츠는 공개 마케팅 사이트에 노출되지 않음
+  is_published BOOLEAN DEFAULT false,
+
   updated_at TIMESTAMPTZ DEFAULT now(),
 
   CONSTRAINT unique_partner_section UNIQUE (partner_id, section_type)
