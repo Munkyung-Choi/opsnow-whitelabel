@@ -139,7 +139,11 @@
 ## [5. Design Documentation Sync]
 
 - **DB Schema Diagram Sync**: DB 스키마(테이블 생성/수정/삭제, 컬럼 변경) 시 반드시 `docs/design/db-schema.md`의 Mermaid ERD를 함께 업데이트하라.
-- **Type Sync**: DB 변경 후 `npx supabase gen types typescript --project-id gzkmsiskdbtuxpeaqwcp > src/types/supabase.ts`를 실행하여 TypeScript 타입을 동기화하라.
+- **Type Sync**: DB 변경 후 `npm run gen:types`를 실행하여 TypeScript 타입을 동기화하라.
+- **Auditor Digest 영속화**: 🚨 HIGH 위험 작업 완료 시 Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장하라.
+  - 템플릿: `docs/audits/_template.md` 참조
+  - 파일명 예시: `docs/audits/WL-9.md`, `docs/audits/WL-31.md`
+  - 채팅에만 존재하는 Digest는 세션 종료 시 소실되므로 반드시 파일로 커밋할 것.
 
 ## [6. Verification Workflow]
 
