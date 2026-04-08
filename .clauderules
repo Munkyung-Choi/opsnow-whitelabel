@@ -1,0 +1,36 @@
+# .clauderules - OpsNow White-label Site Builder - Claude Code Rules
+
+## [1. Source of Truth & Operational Guide]
+
+- 모든 개발의 최상위 권위는 Confluence Space `WS`에 있다.
+- **필수 지침**: 작업을 시작하기 전 반드시 `CLAUDE.md`의 **Sequential Work Process (Harness Engineering)**를 읽고, 정해진 순서(Step 1~7)와 에이전트 역할 분담을 엄격히 준수하라.
+- 구현 전 `getConfluencePage`로 관련 문서를 읽고 요약하여 승인받을 것.
+
+## [2. Architecture & Tech Stack]
+
+- **Stack**: Next.js 16.2.2 (App Router), TS, Tailwind, shadcn/ui, Supabase.
+- **Type Safety**: `src/types/supabase.ts` 기반의 엄격한 타입 적용. `any` 사용 금지.
+- **Multi-tenancy**: Hostname 기반 파트너 식별. Edge Runtime 제약 사항 준수.
+
+## [3. Harness Engineering Enforcement]
+
+- **Maker-Checker**: 혼자 결정하지 마라. `Architect`로서 설계하고, 반드시 `Auditor`로서 보안 및 격리 취약점 검토를 수행한 뒤 **문경 님**의 승인을 구하라.
+- **Handoff**: `CLAUDE.md`에 정의된 에이전트 간 핸드오프 프로토콜(발화 형식)을 반드시 사용하라.
+- **Breakpoints**: DB 스키마 변경, 보안 정책 수정, 외부 비용 발생 시에는 작업을 즉시 중단하고 **문경 님**의 입력을 기다려라.
+
+## [4. UI/UX & Live Preview]
+
+- **Dynamic Theming**: CSS 변수를 `layout.tsx`에서 파트너 데이터와 바인딩.
+- **Hybrid Preview**: `iframe` 내 `postMessage`를 활용한 실시간 테마 반영(Real-time CSS Injection).
+- **Impersonation**: 대리 접속 시 오렌지색 배너(#F97316) 상단 고정.
+
+## [5. Security, Privacy & DB]
+
+- **RLS First**: 모든 테이블 생성/수정 시 관련 Row Level Security 정책 작성을 강제한다.
+- **Privacy**: 리드 조회 시 서버 단에서 개인정보 마스킹 로직을 반드시 포함하라.
+- **Validation**: 모든 입력을 `Zod` 스키마로 검증하라.
+
+## [6. Workflow & Reporting]
+
+- **Structure**: `(marketing)`과 `(admin)` 라우트 그룹으로 비즈니스 로직을 명확히 분리하라.
+- **Reporting**: 작업 완료 후 Jira에 `CLAUDE.md`에서 정한 보고 양식을 준수하여 댓글을 남겨라.
