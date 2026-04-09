@@ -13,6 +13,7 @@
     "check:rls": "node scripts/run-rls-check.mjs",
     "check:ai-audit": "npx tsx scripts/ai-audit.ts",
     "check:ai-audit:report": "npx tsx scripts/ai-audit.ts --report",
+    "check:ai-audit:smoke": "npx tsx scripts/ai-audit.ts --smoke --report",
     "prepare": "husky"
   },
   "dependencies": {

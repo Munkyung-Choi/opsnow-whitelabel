@@ -8,7 +8,7 @@
 //   npx tsx scripts/ai-audit.ts --inv INV-01 — 특정 불변 조건만 감사
 //
 // 필수 환경 변수: GEMINI_API_KEY
-// 선택 환경 변수: GEMINI_MODEL (기본값: gemini-2.0-flash)
+// 선택 환경 변수: GEMINI_MODEL (기본값: gemini-2.5-flash)
 //
 // 설계 원칙:
 //   - 구현자(Claude)와 검증자(Gemini)는 반드시 분리되어야 한다.
@@ -26,6 +26,7 @@ const RUN_AT = new Date();
 
 // ── 플래그 파싱 ───────────────────────────────────────────────────────────────
 const REPORT_MODE = process.argv.includes('--report');
+const SMOKE_MODE  = process.argv.includes('--smoke'); // 개인 계정 (무료 쿼터) 전용 최소 실행 모드
 const INV_FILTER  = (() => {
   const idx = process.argv.indexOf('--inv');
   return idx !== -1 && process.argv[idx + 1] ? process.argv[idx + 1] : null;
@@ -105,7 +106,7 @@ function saveWarningReport(reason: string): void {
     generatedAt:     RUN_AT.toISOString(),
     auditor:         'Gemini',
     implementer:     'Claude Sonnet 4.6',
-    model_used:      process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
+    model_used:      process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
     inv_filter:      INV_FILTER,
     results:         [],
     overall_score:   -1,
@@ -169,34 +170,46 @@ function extractJSON(raw: string): AuditReport {
 }
 
 // ── 소스 파일 목록 ────────────────────────────────────────────────────────────
-const AUDIT_TARGETS: { label: string; path: string }[] = [
-  // 불변 조건 정의 (가장 먼저 전달)
-  { label: 'docs/audits/invariants.md',               path: 'docs/audits/invariants.md' },
-  // 보안 정책 문서
-  { label: 'SECURITY.md',                             path: 'SECURITY.md' },
-  // 인증·라우팅 (INV-04, INV-05)
-  { label: 'src/middleware.ts',                        path: 'src/middleware.ts' },
-  // Supabase 클라이언트 — 키 격리 검증 (INV-02)
-  { label: 'src/lib/supabase/server.ts',              path: 'src/lib/supabase/server.ts' },
-  { label: 'src/lib/supabase/client.ts',              path: 'src/lib/supabase/client.ts' },
-  // DB 마이그레이션 — RLS 핵심 (INV-01, INV-03, INV-05)
-  { label: 'migrations/rls_policies.sql',             path: 'supabase/migrations/20260408000003_rls_policies.sql' },
-  { label: 'migrations/create_views.sql',             path: 'supabase/migrations/20260408000002_create_views.sql' },
-  { label: 'migrations/create_tables.sql',            path: 'supabase/migrations/20260408000001_create_tables.sql' },
+// SMOKE 모드: 개인 계정 (무료 쿼터 20 RPD) — API 파이프라인 동작 확인 전용
+//   목적: "Gemini가 응답하는가?" 만 검증. 감사 결과는 참고용 아님.
+const SMOKE_TARGETS: { label: string; path: string }[] = [
+  { label: 'src/lib/supabase/client.ts', path: 'src/lib/supabase/client.ts' },
 ];
 
-// Route Handler 동적 탐색 (WL-36 구현 후 자동 감사 대상에 포함)
-const DYNAMIC_ROUTES = [
-  'app/api/leads/route.ts',
-  'app/api/ai/generate/route.ts',
-  'app/api/ai/verify/route.ts',
-  'app/api/admin/route.ts',
+// FULL 모드: 회사 계정 (유료 쿼터) — 실제 보안 감사
+//   목적: INV-01~06 전체 불변 조건에 대한 의미 있는 Gemini 판단.
+const FULL_TARGETS: { label: string; path: string }[] = [
+  // 불변 조건 정의 — Gemini가 가장 먼저 읽어야 하는 기준서 (필수)
+  { label: 'docs/audits/invariants.md',    path: 'docs/audits/invariants.md' },
+  // 보안 정책 문서 — RLS 설계 결정 기록 포함 (INV-01~05 핵심)
+  { label: 'SECURITY.md',                  path: 'SECURITY.md' },
+  // 인증·라우팅 — middleware matcher의 api 제외 여부 감사 (INV-04)
+  { label: 'src/middleware.ts',            path: 'src/middleware.ts' },
+  // Supabase 클라이언트 — 키 격리 검증 (INV-02)
+  { label: 'src/lib/supabase/server.ts',   path: 'src/lib/supabase/server.ts' },
+  { label: 'src/lib/supabase/client.ts',   path: 'src/lib/supabase/client.ts' },
+  // DB 마이그레이션 — RLS 정책 원문 (INV-01, INV-03, INV-05 핵심)
+  { label: 'migrations/rls_policies.sql',  path: 'supabase/migrations/20260408000003_rls_policies.sql' },
+  { label: 'migrations/create_views.sql',  path: 'supabase/migrations/20260408000002_create_views.sql' },
+  { label: 'migrations/create_tables.sql', path: 'supabase/migrations/20260408000001_create_tables.sql' },
 ];
-for (const rel of DYNAMIC_ROUTES) {
-  if (existsSync(join(ROOT, rel))) {
-    AUDIT_TARGETS.push({ label: rel, path: rel });
+
+// Route Handler 동적 탐색 — FULL 모드에서만 추가 (WL-36 구현 후 자동 포함)
+if (!SMOKE_MODE) {
+  const DYNAMIC_ROUTES = [
+    'app/api/leads/route.ts',
+    'app/api/ai/generate/route.ts',
+    'app/api/ai/verify/route.ts',
+    'app/api/admin/route.ts',
+  ];
+  for (const rel of DYNAMIC_ROUTES) {
+    if (existsSync(join(ROOT, rel))) {
+      FULL_TARGETS.push({ label: rel, path: rel });
+    }
   }
 }
+
+const AUDIT_TARGETS = SMOKE_MODE ? SMOKE_TARGETS : FULL_TARGETS;
 
 // ── 프롬프트 템플릿 ───────────────────────────────────────────────────────────
 function buildPrompt(sourceContext: string, model: string, invFilter: string | null): string {
@@ -274,6 +287,9 @@ async function main(): Promise<void> {
   console.log(C.dim(`  실행 시각  : ${RUN_AT.toLocaleString('ko-KR')}`));
   console.log(C.dim(`  구현자     : Claude Sonnet 4.6`));
   console.log(C.dim(`  검증자     : Gemini (독립 분리)`));
+  console.log(SMOKE_MODE
+    ? C.yellow(`  모드       : SMOKE (파이프라인 동작 확인 전용 — 개인 계정)`)
+    : C.green( `  모드       : FULL  (실제 보안 감사 — 회사 계정)`));
   if (INV_FILTER) console.log(C.dim(`  필터       : ${INV_FILTER} 만 감사`));
   if (REPORT_MODE) console.log(C.dim(`  리포트     : docs/audits/ai-audit-${dateTag}.json`));
   log.blank();
@@ -294,7 +310,7 @@ async function main(): Promise<void> {
 
   // ② API 키 검증
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  const GEMINI_MODEL   = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash';
+  const GEMINI_MODEL   = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 
   if (!GEMINI_API_KEY) {
     log.error('GEMINI_API_KEY 미설정.');
