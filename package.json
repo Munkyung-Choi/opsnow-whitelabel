@@ -11,6 +11,8 @@
     "gen:types": "bash scripts/gen-types.sh",
     "check:env": "bash scripts/check-env.sh",
     "check:rls": "node scripts/run-rls-check.mjs",
+    "check:ai-audit": "npx tsx scripts/ai-audit.ts",
+    "check:ai-audit:report": "npx tsx scripts/ai-audit.ts --report",
     "prepare": "husky"
   },
   "dependencies": {
