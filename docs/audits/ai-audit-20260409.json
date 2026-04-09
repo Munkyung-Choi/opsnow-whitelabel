@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-04-09T03:37:33.350Z",
+  "auditor": "Gemini",
+  "implementer": "Claude Sonnet 4.6",
+  "model_used": "gemini-2.0-flash",
+  "inv_filter": null,
+  "results": [],
+  "overall_score": -1,
+  "critical_issues": 0,
+  "warnings": 1,
+  "summary": "감사 실행 실패 — Gemini API 오류: Gemini API 429: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota ex",
+  "error": "Gemini API 오류: Gemini API 429: {\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota ex"
+}
