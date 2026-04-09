@@ -193,3 +193,42 @@
 | ✅ **LOW** | UI 컴포넌트, 단순 문서화, 리팩토링 | **자율 진행** (Self-contained 테스트) | Auditor 생략 가능 |
 
 > ⚠️ 등급 판단이 불확실하면 한 단계 높은 등급을 적용하라 (Fail-safe 원칙).
+
+## [9. UI/Frontend Standards]
+
+> **목적**: 화이트라벨 테마 시스템의 일관성을 보장하고, 장기적 유지보수 비용을 최소화하기 위한 프론트엔드 표준이다.
+> 모든 UI 작업(WL-40 이후)에 적용되며, §2 Coding Style과 함께 읽어야 한다.
+
+### 9.1 Component Strategy (컴포넌트 우선순위)
+
+- **shadcn/ui 우선**: 모든 기능성 UI 요소(`Button`, `Input`, `Sheet`, `Form` 등)는 반드시 `@/components/ui`의 shadcn 컴포넌트를 사용한다.
+- **설치 요청**: 필요한 컴포넌트가 없으면 직접 구현하지 말고 문경 님에게 `npx shadcn@latest add [component]` 실행을 요청한다.
+- **레이아웃 예외**: `<section>`, `<article>`, `<main>`, `<aside>` 및 Grid/Flex 래퍼 목적의 `div`는 허용한다. 단, 스타일링이 포함된 기능적 UI 요소는 shadcn으로 대체한다.
+
+### 9.2 Tailwind & Theming (테마 체인 보호 — 화이트라벨 핵심)
+
+- **시맨틱 클래스 전용**: `bg-primary`, `text-foreground`, `text-primary-foreground`, `border-input`, `bg-secondary` 등 CSS Variable 기반 클래스만 사용한다.
+- **하드코딩 금지**: Hex 코드(`#1E40AF`)나 Tailwind 정적 색상(`bg-blue-500`, `text-gray-700`)을 컴포넌트 내부에 직접 사용하지 않는다.
+  - **이유**: `bg-blue-500`이 단 한 곳이라도 있으면 파트너 테마 전환 시 해당 요소만 색상이 고정되어 테마 체인이 깨진다.
+- **Arbitrary Values 최소화**: `h-[543px]` 같은 임의값 대신 Tailwind 표준 스케일(`h-64`, `gap-6`)을 우선 사용한다. 디자인상 불가피한 경우에만 허용하며 주석으로 이유를 명시한다.
+- **예외 허용**: 로고, OpsNow 브랜드 고정 색상, `text-white`/`text-black` 처럼 가독성 보장을 위해 고정이 필요한 경우에만 하드코딩을 허용하고 `{/* FIXED: 이유 */}` 주석을 반드시 추가한다.
+
+### 9.3 File Structure (컴포넌트 위치 격리)
+
+컴포넌트의 도메인에 따라 위치를 엄격히 분리하여 마케팅/어드민 간 오염을 방지한다.
+
+```
+src/components/
+  ui/          # shadcn에서 설치한 원자(Atomic) 컴포넌트 — 직접 수정 금지
+  marketing/   # 화이트라벨 마케팅 사이트 전용 (GNB, HeroSection 등)
+  admin/       # 관리자 대시보드 전용 (SiteBuilder, PartnerTable 등)
+  shared/      # marketing + admin 양쪽에서 실제로 사용하는 컴포넌트만 위치
+               # ⚠️ 2개 이상의 도메인에서 사용하지 않으면 shared/에 넣지 않는다
+```
+
+### 9.4 Implementation Details (구현 세부 규칙)
+
+- **cn() 필수**: 클래스 병합 시 반드시 `@/lib/utils`의 `cn()` 함수를 사용하여 클래스 충돌을 방지한다.
+- **RSC 기본**: 모든 컴포넌트는 Server Component로 작성한다. 클라이언트 인터랙션(useState, useEffect, 이벤트 핸들러)이 필요한 경우에만 `'use client'`를 선언하고, 반드시 **말단 노드(Leaf Component)**로 분리한다.
+- **Props 타입 필수**: 모든 컴포넌트는 `interface Props` 또는 `type Props`를 명시적으로 정의한다. `any` 타입 사용 금지.
+- **인라인 스타일 제한**: CSS Variables 주입(`layout.tsx`의 테마 주입)을 제외하고, 인라인 `style={{}}` 사용을 금지한다. Tailwind 클래스로 대체한다.

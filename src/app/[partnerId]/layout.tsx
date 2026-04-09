@@ -1,17 +1,58 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { validatePartner } from '@/services/partnerService';
+import { getContrastColor } from '@/lib/utils';
 
-export default async function PartnerLayout({
-  children,
-  params,
-}: {
+interface PartnerLayoutProps {
   children: React.ReactNode;
   params: Promise<{ partnerId: string }>;
-}) {
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ partnerId: string }>;
+}): Promise<Metadata> {
+  const { partnerId } = await params;
+  const partner = await validatePartner(partnerId);
+  if (!partner) return {};
+
+  return {
+    title: {
+      default: partner.business_name,
+      template: `%s | ${partner.business_name}`,
+    },
+    icons: {
+      icon: partner.favicon_url || '/favicon.ico',
+      apple: partner.favicon_url || '/apple-touch-icon.png',
+      shortcut: partner.favicon_url || '/favicon.ico',
+    },
+  };
+}
+
+export default async function PartnerLayout({ children, params }: PartnerLayoutProps) {
   const { partnerId } = await params;
   const partner = await validatePartner(partnerId);
 
   if (!partner) notFound();
 
-  return <>{children}</>;
+  const primaryColor = partner.primary_color ?? '#0000FF';
+  const secondaryColor = partner.secondary_color ?? '#F3F4F6';
+  const primaryFg = getContrastColor(primaryColor);
+  const secondaryFg = getContrastColor(secondaryColor);
+
+  return (
+    <div
+      style={
+        {
+          '--primary': primaryColor,
+          '--primary-foreground': primaryFg,
+          '--secondary': secondaryColor,
+          '--secondary-foreground': secondaryFg,
+        } as React.CSSProperties
+      }
+    >
+      {children}
+    </div>
+  );
 }
