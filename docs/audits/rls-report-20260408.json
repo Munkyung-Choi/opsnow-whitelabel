@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-04-08T15:07:42.140Z",
+  "summary": {
+    "pass": 3,
+    "fail": 0,
+    "skip": 7,
+    "total": 10
+  },
+  "results": [
+    {
+      "testId": "T-01",
+      "desc": "파트너 간 leads 크로스테넌트 차단",
+      "status": "SKIP",
+      "detail": "PARTNER_B admin 자격증명 / PARTNER_A_ID 미설정",
+      "timestamp": "2026-04-08T15:07:43.450Z"
+    },
+    {
+      "testId": "T-02",
+      "desc": "파트너 간 미발행 contents 차단",
+      "status": "SKIP",
+      "detail": "PARTNER_B admin 자격증명 / PARTNER_A_ID 미설정",
+      "timestamp": "2026-04-08T15:07:43.450Z"
+    },
+    {
+      "testId": "T-03",
+      "desc": "master_admin leads 직접 접근 차단",
+      "status": "SKIP",
+      "detail": "MASTER_ADMIN 자격증명 미설정",
+      "timestamp": "2026-04-08T15:07:43.450Z"
+    },
+    {
+      "testId": "T-04",
+      "desc": "leads_masked_view partner_admin 접근 차단",
+      "status": "SKIP",
+      "detail": "PARTNER_A admin 자격증명 미설정",
+      "timestamp": "2026-04-08T15:07:43.450Z"
+    },
+    {
+      "testId": "T-05",
+      "desc": "anon FK 위반 INSERT 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-08T15:07:43.789Z"
+    },
+    {
+      "testId": "T-06",
+      "desc": "partner_admin 타 파트너 조회 차단",
+      "status": "SKIP",
+      "detail": "PARTNER_A admin 자격증명 / PARTNER_A_ID 미설정",
+      "timestamp": "2026-04-08T15:07:43.789Z"
+    },
+    {
+      "testId": "T-07",
+      "desc": "partner_admin site_visits INSERT 차단",
+      "status": "SKIP",
+      "detail": "PARTNER_A admin 자격증명 / PARTNER_A_ID 미설정",
+      "timestamp": "2026-04-08T15:07:43.789Z"
+    },
+    {
+      "testId": "T-08",
+      "desc": "partner_admin system_logs 접근 차단",
+      "status": "SKIP",
+      "detail": "PARTNER_A admin 자격증명 미설정",
+      "timestamp": "2026-04-08T15:07:43.789Z"
+    },
+    {
+      "testId": "T-09",
+      "desc": "anon 미발행 contents 조회 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-08T15:07:43.838Z"
+    },
+    {
+      "testId": "T-10",
+      "desc": "anon get_my_role() NULL 반환",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-08T15:07:43.913Z"
+    }
+  ],
+  "environment": {
+    "supabaseUrl": "https://gzkmsiskdbtuxpeaqwcp.supabase.co",
+    "nodeVersion": "v22.15.0"
+  }
+}

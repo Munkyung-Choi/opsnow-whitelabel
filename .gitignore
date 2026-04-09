@@ -42,3 +42,6 @@ next-env.d.ts
 
 # supabase
 supabase/.temp
+
+# rls 검증 픽스처 (실제 UUID 포함 — 커밋 금지)
+docs/exec-plans/rls-fixtures.env

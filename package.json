@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit",
     "gen:types": "bash scripts/gen-types.sh",
     "check:env": "bash scripts/check-env.sh",
+    "check:rls": "node scripts/run-rls-check.mjs",
     "prepare": "husky"
   },
   "dependencies": {
@@ -32,12 +33,14 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
+    "pg": "^8.20.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
