@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-04-09T00:49:30.264Z",
+  "summary": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0,
+    "total": 10
+  },
+  "results": [
+    {
+      "testId": "T-01",
+      "desc": "파트너 간 leads 크로스테넌트 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.097Z"
+    },
+    {
+      "testId": "T-02",
+      "desc": "파트너 간 미발행 contents 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.139Z"
+    },
+    {
+      "testId": "T-03",
+      "desc": "master_admin leads 직접 접근 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.189Z"
+    },
+    {
+      "testId": "T-04",
+      "desc": "leads_masked_view partner_admin 접근 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.236Z"
+    },
+    {
+      "testId": "T-05",
+      "desc": "anon FK 위반 INSERT 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.283Z"
+    },
+    {
+      "testId": "T-06",
+      "desc": "partner_admin 타 파트너 조회 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.319Z"
+    },
+    {
+      "testId": "T-07",
+      "desc": "partner_admin site_visits INSERT 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.428Z"
+    },
+    {
+      "testId": "T-08",
+      "desc": "partner_admin system_logs 접근 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.467Z"
+    },
+    {
+      "testId": "T-09",
+      "desc": "anon 미발행 contents 조회 차단",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.504Z"
+    },
+    {
+      "testId": "T-10",
+      "desc": "anon get_my_role() NULL 반환",
+      "status": "PASS",
+      "detail": null,
+      "timestamp": "2026-04-09T00:49:32.542Z"
+    }
+  ],
+  "environment": {
+    "supabaseUrl": "https://gzkmsiskdbtuxpeaqwcp.supabase.co",
+    "nodeVersion": "v22.15.0"
+  }
+}
