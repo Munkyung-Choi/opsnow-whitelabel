@@ -125,7 +125,7 @@
 화이트라벨의 핵심 로직 구현 시 반드시 지켜야 할 규칙입니다.
 
 - **Partner Context**: 모든 데이터 요청 전에는 반드시 `partner_id` 컨텍스트가 확보되었는지 확인하라.
-- **Middleware**: `middleware.ts`는 Edge Runtime에서 동작하므로 Node.js 전용 라이브러리(fs, crypto 등)를 사용하지 마라.
+- **Proxy**: `proxy.ts`는 Edge Runtime에서 동작하므로 Node.js 전용 라이브러리(fs, crypto 등)를 사용하지 마라.
 - **Theme Injection**: 파트너별 테마 컬러는 `layout.tsx`에서 CSS Variables로 주입하여 전역 컴포넌트가 참조하게 하라.
 
 ## [4. Security & Privacy Enforcement]
@@ -232,3 +232,65 @@ src/components/
 - **RSC 기본**: 모든 컴포넌트는 Server Component로 작성한다. 클라이언트 인터랙션(useState, useEffect, 이벤트 핸들러)이 필요한 경우에만 `'use client'`를 선언하고, 반드시 **말단 노드(Leaf Component)**로 분리한다.
 - **Props 타입 필수**: 모든 컴포넌트는 `interface Props` 또는 `type Props`를 명시적으로 정의한다. `any` 타입 사용 금지.
 - **인라인 스타일 제한**: CSS Variables 주입(`layout.tsx`의 테마 주입)을 제외하고, 인라인 `style={{}}` 사용을 금지한다. Tailwind 클래스로 대체한다.
+
+## [10. Local Development Environment]
+
+멀티 테넌트 로컬 개발 환경 구성 가이드. **신규 개발자는 아래 절차를 순서대로 따른다.**
+
+### 10.1 Acrylic DNS Proxy 설치 (Windows — 1회 설정)
+
+`*.localhost` 와일드카드 DNS를 로컬에서 동작시키기 위한 설정이다.  
+hosts 파일 수동 수정 없이 모든 파트너 서브도메인(`partner-a.localhost` 등)을 즉시 사용할 수 있다.
+
+**1. 설치**
+```
+https://mayakron.altervista.org/support/acrylic/Home.htm
+```
+설치 파일 다운로드 후 관리자 권한으로 실행.
+
+**2. AcrylicHosts.txt에 와일드카드 추가**  
+Acrylic UI 실행 → `Open Acrylic Hosts` 클릭 후 맨 아래에 추가:
+```
+127.0.0.1  *.localhost
+```
+
+**3. Windows DNS 서버를 Acrylic으로 변경**
+```
+설정 → 네트워크 및 인터넷 → 어댑터 옵션 변경
+→ 사용 중인 어댑터 우클릭 → 속성 → IPv4 → 속성
+→ "다음 DNS 서버 주소 사용" → 기본 설정 DNS: 127.0.0.1
+```
+
+**4. 서비스 재시작** (관리자 PowerShell)
+```powershell
+Restart-Service AcrylicDNSProxySvc
+```
+
+**5. 설치 검증**
+```powershell
+nslookup partner-a.localhost
+# 기대 결과: Address: 127.0.0.1
+```
+
+### 10.2 로컬 파트너 페이지 접근
+
+Acrylic DNS 설정 완료 + 개발 서버(`npm run dev`) 실행 후:
+
+```
+http://{partner-subdomain}.localhost:3000
+```
+
+- `partner-subdomain`은 Supabase `partners.subdomain` 컬럼 값과 일치해야 한다.
+- `is_active = true`인 파트너만 접근 가능하다.
+- 미존재 슬러그 접근 시 `/not-found`로 리다이렉트된다.
+
+### 10.3 CI/CD 환경 Fallback
+
+서브도메인 접근이 불가한 CI/CD 환경에서는 서버 전용 환경변수를 사용한다:
+
+```bash
+# .env.local (NEXT_PUBLIC_ 접두사 없음 — 클라이언트 번들에 노출되지 않음)
+DEV_PARTNER_SLUG=partner-a
+```
+
+`http://localhost:3000` 접근 시 해당 파트너 페이지로 자동 리라이트된다.

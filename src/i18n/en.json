@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "Home",
+    "features": "Services",
+    "about": "About",
+    "contact": "Contact",
+    "cta": "Free Assessment",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "exploreServices": "Explore Services",
+    "defaultTitle": "Optimize your cloud with OpsNow",
+    "defaultSubtitle": "Smart cloud management solutions with your trusted partner",
+    "defaultCta": "Free Assessment"
+  },
+  "footer": {
+    "tagline": "Cloud optimization services provided by an OpsNow partner",
+    "contact": "Contact",
+    "legal": "Legal",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
+  },
+  "corporate": {
+    "companyName": "Company",
+    "representative": "Representative",
+    "address": "Address",
+    "registrationNumber": "Business Reg. No."
+  },
+  "termsPage": {
+    "defaultTitle": "Terms of Service",
+    "comingSoon": "Terms of service coming soon."
+  },
+  "privacyPage": {
+    "defaultTitle": "Privacy Policy",
+    "comingSoon": "Privacy policy coming soon."
+  },
+  "contactForm": {
+    "defaultCta": "Contact Us"
+  }
+}

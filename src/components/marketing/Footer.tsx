@@ -1,16 +1,18 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
 import type { Partner } from '@/services/partnerService';
-import type { Database } from '@/types/supabase';
+import type { LocalizedContentRow } from '@/lib/marketing/get-partner-page-data';
 import { parseFooterContactInfo } from '@/lib/marketing/get-partner-page-data';
-
-type ContentRow = Database['public']['Tables']['contents']['Row'];
+import { getDictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/proxy';
 
 interface FooterProps {
   partner: Partner;
-  content: ContentRow | null;
+  content: LocalizedContentRow | null;
+  locale: Locale;
 }
 
-export default function Footer({ partner, content }: FooterProps) {
+export default function Footer({ partner, content, locale }: FooterProps) {
+  const t = getDictionary(locale).footer;
   const contactInfo = parseFooterContactInfo(content?.contact_info ?? null);
   const year = new Date().getFullYear();
 
@@ -21,15 +23,13 @@ export default function Footer({ partner, content }: FooterProps) {
           {/* 브랜드 */}
           <div>
             <p className="text-lg font-bold">{partner.business_name}</p>
-            <p className="mt-2 text-sm text-background/60">
-              OpsNow 파트너가 제공하는 클라우드 최적화 서비스
-            </p>
+            <p className="mt-2 text-sm text-background/60">{t.tagline}</p>
           </div>
 
           {/* 연락처 */}
           <div>
             <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-background/60">
-              연락처
+              {t.contact}
             </p>
             <ul className="flex flex-col gap-2">
               {contactInfo.email && (
@@ -60,17 +60,17 @@ export default function Footer({ partner, content }: FooterProps) {
           {/* 법적 링크 */}
           <div>
             <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-background/60">
-              법적 고지
+              {t.legal}
             </p>
             <ul className="flex flex-col gap-2 text-sm">
               <li>
                 <a href="terms" className="hover:underline">
-                  이용약관
+                  {t.terms}
                 </a>
               </li>
               <li>
                 <a href="privacy" className="hover:underline">
-                  개인정보 처리방침
+                  {t.privacy}
                 </a>
               </li>
             </ul>

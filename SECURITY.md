@@ -145,3 +145,50 @@
 - `auth.*` 테이블 관련 로직 변경
 - `service_role` 사용 범위 변경
 - SECURITY DEFINER 함수 추가/수정
+
+---
+
+## 8. service_role 격리 패턴 (Allow-list)
+
+> **원칙**: `supabaseAdmin`(service_role key)은 아래 **명시된 Route Handler에서만** 사용한다.
+> 목록에 없는 위치에서의 사용은 **Auditor 즉시 검토** 대상이며, 승인 없이 병합 불가.
+
+### Antipattern — 절대 금지
+
+```ts
+// ❌ API Route 어디서나 직접 초기화
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!  // 위치 불문 직접 호출 금지
+)
+```
+
+### Best Practice — 단일 진입점 격리
+
+```ts
+// ✅ lib/supabase-admin.ts 에서만 export — 서버사이드 Route Handler 전용
+import { supabaseAdmin } from '@/lib/supabase-admin'
+
+// ❌ 클라이언트 컴포넌트('use client'), 브라우저 번들에 절대 포함 금지
+// ❌ Server Actions에서도 직접 사용 금지 — Route Handler 경유 필수
+```
+
+### 허용 화이트리스트 (2026-04-10 확정)
+
+| Route Handler | 대상 테이블·컬럼 | 이유 | system_logs 기록 |
+|---|---|---|---|
+| `/api/visits/upsert` | `site_visits` Upsert | `anon` INSERT 불가 구조 | 면제 (고빈도 통계 집계) |
+| `/api/admin/logs` | `system_logs` INSERT | 감사 로그 불변성 보장 | 해당 없음 (자기 자신이 로그) |
+| `/api/auth/provision` | `profiles` INSERT/UPDATE | 역할 변경 클라이언트 금지 | ✅ 필수 |
+| `/api/admin/domain-approval` | `partners.custom_domain_status` | 도메인 승인 관리자 전용 | ✅ 필수 |
+
+### Traceability 원칙
+
+**모든 service_role 사용은 `system_logs`에 해당 행위를 기록해야 한다.**
+"누가, 언제, 어떤 목적으로 슈퍼 파워를 사용했는지" 항상 추적 가능해야 한다.
+
+- 면제 대상: `site_visits` Upsert (고빈도 통계 집계 — 기록 시 system_logs 폭증)
+- 향후 배치 처리 등 신규 service_role 사용처 추가 시: 반드시 이 목록을 업데이트하고 Auditor 검토 후 병합
+
+> ⚠️ **화이트리스트 확장 절차**: CLAUDE.md Breakpoint #2(Security & Auth 정책 결정)에 해당.
+> 문경 님 명시적 승인 없이 목록 추가 금지.

@@ -16,39 +16,39 @@ export type Database = {
     Tables: {
       contents: {
         Row: {
-          body: string | null
+          body: Json | null
           contact_info: Json | null
-          cta_text: string | null
+          cta_text: Json | null
           id: string
           is_published: boolean | null
           partner_id: string
           section_type: string
-          subtitle: string | null
-          title: string | null
+          subtitle: Json | null
+          title: Json | null
           updated_at: string | null
         }
         Insert: {
-          body?: string | null
+          body?: Json | null
           contact_info?: Json | null
-          cta_text?: string | null
+          cta_text?: Json | null
           id?: string
           is_published?: boolean | null
           partner_id: string
           section_type: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
         }
         Update: {
-          body?: string | null
+          body?: Json | null
           contact_info?: Json | null
-          cta_text?: string | null
+          cta_text?: Json | null
           id?: string
           is_published?: boolean | null
           partner_id?: string
           section_type?: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
         }
         Relationships: [
@@ -63,32 +63,32 @@ export type Database = {
       }
       global_contents: {
         Row: {
-          body: string | null
+          body: Json | null
           id: string
           meta: Json | null
           section_type: string
-          subtitle: string | null
-          title: string | null
+          subtitle: Json | null
+          title: Json | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          body?: string | null
+          body?: Json | null
           id?: string
           meta?: Json | null
           section_type: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          body?: string | null
+          body?: Json | null
           id?: string
           meta?: Json | null
           section_type?: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -147,6 +147,7 @@ export type Database = {
           created_at: string | null
           custom_domain: string | null
           custom_domain_status: string | null
+          default_locale: string
           favicon_url: string | null
           id: string
           is_active: boolean | null
@@ -154,6 +155,7 @@ export type Database = {
           notification_emails: Json | null
           owner_id: string
           primary_color: string | null
+          published_locales: string[]
           secondary_color: string | null
           subdomain: string
           updated_at: string | null
@@ -163,6 +165,7 @@ export type Database = {
           created_at?: string | null
           custom_domain?: string | null
           custom_domain_status?: string | null
+          default_locale?: string
           favicon_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -170,6 +173,7 @@ export type Database = {
           notification_emails?: Json | null
           owner_id: string
           primary_color?: string | null
+          published_locales?: string[]
           secondary_color?: string | null
           subdomain: string
           updated_at?: string | null
@@ -179,6 +183,7 @@ export type Database = {
           created_at?: string | null
           custom_domain?: string | null
           custom_domain_status?: string | null
+          default_locale?: string
           favicon_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -186,6 +191,7 @@ export type Database = {
           notification_emails?: Json | null
           owner_id?: string
           primary_color?: string | null
+          published_locales?: string[]
           secondary_color?: string | null
           subdomain?: string
           updated_at?: string | null
@@ -345,7 +351,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_my_role: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

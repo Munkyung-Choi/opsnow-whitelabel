@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "홈",
+    "features": "서비스 소개",
+    "about": "파트너 소개",
+    "contact": "문의하기",
+    "cta": "무료 진단 신청",
+    "openMenu": "메뉴 열기",
+    "closeMenu": "메뉴 닫기"
+  },
+  "hero": {
+    "exploreServices": "서비스 살펴보기",
+    "defaultTitle": "OpsNow으로 클라우드를 최적화하세요",
+    "defaultSubtitle": "파트너와 함께하는 스마트한 클라우드 관리 솔루션",
+    "defaultCta": "무료 진단 신청"
+  },
+  "footer": {
+    "tagline": "OpsNow 파트너가 제공하는 클라우드 최적화 서비스",
+    "contact": "연락처",
+    "legal": "법적 고지",
+    "terms": "이용약관",
+    "privacy": "개인정보 처리방침"
+  },
+  "corporate": {
+    "companyName": "상호명",
+    "representative": "대표",
+    "address": "주소",
+    "registrationNumber": "사업자등록번호"
+  },
+  "termsPage": {
+    "defaultTitle": "이용약관",
+    "comingSoon": "이용약관 내용이 준비 중입니다."
+  },
+  "privacyPage": {
+    "defaultTitle": "개인정보 처리방침",
+    "comingSoon": "개인정보 처리방침 내용이 준비 중입니다."
+  },
+  "contactForm": {
+    "defaultCta": "문의 신청하기"
+  }
+}

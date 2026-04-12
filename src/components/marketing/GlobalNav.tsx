@@ -6,17 +6,13 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import type { Partner } from '@/services/partnerService';
+import { getDictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/proxy';
 
 interface GlobalNavProps {
   partner: Partner;
+  locale: Locale;
 }
-
-const NAV_LINKS = [
-  { label: '홈', href: '#home' },
-  { label: '서비스 소개', href: '#features' },
-  { label: '파트너 소개', href: '#about' },
-  { label: '문의하기', href: '#contact' },
-];
 
 function LogoArea({ partner }: { partner: Partner }) {
   if (partner.logo_url) {
@@ -38,8 +34,16 @@ function LogoArea({ partner }: { partner: Partner }) {
   );
 }
 
-export default function GlobalNav({ partner }: GlobalNavProps) {
+export default function GlobalNav({ partner, locale }: GlobalNavProps) {
+  const t = getDictionary(locale).nav;
   const [open, setOpen] = useState(false);
+
+  const NAV_LINKS = [
+    { label: t.home, href: '#home' },
+    { label: t.features, href: '#features' },
+    { label: t.about, href: '#about' },
+    { label: t.contact, href: '#contact' },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -64,14 +68,14 @@ export default function GlobalNav({ partner }: GlobalNavProps) {
 
         <div className="hidden md:block">
           <Button asChild size="sm">
-            <a href="#contact">무료 진단 신청</a>
+            <a href="#contact">{t.cta}</a>
           </Button>
         </div>
 
         {/* 모바일 메뉴 */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden" aria-label="메뉴 열기">
+            <Button variant="ghost" size="icon" className="md:hidden" aria-label={t.openMenu}>
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -83,7 +87,7 @@ export default function GlobalNav({ partner }: GlobalNavProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => setOpen(false)}
-                  aria-label="메뉴 닫기"
+                  aria-label={t.closeMenu}
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -104,7 +108,7 @@ export default function GlobalNav({ partner }: GlobalNavProps) {
               <div className="mt-auto">
                 <Button className="w-full" asChild>
                   <a href="#contact" onClick={() => setOpen(false)}>
-                    무료 진단 신청
+                    {t.cta}
                   </a>
                 </Button>
               </div>

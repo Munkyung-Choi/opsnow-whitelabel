@@ -1,9 +1,7 @@
-import type { Database } from '@/types/supabase';
-
-type ContentRow = Database['public']['Tables']['contents']['Row'];
+import type { LocalizedContentRow } from '@/lib/marketing/get-partner-page-data';
 
 interface AboutSectionProps {
-  content: ContentRow | null;
+  content: LocalizedContentRow | null;
 }
 
 export default function AboutSection({ content }: AboutSectionProps) {

@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 import { validatePartner } from '@/services/partnerService';
 import { getContrastColor } from '@/lib/utils';
 
+// 어드민에서 섹션 설정 변경 시 즉시 반영 보장 (WL-42 완료 후 revalidatePath() 기반으로 전환)
+export const dynamic = 'force-dynamic';
+
 interface PartnerLayoutProps {
   children: React.ReactNode;
   params: Promise<{ partnerId: string }>;
