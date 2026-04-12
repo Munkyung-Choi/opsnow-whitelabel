@@ -48,7 +48,11 @@ function detectLocale(request: NextRequest, partnerDefault: string): Locale {
 }
 
 function isAdminHost(host: string): boolean {
-  return host === ADMIN_HOST || host.startsWith('admin-whitelabel.');
+  return (
+    host === ADMIN_HOST ||
+    host.startsWith('admin-whitelabel.') ||
+    host.startsWith('dev-admin-whitelabel.')
+  );
 }
 
 /** 순수 localhost (서브도메인 없는 경우만) — e.g. localhost:3000, 127.0.0.1 */
@@ -106,9 +110,13 @@ async function resolvePartnerFromHost(host: string): Promise<PartnerLocaleData |
     return parsePartnerLocaleData(data as Record<string, any> | null);
   }
 
-  // 2. *.opsnow.com 서브도메인 (프로덕션)
+  // 2. *.opsnow.com 서브도메인 (프로덕션 및 dev- 접두어 개발 환경)
+  // dev-partner-a.opsnow.com → DB 조회 시 'partner-a'로 정규화
   if (cleanHost.endsWith(`.${BASE_DOMAIN}`)) {
-    const subdomain = cleanHost.slice(0, -(`.${BASE_DOMAIN}`.length));
+    const rawSubdomain = cleanHost.slice(0, -(`.${BASE_DOMAIN}`.length));
+    const subdomain = rawSubdomain.startsWith('dev-')
+      ? rawSubdomain.slice('dev-'.length)
+      : rawSubdomain;
     const { data } = await supabase
       .from('partners')
       .select(selectCols)
@@ -157,9 +165,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 순수 localhost: DEV_PARTNER_SLUG 환경변수 기반 fallback (개발 환경 전용, CI/CD 지원)
-  if (isPlainLocalhost(host)) {
-    const devSlug = (IS_DEV || IS_PREVIEW) ? process.env.DEV_PARTNER_SLUG : undefined;
+  // 순수 localhost 또는 Vercel 기본 도메인(*.vercel.app): DEV_PARTNER_SLUG 기반 fallback
+  // *.vercel.app은 실제 파트너 도메인이 아니므로 DEV_PARTNER_SLUG로만 접근 가능
+  if (isPlainLocalhost(host) || host.endsWith('.vercel.app')) {
+    const devSlug = process.env.DEV_PARTNER_SLUG;
     if (devSlug) {
       const supabase = createSupabaseClient();
       const { data } = await supabase
