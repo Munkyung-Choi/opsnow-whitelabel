@@ -1,8 +1,7 @@
 name: CD
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:  # 수동 트리거 전용 — Vercel Native Git Integration이 자동 배포를 담당
 
 jobs:
   deploy:
