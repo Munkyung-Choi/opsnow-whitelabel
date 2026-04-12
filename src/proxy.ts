@@ -155,9 +155,19 @@ export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') ?? '';
   const pathname = request.nextUrl.pathname;
 
-  if (IS_DEV) {
-    console.log(`[Proxy] host=${host} pathname=${pathname}`);
+  // 진단용 헬스체크 — 미들웨어 실행 확인 (임시, WL-46 완료 후 제거)
+  if (pathname === '/__proxy_health') {
+    return NextResponse.json({
+      ok: true,
+      host,
+      env: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV ?? null,
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasDevSlug: !!process.env.DEV_PARTNER_SLUG,
+    });
   }
+
+  console.log(`[Proxy] host=${host} pathname=${pathname} vercelEnv=${process.env.VERCEL_ENV ?? 'none'}`);
 
   // 어드민 사이트: 파트너 라우팅 없이 통과
   if (isAdminHost(host)) {
