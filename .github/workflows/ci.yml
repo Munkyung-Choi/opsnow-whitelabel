@@ -28,7 +28,7 @@ jobs:
         run: npm run lint
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: npm run type-check
 
   # ── Job 2: Build ────────────────────────────────────────────────────────────
   # quality 통과 후 실행 — Next.js 빌드 성공 여부 검증
