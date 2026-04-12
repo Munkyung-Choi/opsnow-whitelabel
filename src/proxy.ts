@@ -167,8 +167,10 @@ export async function proxy(request: NextRequest) {
 
   // 순수 localhost 또는 Vercel 기본 도메인(*.vercel.app): DEV_PARTNER_SLUG 기반 fallback
   // *.vercel.app은 실제 파트너 도메인이 아니므로 DEV_PARTNER_SLUG로만 접근 가능
+  // ?partner=slug 쿼리 파라미터는 이 블록(dev/preview 환경)에서만 유효 — 프로덕션 도메인 격리 보호
   if (isPlainLocalhost(host) || host.endsWith('.vercel.app')) {
-    const devSlug = process.env.DEV_PARTNER_SLUG;
+    const devSlug =
+      request.nextUrl.searchParams.get('partner') ?? process.env.DEV_PARTNER_SLUG;
     if (devSlug) {
       const supabase = createSupabaseClient();
       const { data } = await supabase
