@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
+import { type Locale, SUPPORTED_LOCALES, COUNTRY_LOCALE_MAP, validateLocale } from '@/lib/i18n/locales';
+// 기존 소비자(import { Locale/validateLocale } from '@/proxy') 하위 호환 re-export
+export type { Locale } from '@/lib/i18n/locales';
+export { validateLocale }; // 내부 import 바인딩을 그대로 재노출
 
 const ADMIN_HOST = 'admin-whitelabel.opsnow.com';
 const BASE_DOMAIN = 'opsnow.com';
@@ -72,15 +76,8 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
   ]);
 }
 
-// [WL-61] Auditor #1 요건: SQL Injection 방지 화이트리스트
-const SUPPORTED_LOCALES = ['ko', 'en'] as const;
-export type Locale = typeof SUPPORTED_LOCALES[number];
-
-
-// 화이트리스트 검증 — 허용되지 않은 값은 기본값(ko)으로 강제
-export function validateLocale(raw: string | null | undefined): Locale {
-  return SUPPORTED_LOCALES.includes(raw as Locale) ? (raw as Locale) : 'ko';
-}
+// [WL-71] SUPPORTED_LOCALES, Locale, validateLocale 는 locales.ts 로 이전.
+// 위 import 및 re-export 참고.
 
 /**
  * 로케일 감지 파이프라인 (우선순위: 쿠키 → IP → 파트너 기본값)
@@ -96,10 +93,11 @@ function detectLocale(request: NextRequest, partnerDefault: string): Locale {
     return cookieLocale as Locale;
   }
 
-  // 우선순위 2: Vercel IP 리전 (헤더가 존재할 때만 사용)
+  // 우선순위 2: Vercel IP 리전 → COUNTRY_LOCALE_MAP 매핑 (헤더가 존재할 때만 사용)
+  // [WL-71] ko/en 고정 매핑에서 다국어 매핑 테이블로 교체. 미매핑 국가는 'en' 폴백.
   const ipCountry = request.headers.get('x-vercel-ip-country');
   if (ipCountry !== null) {
-    return ipCountry === 'KR' ? 'ko' : 'en';
+    return COUNTRY_LOCALE_MAP[ipCountry] ?? 'en';
   }
 
   // 우선순위 3: 파트너 기본 설정 (화이트리스트 재검증)

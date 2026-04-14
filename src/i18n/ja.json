@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "features": "サービス紹介",
+    "about": "パートナー紹介",
+    "contact": "お問い合わせ",
+    "cta": "無料診断を申し込む",
+    "openMenu": "メニューを開く",
+    "closeMenu": "メニューを閉じる"
+  },
+  "hero": {
+    "exploreServices": "サービスを見る",
+    "defaultTitle": "OpsNowでクラウドを最適化",
+    "defaultSubtitle": "パートナーと共に実現するスマートなクラウド管理",
+    "defaultCta": "無料診断を申し込む"
+  },
+  "footer": {
+    "tagline": "OpsNowパートナーが提供するクラウド最適化サービス",
+    "contact": "連絡先",
+    "legal": "法的通知",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー"
+  },
+  "corporate": {
+    "companyName": "会社名",
+    "representative": "代表者",
+    "address": "住所",
+    "registrationNumber": "法人番号"
+  },
+  "termsPage": {
+    "defaultTitle": "利用規約",
+    "comingSoon": "利用規約の内容は準備中です。"
+  },
+  "privacyPage": {
+    "defaultTitle": "プライバシーポリシー",
+    "comingSoon": "プライバシーポリシーの内容は準備中です。"
+  },
+  "contactForm": {
+    "defaultCta": "お問い合わせを申し込む"
+  }
+}

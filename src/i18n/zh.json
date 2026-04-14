@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "首页",
+    "features": "服务介绍",
+    "about": "合作伙伴介绍",
+    "contact": "联系我们",
+    "cta": "申请免费诊断",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单"
+  },
+  "hero": {
+    "exploreServices": "了解服务",
+    "defaultTitle": "通过OpsNow优化您的云资源",
+    "defaultSubtitle": "与合作伙伴共同实现智能云管理",
+    "defaultCta": "申请免费诊断"
+  },
+  "footer": {
+    "tagline": "OpsNow合作伙伴提供的云优化服务",
+    "contact": "联系方式",
+    "legal": "法律声明",
+    "terms": "服务条款",
+    "privacy": "隐私政策"
+  },
+  "corporate": {
+    "companyName": "公司名称",
+    "representative": "法人代表",
+    "address": "地址",
+    "registrationNumber": "营业执照号"
+  },
+  "termsPage": {
+    "defaultTitle": "服务条款",
+    "comingSoon": "服务条款内容准备中。"
+  },
+  "privacyPage": {
+    "defaultTitle": "隐私政策",
+    "comingSoon": "隐私政策内容准备中。"
+  },
+  "contactForm": {
+    "defaultCta": "提交咨询"
+  }
+}
