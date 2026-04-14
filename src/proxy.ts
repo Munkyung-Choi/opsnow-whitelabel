@@ -155,6 +155,11 @@ export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') ?? '';
   const pathname = request.nextUrl.pathname;
 
+  // [WL-65] /not-found 경로는 파트너 라우팅 대상에서 제외 — redirect 루프 방지
+  if (pathname.startsWith('/not-found')) {
+    return NextResponse.next();
+  }
+
   // 진단용 헬스체크 — 미들웨어 실행 확인 (임시, WL-46 완료 후 제거)
   if (pathname === '/__proxy_health') {
     return NextResponse.json({
@@ -210,7 +215,12 @@ export async function proxy(request: NextRequest) {
 
   if (!partner) {
     if (IS_DEV) console.log(`[Proxy] → Partner not found for host: ${host}`);
-    return NextResponse.redirect(new URL('/not-found', request.url));
+    // 파트너 서브도메인에서 /not-found로 리다이렉트하면 미들웨어가 재실행되어
+    // 루프가 발생한다. 베이스 호스트(localhost:3000 또는 BASE_DOMAIN)로 리다이렉트.
+    const notFoundBase = IS_DEV
+      ? `http://localhost:${new URL(request.url).port || 3000}`
+      : `https://${BASE_DOMAIN}`;
+    return NextResponse.redirect(new URL('/not-found', notFoundBase));
   }
 
   // [WL-61] 로케일 감지
@@ -227,5 +237,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
+  // not-found를 제외하여 파트너 미발견 시 리다이렉트 루프 방지
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|not-found).*)'],
 };

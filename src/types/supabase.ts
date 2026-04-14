@@ -7,48 +7,68 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
       contents: {
         Row: {
-          body: Json | null
+          body: string | null
           contact_info: Json | null
-          cta_text: Json | null
+          cta_text: string | null
           id: string
           is_published: boolean | null
           partner_id: string
           section_type: string
-          subtitle: Json | null
-          title: Json | null
+          subtitle: string | null
+          title: string | null
           updated_at: string | null
         }
         Insert: {
-          body?: Json | null
+          body?: string | null
           contact_info?: Json | null
-          cta_text?: Json | null
+          cta_text?: string | null
           id?: string
           is_published?: boolean | null
           partner_id: string
           section_type: string
-          subtitle?: Json | null
-          title?: Json | null
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string | null
         }
         Update: {
-          body?: Json | null
+          body?: string | null
           contact_info?: Json | null
-          cta_text?: Json | null
+          cta_text?: string | null
           id?: string
           is_published?: boolean | null
           partner_id?: string
           section_type?: string
-          subtitle?: Json | null
-          title?: Json | null
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -63,32 +83,32 @@ export type Database = {
       }
       global_contents: {
         Row: {
-          body: Json | null
+          body: string | null
           id: string
           meta: Json | null
           section_type: string
-          subtitle: Json | null
-          title: Json | null
+          subtitle: string | null
+          title: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          body?: Json | null
+          body?: string | null
           id?: string
           meta?: Json | null
           section_type: string
-          subtitle?: Json | null
-          title?: Json | null
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          body?: Json | null
+          body?: string | null
           id?: string
           meta?: Json | null
           section_type?: string
-          subtitle?: Json | null
-          title?: Json | null
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -141,6 +161,44 @@ export type Database = {
           },
         ]
       }
+      partner_sections: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: string
+          is_visible: boolean
+          partner_id: string
+          section_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          partner_id: string
+          section_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          partner_id?: string
+          section_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_sections_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           business_name: string
@@ -149,15 +207,15 @@ export type Database = {
           custom_domain_status: string | null
           default_locale: string
           favicon_url: string | null
+          hero_image_url: string | null
           id: string
           is_active: boolean | null
           logo_url: string | null
           notification_emails: Json | null
           owner_id: string
-          primary_color: string | null
           published_locales: string[]
-          secondary_color: string | null
           subdomain: string
+          theme_key: string | null
           updated_at: string | null
         }
         Insert: {
@@ -167,15 +225,15 @@ export type Database = {
           custom_domain_status?: string | null
           default_locale?: string
           favicon_url?: string | null
+          hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
           notification_emails?: Json | null
           owner_id: string
-          primary_color?: string | null
           published_locales?: string[]
-          secondary_color?: string | null
           subdomain: string
+          theme_key?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -185,15 +243,15 @@ export type Database = {
           custom_domain_status?: string | null
           default_locale?: string
           favicon_url?: string | null
+          hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
           notification_emails?: Json | null
           owner_id?: string
-          primary_color?: string | null
           published_locales?: string[]
-          secondary_color?: string | null
           subdomain?: string
+          theme_key?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -480,7 +538,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+

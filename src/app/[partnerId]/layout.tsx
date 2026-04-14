@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { validatePartner } from '@/services/partnerService';
-import { getContrastColor } from '@/lib/utils';
+import { themes, DEFAULT_THEME_KEY, type ThemeKey } from '@/lib/theme-presets';
 
 // 어드민에서 섹션 설정 변경 시 즉시 반영 보장 (WL-42 완료 후 revalidatePath() 기반으로 전환)
 export const dynamic = 'force-dynamic';
@@ -39,22 +39,12 @@ export default async function PartnerLayout({ children, params }: PartnerLayoutP
 
   if (!partner) notFound();
 
-  const primaryColor = partner.primary_color ?? '#0000FF';
-  const secondaryColor = partner.secondary_color ?? '#F3F4F6';
-  const primaryFg = getContrastColor(primaryColor);
-  const secondaryFg = getContrastColor(secondaryColor);
+  // theme_key가 DB에 없거나 유효하지 않으면 기본 테마로 폴백
+  const themeKey = (partner.theme_key as ThemeKey | null) ?? DEFAULT_THEME_KEY;
+  const themeVars = themes[themeKey] ?? themes[DEFAULT_THEME_KEY];
 
   return (
-    <div
-      style={
-        {
-          '--primary': primaryColor,
-          '--primary-foreground': primaryFg,
-          '--secondary': secondaryColor,
-          '--secondary-foreground': secondaryFg,
-        } as React.CSSProperties
-      }
-    >
+    <div style={themeVars as React.CSSProperties}>
       {children}
     </div>
   );

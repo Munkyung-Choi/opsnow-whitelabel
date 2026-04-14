@@ -16,6 +16,8 @@ import {
 interface ContactFormProps {
   partnerId: string;
   ctaText?: string;
+  title?: string;
+  subtitle?: string;
 }
 
 const CLOUD_USAGE_OPTIONS = [
@@ -25,7 +27,12 @@ const CLOUD_USAGE_OPTIONS = [
   { value: '20m_plus', label: '2,000만원 이상' },
 ];
 
-export default function ContactForm({ partnerId, ctaText = '문의 신청하기' }: ContactFormProps) {
+export default function ContactForm({
+  partnerId,
+  ctaText = '문의 신청하기',
+  title = '지금 바로 문의하세요',
+  subtitle = '전문 컨설턴트가 귀사에 맞는 클라우드 최적화 방안을 안내해 드립니다.',
+}: ContactFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
   // WL-42: 서버 액션 연동 예정 — 현재는 UI 전용
@@ -47,10 +54,10 @@ export default function ContactForm({ partnerId, ctaText = '문의 신청하기'
       <div className="mx-auto max-w-2xl">
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold text-secondary-foreground sm:text-4xl">
-            지금 바로 문의하세요
+            {title}
           </h2>
           <p className="mt-4 text-base text-muted-foreground">
-            전문 컨설턴트가 귀사에 맞는 클라우드 최적화 방안을 안내해 드립니다.
+            {subtitle}
           </p>
         </div>
 

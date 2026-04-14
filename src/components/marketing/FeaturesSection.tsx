@@ -1,24 +1,15 @@
-import { Cloud, Brain, TrendingDown, Shield, type LucideIcon } from 'lucide-react';
 import type { FeaturesContent, FeatureCard } from '@/lib/marketing/get-partner-page-data';
+import IconRenderer from '@/components/marketing/IconRenderer';
 
 interface FeaturesSectionProps {
   content: FeaturesContent | null;
 }
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  cloud: Cloud,
-  brain: Brain,
-  'trending-down': TrendingDown,
-  shield: Shield,
-};
-
 function FeatureCardItem({ card }: { card: FeatureCard }) {
-  const Icon = ICON_MAP[card.icon] ?? Cloud;
-
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-        <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+        <IconRenderer name={card.icon} className="h-6 w-6 text-primary" aria-hidden="true" />
       </div>
       <h3 className="text-lg font-semibold text-card-foreground">{card.title}</h3>
       <p className="text-sm leading-relaxed text-muted-foreground">{card.description}</p>

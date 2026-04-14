@@ -26,8 +26,8 @@ AND id NOT IN (
   '762b0245-de65-46e5-ab27-b1c7bf8aaa29',
   '6adb5034-0a0e-4f60-bbd3-b1286a071473',
   'fab084cd-5921-44f6-85b1-a13a01d3cfd4',
-  'c3000000-0000-4000-8000-000000000001',
-  'd4000000-0000-4000-8000-000000000001'
+  'c3000000-0000-0000-0000-000000000001',
+  'd4000000-0000-0000-0000-000000000001'
 );
 
 
@@ -89,7 +89,7 @@ INSERT INTO auth.users (
   ),
   -- Partner C (GreenSave) Admin
   (
-    'c3000000-0000-4000-8000-000000000001',
+    'c3000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000000',
     'authenticated', 'authenticated',
     'admin@greensave.test',
@@ -100,7 +100,7 @@ INSERT INTO auth.users (
   ),
   -- Partner D (OrangeCloud) Admin
   (
-    'd4000000-0000-4000-8000-000000000001',
+    'd4000000-0000-0000-0000-000000000001',
     '00000000-0000-0000-0000-000000000000',
     'authenticated', 'authenticated',
     'admin@orangecloud.test',
@@ -121,9 +121,8 @@ ON CONFLICT (id) DO NOTHING;
 -- -----------------------------------------------------------------------------
 INSERT INTO public.partners (
   id, business_name, subdomain, owner_id,
-  theme_key, default_locale, published_locales,
+  theme_key, primary_color, secondary_color,
   logo_url, favicon_url,
-  hero_image_url,  -- NULL = 기본 이미지(/images/marketing/hero-default.webp) 사용. 파트너 커스텀 업로드 시 Supabase Storage URL로 대체.
   is_active, notification_emails
 ) VALUES
   (
@@ -131,51 +130,54 @@ INSERT INTO public.partners (
     'CloudSave',
     'partner-a',
     '6adb5034-0a0e-4f60-bbd3-b1286a071473',
-    'gray', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
-    NULL,        -- hero_image_url: NULL = 기본 이미지 사용
-    true, '["admin@cloudsave.test"]'
+    'gray',
+    '#0D0C22',  -- Figma Make gray primaryHex
+    '#E8E8F0',
+    NULL, NULL, true,
+    '["admin@cloudsave.test"]'
   ),
   (
     '9309979b-9211-457e-ad01-68e843c7687b',
     'DataFlow',
     'partner-b',
     'fab084cd-5921-44f6-85b1-a13a01d3cfd4',
-    'blue', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
-    NULL,        -- hero_image_url: NULL = 기본 이미지 사용
-    true, '["admin@dataflow.test"]'
+    'blue',
+    '#0012B6',  -- Figma Make blue primaryHex
+    '#E8EAFF',
+    NULL, NULL, true,
+    '["admin@dataflow.test"]'
   ),
   (
-    'c3000000-0000-4000-8000-000000000002',
+    'c3000000-0000-0000-0000-000000000002',
     'GreenSave',
     'partner-c',
-    'c3000000-0000-4000-8000-000000000001',
-    'green', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
-    NULL,        -- hero_image_url: NULL = 기본 이미지 사용
-    true, '["admin@greensave.test"]'
+    'c3000000-0000-0000-0000-000000000001',
+    'green',
+    '#1A5835',  -- Figma Make green primaryHex
+    '#E5F0EA',
+    NULL, NULL, true,
+    '["admin@greensave.test"]'
   ),
   (
-    'd4000000-0000-4000-8000-000000000002',
+    'd4000000-0000-0000-0000-000000000002',
     'OrangeCloud',
     'partner-d',
-    'd4000000-0000-4000-8000-000000000001',
-    'orange', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
-    NULL,        -- hero_image_url: NULL = 기본 이미지 사용
-    true, '["admin@orangecloud.test"]'
+    'd4000000-0000-0000-0000-000000000001',
+    'orange',
+    '#D23F01',  -- Figma Make orange primaryHex
+    '#F8ECE7',
+    NULL, NULL, true,
+    '["admin@orangecloud.test"]'
   )
 ON CONFLICT (id) DO UPDATE SET
-  business_name       = EXCLUDED.business_name,
-  subdomain           = EXCLUDED.subdomain,
-  theme_key           = EXCLUDED.theme_key,
-  default_locale      = EXCLUDED.default_locale,
-  published_locales   = EXCLUDED.published_locales,
-  is_active           = EXCLUDED.is_active,
+  business_name      = EXCLUDED.business_name,
+  subdomain          = EXCLUDED.subdomain,
+  theme_key          = EXCLUDED.theme_key,
+  primary_color      = EXCLUDED.primary_color,
+  secondary_color    = EXCLUDED.secondary_color,
+  is_active          = EXCLUDED.is_active,
   notification_emails = EXCLUDED.notification_emails,
-  hero_image_url      = EXCLUDED.hero_image_url,
-  updated_at          = NOW();
+  updated_at         = NOW();
 
 
 -- -----------------------------------------------------------------------------
@@ -187,8 +189,8 @@ INSERT INTO public.profiles (id, role, partner_id) VALUES
   ('762b0245-de65-46e5-ab27-b1c7bf8aaa29', 'master_admin', NULL),
   ('6adb5034-0a0e-4f60-bbd3-b1286a071473', 'partner_admin', 'b03e99fd-9cec-4ab3-a2c5-3462562f84f2'),
   ('fab084cd-5921-44f6-85b1-a13a01d3cfd4', 'partner_admin', '9309979b-9211-457e-ad01-68e843c7687b'),
-  ('c3000000-0000-4000-8000-000000000001', 'partner_admin', 'c3000000-0000-4000-8000-000000000002'),
-  ('d4000000-0000-4000-8000-000000000001', 'partner_admin', 'd4000000-0000-4000-8000-000000000002')
+  ('c3000000-0000-0000-0000-000000000001', 'partner_admin', 'c3000000-0000-0000-0000-000000000002'),
+  ('d4000000-0000-0000-0000-000000000001', 'partner_admin', 'd4000000-0000-0000-0000-000000000002')
 ON CONFLICT (id) DO UPDATE SET
   role       = EXCLUDED.role,
   partner_id = EXCLUDED.partner_id;
@@ -349,80 +351,6 @@ ON CONFLICT (partner_id, section_type) DO UPDATE SET
   title      = EXCLUDED.title,
   subtitle   = EXCLUDED.subtitle,
   body       = EXCLUDED.body,
-  contact_info = EXCLUDED.contact_info,
-  is_published = EXCLUDED.is_published,
-  updated_at = NOW();
-
--- [ Partner C: GreenSave ] — Green 테마 검증용 (hero + footer)
-INSERT INTO public.contents (
-  id, partner_id, section_type, title, subtitle, body, cta_text, contact_info, is_published
-) VALUES
-  -- Hero (발행)
-  (
-    'c0000003-0000-0000-0000-000000000001',
-    'c3000000-0000-4000-8000-000000000002',
-    'hero',
-    '지속 가능한 클라우드 운영, {PartnerName:과/와} 함께',
-    '환경을 생각하는 FinOps로 비용과 탄소발자국을 동시에 줄이세요.',
-    NULL,
-    '무료 상담 신청하기',
-    '{"email": "", "phone": "", "address": ""}',
-    true
-  ),
-  -- Footer (발행)
-  (
-    'c0000003-0000-0000-0000-000000000002',
-    'c3000000-0000-4000-8000-000000000002',
-    'footer',
-    'GreenSave',
-    NULL,
-    NULL,
-    NULL,
-    '{"email": "contact@greensave.test", "phone": "02-0000-0003", "address": "서울특별시 마포구 월드컵북로 789, 그린타워 7층"}',
-    true
-  )
-ON CONFLICT (partner_id, section_type) DO UPDATE SET
-  title      = EXCLUDED.title,
-  subtitle   = EXCLUDED.subtitle,
-  body       = EXCLUDED.body,
-  cta_text   = EXCLUDED.cta_text,
-  contact_info = EXCLUDED.contact_info,
-  is_published = EXCLUDED.is_published,
-  updated_at = NOW();
-
--- [ Partner D: OrangeCloud ] — Orange 테마 검증용 (hero + footer)
-INSERT INTO public.contents (
-  id, partner_id, section_type, title, subtitle, body, cta_text, contact_info, is_published
-) VALUES
-  -- Hero (발행)
-  (
-    'c0000004-0000-0000-0000-000000000001',
-    'd4000000-0000-4000-8000-000000000002',
-    'hero',
-    '클라우드 비용, {PartnerName:이/가} 새롭게 정의합니다',
-    '에너지 넘치는 FinOps 플랫폼으로 낭비를 없애고 성장을 가속하세요.',
-    NULL,
-    '지금 시작하기',
-    '{"email": "", "phone": "", "address": ""}',
-    true
-  ),
-  -- Footer (발행)
-  (
-    'c0000004-0000-0000-0000-000000000002',
-    'd4000000-0000-4000-8000-000000000002',
-    'footer',
-    'OrangeCloud',
-    NULL,
-    NULL,
-    NULL,
-    '{"email": "contact@orangecloud.test", "phone": "02-0000-0004", "address": "서울특별시 송파구 올림픽로 321, 오렌지빌딩 9층"}',
-    true
-  )
-ON CONFLICT (partner_id, section_type) DO UPDATE SET
-  title      = EXCLUDED.title,
-  subtitle   = EXCLUDED.subtitle,
-  body       = EXCLUDED.body,
-  cta_text   = EXCLUDED.cta_text,
   contact_info = EXCLUDED.contact_info,
   is_published = EXCLUDED.is_published,
   updated_at = NOW();
@@ -606,23 +534,23 @@ INSERT INTO public.partner_sections (partner_id, section_type, is_visible, displ
   ('9309979b-9211-457e-ad01-68e843c7687b', 'faq',                false, 7),  -- OFF: contents 미등록
   ('9309979b-9211-457e-ad01-68e843c7687b', 'final_cta',          true,  8),
   -- Partner C (GreenSave) — 전 섹션 활성화 (Green 테마 검증용)
-  ('c3000000-0000-4000-8000-000000000002', 'pain_points',        true,  1),
-  ('c3000000-0000-4000-8000-000000000002', 'stats',              true,  2),
-  ('c3000000-0000-4000-8000-000000000002', 'how_it_works',       true,  3),
-  ('c3000000-0000-4000-8000-000000000002', 'finops_automation',  true,  4),
-  ('c3000000-0000-4000-8000-000000000002', 'core_engines',       true,  5),
-  ('c3000000-0000-4000-8000-000000000002', 'role_based_value',   true,  6),
-  ('c3000000-0000-4000-8000-000000000002', 'faq',                true,  7),
-  ('c3000000-0000-4000-8000-000000000002', 'final_cta',          true,  8),
+  ('c3000000-0000-0000-0000-000000000002', 'pain_points',        true,  1),
+  ('c3000000-0000-0000-0000-000000000002', 'stats',              true,  2),
+  ('c3000000-0000-0000-0000-000000000002', 'how_it_works',       true,  3),
+  ('c3000000-0000-0000-0000-000000000002', 'finops_automation',  true,  4),
+  ('c3000000-0000-0000-0000-000000000002', 'core_engines',       true,  5),
+  ('c3000000-0000-0000-0000-000000000002', 'role_based_value',   true,  6),
+  ('c3000000-0000-0000-0000-000000000002', 'faq',                true,  7),
+  ('c3000000-0000-0000-0000-000000000002', 'final_cta',          true,  8),
   -- Partner D (OrangeCloud) — 전 섹션 활성화 (Orange 테마 검증용)
-  ('d4000000-0000-4000-8000-000000000002', 'pain_points',        true,  1),
-  ('d4000000-0000-4000-8000-000000000002', 'stats',              true,  2),
-  ('d4000000-0000-4000-8000-000000000002', 'how_it_works',       true,  3),
-  ('d4000000-0000-4000-8000-000000000002', 'finops_automation',  true,  4),
-  ('d4000000-0000-4000-8000-000000000002', 'core_engines',       true,  5),
-  ('d4000000-0000-4000-8000-000000000002', 'role_based_value',   true,  6),
-  ('d4000000-0000-4000-8000-000000000002', 'faq',                true,  7),
-  ('d4000000-0000-4000-8000-000000000002', 'final_cta',          true,  8)
+  ('d4000000-0000-0000-0000-000000000002', 'pain_points',        true,  1),
+  ('d4000000-0000-0000-0000-000000000002', 'stats',              true,  2),
+  ('d4000000-0000-0000-0000-000000000002', 'how_it_works',       true,  3),
+  ('d4000000-0000-0000-0000-000000000002', 'finops_automation',  true,  4),
+  ('d4000000-0000-0000-0000-000000000002', 'core_engines',       true,  5),
+  ('d4000000-0000-0000-0000-000000000002', 'role_based_value',   true,  6),
+  ('d4000000-0000-0000-0000-000000000002', 'faq',                true,  7),
+  ('d4000000-0000-0000-0000-000000000002', 'final_cta',          true,  8)
 ON CONFLICT (partner_id, section_type) DO UPDATE SET
   is_visible    = EXCLUDED.is_visible,
   display_order = EXCLUDED.display_order,

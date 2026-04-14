@@ -38,11 +38,11 @@ export default function GlobalNav({ partner, locale }: GlobalNavProps) {
   const t = getDictionary(locale).nav;
   const [open, setOpen] = useState(false);
 
+  // WL-40: Confluence 화면 설계서 Section 1 기준 네비게이션 링크
   const NAV_LINKS = [
-    { label: t.home, href: '#home' },
-    { label: t.features, href: '#features' },
-    { label: t.about, href: '#about' },
-    { label: t.contact, href: '#contact' },
+    { label: '제품 소개', href: '#how-it-works' },
+    { label: '핵심 기능', href: '#core-engines' },
+    { label: '자주 묻는 질문', href: '#faq' },
   ];
 
   return (
