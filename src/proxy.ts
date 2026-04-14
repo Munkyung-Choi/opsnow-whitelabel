@@ -7,16 +7,56 @@ const BASE_DOMAIN = 'opsnow.com';
 const IS_DEV = process.env.NODE_ENV === 'development';
 const IS_PREVIEW = process.env.VERCEL_ENV === 'preview';
 
+// ─── Middleware In-Memory Cache ───────────────────────────────────────────────
+// Edge Worker 인스턴스 내에서 파트너 조회 중복 방지.
+// 캐시 키: "subdomain:{slug}" 또는 "custom_domain:{host}"
+const PARTNER_CACHE_TTL_MS = 60_000; // 60초
+const MAX_CACHE_SIZE = 500;           // Auditor #2: DoS 방지용 상한
+
+interface PartnerCacheEntry {
+  data: PartnerLocaleData | null;
+  expiresAt: number;
+}
+
+const partnerCache = new Map<string, PartnerCacheEntry>();
+
+function getCached(key: string): PartnerLocaleData | null | undefined {
+  const entry = partnerCache.get(key);
+  if (!entry) return undefined;
+  if (entry.expiresAt < Date.now()) {
+    partnerCache.delete(key);
+    return undefined;
+  }
+  return entry.data;
+}
+
+function setCache(key: string, data: PartnerLocaleData | null): void {
+  // FIFO 퇴출: 상한 초과 시 가장 오래된 항목 제거
+  if (partnerCache.size >= MAX_CACHE_SIZE) {
+    const oldest = partnerCache.keys().next().value;
+    if (oldest) partnerCache.delete(oldest);
+  }
+  partnerCache.set(key, { data, expiresAt: Date.now() + PARTNER_CACHE_TTL_MS });
+}
+
+// ─── Supabase Client Singleton ────────────────────────────────────────────────
+// 매 요청마다 createClient()를 호출하지 않도록 모듈 레벨에서 1회만 생성
+let _supabase: ReturnType<typeof createClient<Database>> | null = null;
+
+function getSupabaseClient() {
+  if (!_supabase) {
+    _supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  }
+  return _supabase;
+}
+
 // [WL-61] Auditor #1 요건: SQL Injection 방지 화이트리스트
 const SUPPORTED_LOCALES = ['ko', 'en'] as const;
 export type Locale = typeof SUPPORTED_LOCALES[number];
 
-function createSupabaseClient() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
 
 // 화이트리스트 검증 — 허용되지 않은 값은 기본값(ko)으로 강제
 export function validateLocale(raw: string | null | undefined): Locale {
@@ -91,52 +131,71 @@ function parsePartnerLocaleData(
   };
 }
 
-async function resolvePartnerFromHost(host: string): Promise<PartnerLocaleData | null> {
-  const supabase = createSupabaseClient();
-  const cleanHost = host.split(':')[0];
-  // [WL-61] default_locale, published_locales 신규 컬럼 추가
-  const selectCols = 'id, default_locale, published_locales';
+const PARTNER_SELECT = 'id, default_locale, published_locales';
 
-  // 1. *.localhost 서브도메인 (로컬 개발 — 프로덕션과 동일한 매칭 로직)
+/** subdomain 기반 파트너 조회 (캐시 적용) */
+async function resolvePartnerBySubdomain(subdomain: string): Promise<PartnerLocaleData | null> {
+  const cacheKey = `subdomain:${subdomain}`;
+  const cached = getCached(cacheKey);
+  if (cached !== undefined) return cached;
+
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from('partners')
+    .select(PARTNER_SELECT)
+    .eq('subdomain', subdomain)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (error) console.error(`[Proxy] Supabase error (subdomain=${subdomain}):`, error.message);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = parsePartnerLocaleData(error ? null : (data as Record<string, any> | null));
+  setCache(cacheKey, result);
+  return result;
+}
+
+/** custom_domain 기반 파트너 조회 (캐시 적용) */
+async function resolvePartnerByCustomDomain(domain: string): Promise<PartnerLocaleData | null> {
+  const cacheKey = `custom_domain:${domain}`;
+  const cached = getCached(cacheKey);
+  if (cached !== undefined) return cached;
+
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from('partners')
+    .select(PARTNER_SELECT)
+    .eq('custom_domain', domain)
+    .eq('custom_domain_status', 'active')
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (error) console.error(`[Proxy] Supabase error (custom_domain=${domain}):`, error.message);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = parsePartnerLocaleData(error ? null : (data as Record<string, any> | null));
+  setCache(cacheKey, result);
+  return result;
+}
+
+async function resolvePartnerFromHost(host: string): Promise<PartnerLocaleData | null> {
+  const cleanHost = host.split(':')[0];
+
+  // 1. *.localhost 서브도메인 (로컬 개발)
   const localhostSubdomain = extractLocalhostSubdomain(host);
   if (localhostSubdomain) {
-    const { data } = await supabase
-      .from('partners')
-      .select(selectCols)
-      .eq('subdomain', localhostSubdomain)
-      .eq('is_active', true)
-      .maybeSingle();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return parsePartnerLocaleData(data as Record<string, any> | null);
+    return resolvePartnerBySubdomain(localhostSubdomain);
   }
 
   // 2. *.opsnow.com 서브도메인 (프로덕션 및 dev- 접두어 개발 환경)
-  // dev-partner-a.opsnow.com → DB 조회 시 'partner-a'로 정규화
   if (cleanHost.endsWith(`.${BASE_DOMAIN}`)) {
     const rawSubdomain = cleanHost.slice(0, -(`.${BASE_DOMAIN}`.length));
     const subdomain = rawSubdomain.startsWith('dev-')
       ? rawSubdomain.slice('dev-'.length)
       : rawSubdomain;
-    const { data } = await supabase
-      .from('partners')
-      .select(selectCols)
-      .eq('subdomain', subdomain)
-      .eq('is_active', true)
-      .maybeSingle();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return parsePartnerLocaleData(data as Record<string, any> | null);
+    return resolvePartnerBySubdomain(subdomain);
   }
 
   // 3. 커스텀 도메인 (custom_domain_status = 'active' 인 경우에만)
-  const { data } = await supabase
-    .from('partners')
-    .select(selectCols)
-    .eq('custom_domain', cleanHost)
-    .eq('custom_domain_status', 'active')
-    .eq('is_active', true)
-    .maybeSingle();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return parsePartnerLocaleData(data as Record<string, any> | null);
+  return resolvePartnerByCustomDomain(cleanHost);
 }
 
 /** proxy.ts 내부용: 로케일 + 파트너 ID로 최종 리라이트 URL 생성 */
@@ -187,15 +246,7 @@ export async function proxy(request: NextRequest) {
     const devSlug =
       request.nextUrl.searchParams.get('partner') ?? process.env.DEV_PARTNER_SLUG;
     if (devSlug) {
-      const supabase = createSupabaseClient();
-      const { data } = await supabase
-        .from('partners')
-        .select('id, default_locale, published_locales')
-        .eq('subdomain', devSlug)
-        .eq('is_active', true)
-        .maybeSingle();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const partner = parsePartnerLocaleData(data as Record<string, any> | null);
+      const partner = await resolvePartnerBySubdomain(devSlug);
       if (partner) {
         const locale = detectLocale(request, partner.default_locale);
         const finalLocale = partner.published_locales.includes(locale)

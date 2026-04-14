@@ -7,8 +7,8 @@ import GlobalNav from '@/components/marketing/GlobalNav';
 import HeroSection from '@/components/marketing/HeroSection';
 import Footer from '@/components/marketing/Footer';
 
-// 매 요청마다 DB에서 최신 섹션 데이터 반영 (WL-40 AC: Rendering Integrity)
-export const dynamic = 'force-dynamic';
+// [WL-68] ISR 300초 갱신 — 어드민 즉시 반영은 WL-42(revalidatePath) 완료 후 대응
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ partnerId: string; locale: string }>;

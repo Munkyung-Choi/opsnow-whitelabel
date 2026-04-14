@@ -24,11 +24,21 @@ export const validatePartner = cache(async (partnerId: string): Promise<Partner 
   // UUID 형식이 아닌 요청은 DB 조회 없이 즉시 차단
   if (!UUID_REGEX.test(partnerId)) return null;
 
-  const { data } = await supabase
-    .from('partners')
-    .select('*')
-    .eq('id', partnerId)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('partners')
+      .select('*')
+      .eq('id', partnerId)
+      .maybeSingle();
 
-  return data ?? null;
+    if (error) {
+      console.error('[validatePartner] Supabase error:', error.message);
+      return null;
+    }
+    return data ?? null;
+  } catch (err) {
+    // Supabase 네트워크 장애 시 앱 크래시 방지 — graceful 404로 처리됨
+    console.error('[validatePartner] Network error:', err);
+    return null;
+  }
 });

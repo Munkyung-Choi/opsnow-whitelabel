@@ -3,8 +3,9 @@ import type { Metadata } from 'next';
 import { validatePartner } from '@/services/partnerService';
 import { themes, DEFAULT_THEME_KEY, type ThemeKey } from '@/lib/theme-presets';
 
-// 어드민에서 섹션 설정 변경 시 즉시 반영 보장 (WL-42 완료 후 revalidatePath() 기반으로 전환)
-export const dynamic = 'force-dynamic';
+// [WL-68] ISR 300초 갱신 — 어드민 즉시 반영은 WL-42(revalidatePath) 완료 후 대응
+// Zombie Partner 리스크(최대 5분 노출) 수용 결정 (2026-04-14 문경 님 승인)
+export const revalidate = 300;
 
 interface PartnerLayoutProps {
   children: React.ReactNode;
