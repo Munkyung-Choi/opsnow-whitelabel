@@ -203,22 +203,29 @@ export const getPartnerPageData = cache(async (
   partnerId: string,
   locale: Locale
 ): Promise<PartnerPageData | null> => {
+  // [WL-69] 개별 쿼리에 .catch() 적용 — 특정 쿼리 실패 시 나머지 데이터로 부분 렌더링 유지 (Graceful Degradation)
+  // Promise.resolve() 래핑: PostgrestBuilder는 PromiseLike이므로 .catch()가 직접 없음
+  // validatePartner는 내부에 이미 try/catch 있어 래핑 불필요
   const [partner, contentsResult, globalContentsResult, partnerSectionsResult] = await Promise.all([
     validatePartner(partnerId),
-    supabase
-      .from('contents')
-      .select('*')
-      .eq('partner_id', partnerId)
-      .eq('is_published', true),
-    supabase
-      .from('global_contents')
-      .select('*')
-      .in('section_type', GLOBAL_SECTION_TYPES),
-    supabase
-      .from('partner_sections')
-      .select('*')
-      .eq('partner_id', partnerId)
-      .order('display_order', { ascending: true }),
+    Promise.resolve(
+      supabase.from('contents').select('*').eq('partner_id', partnerId).eq('is_published', true)
+    ).catch((err: unknown) => {
+      console.error('[WL-69] contents fetch failed:', err instanceof Error ? err.message : String(err));
+      return { data: null as ContentRow[] | null, error: null };
+    }),
+    Promise.resolve(
+      supabase.from('global_contents').select('*').in('section_type', GLOBAL_SECTION_TYPES)
+    ).catch((err: unknown) => {
+      console.error('[WL-69] global_contents fetch failed:', err instanceof Error ? err.message : String(err));
+      return { data: null as GlobalContentRow[] | null, error: null };
+    }),
+    Promise.resolve(
+      supabase.from('partner_sections').select('*').eq('partner_id', partnerId).order('display_order', { ascending: true })
+    ).catch((err: unknown) => {
+      console.error('[WL-69] partner_sections fetch failed:', err instanceof Error ? err.message : String(err));
+      return { data: null as PartnerSectionRow[] | null, error: null };
+    }),
   ]);
 
   if (!partner) return null;
