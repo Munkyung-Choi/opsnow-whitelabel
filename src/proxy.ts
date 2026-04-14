@@ -53,6 +53,25 @@ function getSupabaseClient() {
   return _supabase;
 }
 
+// [WL-70] 미들웨어 DB 쿼리 타임아웃 — Vercel Edge 제한 고려
+const SUPABASE_QUERY_TIMEOUT_MS = 2500;
+
+/**
+ * [WL-70] Promise에 타임아웃을 적용한다.
+ * 초과 시 Error를 throw — 호출부 catch에서 null 반환하여 미들웨어 크래시를 방지.
+ * Edge Runtime의 setTimeout 사용 (Node.js 전용 API 없음).
+ * ⚠️ Auditor Note: Promise.race는 기다림만 포기하며 Supabase 요청 자체를 취소하지 않음.
+ *    AbortController 미지원 SDK 한계 — Ghost Request 위험은 Edge Worker TTL이 자연 정리.
+ */
+function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`[Proxy] DB timeout after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 // [WL-61] Auditor #1 요건: SQL Injection 방지 화이트리스트
 const SUPPORTED_LOCALES = ['ko', 'en'] as const;
 export type Locale = typeof SUPPORTED_LOCALES[number];
@@ -140,18 +159,27 @@ async function resolvePartnerBySubdomain(subdomain: string): Promise<PartnerLoca
   if (cached !== undefined) return cached;
 
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from('partners')
-    .select(PARTNER_SELECT)
-    .eq('subdomain', subdomain)
-    .eq('is_active', true)
-    .maybeSingle();
-
-  if (error) console.error(`[Proxy] Supabase error (subdomain=${subdomain}):`, error.message);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result = parsePartnerLocaleData(error ? null : (data as Record<string, any> | null));
-  setCache(cacheKey, result);
-  return result;
+  try {
+    const { data, error } = await withTimeout(
+      supabase
+        .from('partners')
+        .select(PARTNER_SELECT)
+        .eq('subdomain', subdomain)
+        .eq('is_active', true)
+        .maybeSingle(),
+      SUPABASE_QUERY_TIMEOUT_MS
+    );
+    if (error) console.error(`[Proxy] Supabase error (subdomain=${subdomain}):`, error.message);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = parsePartnerLocaleData(error ? null : (data as Record<string, any> | null));
+    setCache(cacheKey, result);
+    return result;
+  } catch (err) {
+    // [WL-70] 네트워크 장애·타임아웃 — 미들웨어 크래시 방지, null 반환 → /not-found 리다이렉트
+    // 에러 캐싱 없음: 다음 요청에서 DB 재시도 허용
+    console.error(`[Proxy] resolvePartnerBySubdomain failed (subdomain=${subdomain}):`, err instanceof Error ? err.message : String(err));
+    return null;
+  }
 }
 
 /** custom_domain 기반 파트너 조회 (캐시 적용) */
@@ -161,19 +189,28 @@ async function resolvePartnerByCustomDomain(domain: string): Promise<PartnerLoca
   if (cached !== undefined) return cached;
 
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from('partners')
-    .select(PARTNER_SELECT)
-    .eq('custom_domain', domain)
-    .eq('custom_domain_status', 'active')
-    .eq('is_active', true)
-    .maybeSingle();
-
-  if (error) console.error(`[Proxy] Supabase error (custom_domain=${domain}):`, error.message);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result = parsePartnerLocaleData(error ? null : (data as Record<string, any> | null));
-  setCache(cacheKey, result);
-  return result;
+  try {
+    const { data, error } = await withTimeout(
+      supabase
+        .from('partners')
+        .select(PARTNER_SELECT)
+        .eq('custom_domain', domain)
+        .eq('custom_domain_status', 'active')
+        .eq('is_active', true)
+        .maybeSingle(),
+      SUPABASE_QUERY_TIMEOUT_MS
+    );
+    if (error) console.error(`[Proxy] Supabase error (custom_domain=${domain}):`, error.message);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = parsePartnerLocaleData(error ? null : (data as Record<string, any> | null));
+    setCache(cacheKey, result);
+    return result;
+  } catch (err) {
+    // [WL-70] 네트워크 장애·타임아웃 — 미들웨어 크래시 방지, null 반환 → /not-found 리다이렉트
+    // 에러 캐싱 없음: 다음 요청에서 DB 재시도 허용
+    console.error(`[Proxy] resolvePartnerByCustomDomain failed (custom_domain=${domain}):`, err instanceof Error ? err.message : String(err));
+    return null;
+  }
 }
 
 async function resolvePartnerFromHost(host: string): Promise<PartnerLocaleData | null> {
