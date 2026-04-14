@@ -288,6 +288,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // not-found를 제외하여 파트너 미발견 시 리다이렉트 루프 방지
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|not-found).*)'],
+  // [WL-68] images/ 경로 추가 — public/ 정적 파일을 미들웨어가 가로채면
+  // 파트너 라우트로 rewrite되어 404가 발생하므로 명시적으로 제외
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|not-found|images/).*)'],
 };

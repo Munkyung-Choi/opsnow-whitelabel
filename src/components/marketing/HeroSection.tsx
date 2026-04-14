@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import HeroImage from '@/components/marketing/HeroImage';
 import type { LocalizedContentRow } from '@/lib/marketing/get-partner-page-data';
 import { getDictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/proxy';
@@ -62,13 +62,9 @@ export default function HeroSection({ content, locale, heroImageUrl }: HeroSecti
 
           {/* 우: Hero 이미지 (WL-67 ST-6) */}
           <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none">
-            <Image
+            <HeroImage
               src={imageSrc}
               alt="클라우드 비용 최적화 플랫폼 일러스트레이션"
-              width={1400}
-              height={1046}
-              className="h-auto w-full object-contain"
-              priority
             />
           </div>
 
