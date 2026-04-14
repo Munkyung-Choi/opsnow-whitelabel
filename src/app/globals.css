@@ -5,46 +5,126 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * @theme inline: Tailwind v4 유틸리티 ↔ CSS 변수 브릿지
+ * :root — Default theme: Gray / Dark Navy (Figma Make baseline)
  *
- * [WL-65] Figma Make 테마 변수 (--primary 등 19개):
- *   hsl(var(--X)) 래퍼 사용 — :root / layout.tsx에서 HSL 채널 문자열로 주입되므로
- *   hsl() 래퍼 없이는 유효한 CSS 색상이 아님.
- *   이 방식으로 bg-primary/50 같은 opacity modifier도 정상 동작함.
+ * 모든 색상 변수는 HSL 채널 문자열로 저장합니다 (예: "235 35% 26%").
+ * Tailwind 유틸리티는 @theme inline 블록에서 hsl(var(--X))로 래핑됩니다.
+ * 파트너별 테마는 [partnerId]/layout.tsx 에서 style={{}} 로 덮어씁니다.
+ */
+:root {
+  /* ── Typography ──────────────────────────────────────────── */
+  --font-size: 16px;
+  --font-pretendard: 'Pretendard Variable', 'Pretendard', -apple-system,
+    BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans: var(--font-pretendard);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+
+  /* ── Radius ──────────────────────────────────────────────── */
+  --radius: 0.5rem;
+
+  /* ── Semantic color tokens (HSL channels) ────────────────── */
+  --background:             0 0% 100%;
+  --foreground:             235 25% 10%;
+  --card:                   0 0% 100%;
+  --card-foreground:        235 25% 10%;
+  --popover:                0 0% 100%;
+  --popover-foreground:     235 25% 10%;
+  --primary:                235 35% 26%;
+  --primary-foreground:     0 0% 100%;
+  --secondary:              235 20% 93%;
+  --secondary-foreground:   235 35% 26%;
+  --muted:                  235 15% 94%;
+  --muted-foreground:       235 10% 46%;
+  --accent:                 235 18% 90%;
+  --accent-foreground:      235 35% 26%;
+  --destructive:            0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border:                 235 18% 88%;
+  --input:                  235 18% 88%;
+  --input-background:       235 12% 97%;
+  --switch-background:      235 15% 80%;
+  --ring:                   235 35% 26%;
+
+  /* ── Chart colors ────────────────────────────────────────── */
+  --chart-1: 25 95% 53%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+
+  /* ── Sidebar (파트너 테마 대상 아님 — 어드민 대시보드 전용) ── */
+  --sidebar:                    0 0% 98%;
+  --sidebar-foreground:         240 5% 26%;
+  --sidebar-primary:            240 6% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent:             240 5% 96%;
+  --sidebar-accent-foreground:  240 6% 10%;
+  --sidebar-border:             220 13% 91%;
+  --sidebar-ring:               217 91% 60%;
+}
+
+/*
+ * .dark — 다크 모드 (브랜드 색상과 무관한 중립 다크)
+ * WL-65에서 다크 모드 지원 보류 — 구조 유지, 추후 파트너 테마와 연동 예정.
+ */
+.dark {
+  --background:             222 47% 9%;
+  --foreground:             210 40% 98%;
+  --card:                   222 47% 9%;
+  --card-foreground:        210 40% 98%;
+  --popover:                222 47% 9%;
+  --popover-foreground:     210 40% 98%;
+  --primary:                210 40% 98%;
+  --primary-foreground:     222 47% 11%;
+  --secondary:              217 33% 17%;
+  --secondary-foreground:   210 40% 98%;
+  --muted:                  217 33% 17%;
+  --muted-foreground:       215 20% 65%;
+  --accent:                 217 33% 17%;
+  --accent-foreground:      210 40% 98%;
+  --destructive:            0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --border:                 217 33% 17%;
+  --input:                  217 33% 17%;
+  --input-background:       217 33% 14%;
+  --switch-background:      215 25% 27%;
+  --ring:                   213 27% 84%;
+
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+
+  --sidebar:                    240 6% 10%;
+  --sidebar-foreground:         240 5% 96%;
+  --sidebar-primary:            224 76% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent:             240 4% 16%;
+  --sidebar-accent-foreground:  240 5% 96%;
+  --sidebar-border:             240 4% 16%;
+  --sidebar-ring:               217 91% 60%;
+}
+
+/*
+ * @theme inline — Tailwind v4 유틸리티 ↔ CSS 변수 브릿지
  *
- * 비테마 변수 (--chart-*, --sidebar-*):
- *   파트너 테마에 포함되지 않으므로 var() 직접 참조 유지.
+ * [폰트] --font-sans: var(--font-pretendard)
+ *   :root의 --font-pretendard를 참조 — 순환 참조 없음.
+ *   font-sans 유틸리티 및 font-family: var(--font-sans) 모두 정상 동작.
+ *
+ * [색상] hsl(var(--X)) 래퍼 필수:
+ *   :root에서 HSL 채널 문자열로 저장되므로 hsl() 없이는 유효한 CSS 색상이 아님.
+ *   bg-primary/50 같은 opacity modifier는 color-mix()로 동작.
  */
 @theme inline {
-  /* ── 비테마 변수 (파트너 테마에 포함되지 않음) ── */
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  /* ── Fonts ── */
+  --font-sans:    var(--font-pretendard);
+  --font-mono:    ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  --font-heading: var(--font-pretendard);
 
-  --color-sidebar:                    var(--sidebar);
-  --color-sidebar-foreground:         var(--sidebar-foreground);
-  --color-sidebar-primary:            var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent:             var(--sidebar-accent);
-  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
-  --color-sidebar-border:             var(--sidebar-border);
-  --color-sidebar-ring:               var(--sidebar-ring);
-
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-
-  --radius-sm:  calc(var(--radius) * 0.6);
-  --radius-md:  calc(var(--radius) * 0.8);
-  --radius-lg:  var(--radius);
-  --radius-xl:  calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-
-  /* ── Figma Make 테마 변수 (hsl() 래퍼 필수) ── */
+  /* ── Colors ── */
   --color-background:             hsl(var(--background));
   --color-foreground:             hsl(var(--foreground));
   --color-card:                   hsl(var(--card));
@@ -63,86 +143,136 @@
   --color-destructive-foreground: hsl(var(--destructive-foreground));
   --color-border:                 hsl(var(--border));
   --color-input:                  hsl(var(--input));
+  --color-input-background:       hsl(var(--input-background));
+  --color-switch-background:      hsl(var(--switch-background));
   --color-ring:                   hsl(var(--ring));
-}
 
-/*
- * :root 기본값 — DEFAULT_THEME_KEY 'blue' 기준 HSL 채널 문자열.
- * 파트너 페이지는 layout.tsx에서 해당 파트너의 theme_key 변수로 덮어씀.
- */
-:root {
-  --background:             0 0% 100%;
-  --foreground:             234 40% 10%;
-  --card:                   0 0% 100%;
-  --card-foreground:        234 40% 10%;
-  --popover:                0 0% 100%;
-  --popover-foreground:     234 40% 10%;
-  --primary:                234 100% 36%;
-  --primary-foreground:     0 0% 100%;
-  --secondary:              234 50% 94%;
-  --secondary-foreground:   234 100% 36%;
-  --muted:                  234 30% 95%;
-  --muted-foreground:       234 15% 46%;
-  --accent:                 234 45% 91%;
-  --accent-foreground:      234 100% 36%;
-  --destructive:            0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --border:                 234 35% 88%;
-  --input:                  234 35% 88%;
-  --ring:                   234 100% 36%;
-  --radius:                 0.625rem;
+  /* ── Chart ── */
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
 
-  /* 비테마 — 차트/사이드바는 oklch 유지 (파트너 테마 대상 아님) */
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar:                   oklch(0.985 0 0);
-  --sidebar-foreground:        oklch(0.145 0 0);
-  --sidebar-primary:           oklch(0.205 0 0);
-  --sidebar-primary-foreground:oklch(0.985 0 0);
-  --sidebar-accent:            oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border:            oklch(0.922 0 0);
-  --sidebar-ring:              oklch(0.708 0 0);
-}
+  /* ── Radius (Figma Make 기준 픽셀 오프셋) ── */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
-/*
- * .dark — 다크 모드 미지원 단계 (WL-65 보류).
- * 구조만 선언해두고 파트너 테마 주입 시 필요한 dark variant는 추후 구현.
- * ⚠️ hsl(var(--X)) 브릿지와 호환되도록 HSL 채널 문자열 사용.
- */
-.dark {
-  --background:             220 13% 10%;
-  --foreground:             220 10% 95%;
-  --card:                   220 13% 14%;
-  --card-foreground:        220 10% 95%;
-  --popover:                220 13% 14%;
-  --popover-foreground:     220 10% 95%;
-  --primary:                220 80% 70%;
-  --primary-foreground:     220 13% 10%;
-  --secondary:              220 10% 18%;
-  --secondary-foreground:   220 10% 95%;
-  --muted:                  220 10% 18%;
-  --muted-foreground:       220 8% 47%;
-  --accent:                 220 10% 18%;
-  --accent-foreground:      220 10% 95%;
-  --destructive:            9 80% 50%;
-  --destructive-foreground: 0 0% 100%;
-  --border:                 220 10% 20%;
-  --input:                  220 10% 22%;
-  --ring:                   220 8% 47%;
+  /* ── Sidebar ── */
+  --color-sidebar:                    hsl(var(--sidebar));
+  --color-sidebar-foreground:         hsl(var(--sidebar-foreground));
+  --color-sidebar-primary:            hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent:             hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground:  hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border:             hsl(var(--sidebar-border));
+  --color-sidebar-ring:               hsl(var(--sidebar-ring));
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    font-size: var(--font-size);
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-feature-settings: "kern" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    word-break: keep-all;      /* CJK 줄바꿈 방지 */
+    overflow-wrap: break-word; /* 긴 영단어 강제 줄바꿈 */
   }
-  html {
-    @apply font-sans;
+
+  /* ── Heading / Body typography ──────────────────────────── */
+  h1 {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+
+  h4 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    font-family: var(--font-sans);
+    line-height: 1.65;
+  }
+
+  label {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input,
+  textarea {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.6;
+  }
+
+  /* ── Smooth Scroll (Confluence 화면 설계서 §3) ─────────────── */
+  section[id] {
+    scroll-margin-top: 64px; /* GNB height */
+  }
+
+  /*
+   * Multi-locale Font Switching
+   *
+   * :lang() 가상 클래스는 가장 가까운 조상의 lang 속성을 기준으로 언어를 판단합니다.
+   * [partnerId]/[locale]/layout.tsx 의 <div lang={locale}> wrapper가 트리거입니다.
+   *
+   * ko / en : Pretendard Variable — root layout.tsx 에서 CDN 로드
+   *           Pretendard는 Inter 기반이므로 영문 타이포그래피도 자연스럽습니다.
+   * ja      : Noto Sans JP — locale layout 에서 Google Fonts CDN 조건부 로드
+   * zh      : 시스템 폰트 최우선 — Google Fonts CDN은 중국 본토 차단됨
+   */
+  :lang(ko),
+  :lang(en) {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system,
+      BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  :lang(ja) {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
+      'Yu Gothic UI', 'Meiryo', sans-serif;
+  }
+
+  /* zh: Google Fonts CDN 차단 대응 — PingFang SC(macOS/iOS), Microsoft YaHei(Windows) 우선 */
+  :lang(zh) {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC',
+      system-ui, sans-serif;
   }
 }

@@ -1,18 +1,27 @@
 {
   "nav": {
     "home": "ホーム",
-    "features": "サービス紹介",
+    "features": "機能",
+    "process": "プロセス",
+    "faq": "FAQ",
     "about": "パートナー紹介",
     "contact": "お問い合わせ",
-    "cta": "無料診断を申し込む",
+    "login": "ログイン",
+    "cta": "無料相談",
     "openMenu": "メニューを開く",
     "closeMenu": "メニューを閉じる"
   },
   "hero": {
-    "exploreServices": "サービスを見る",
+    "badge": "Cloud Cost Optimization",
+    "exploreServices": "機能を見る",
     "defaultTitle": "OpsNowでクラウドを最適化",
     "defaultSubtitle": "パートナーと共に実現するスマートなクラウド管理",
-    "defaultCta": "無料診断を申し込む"
+    "defaultCta": "無料診断を申し込む",
+    "heroStats": [
+      { "value": "最大40%", "label": "月額コスト削減" },
+      { "value": "5分", "label": "初期連携完了" },
+      { "value": "無料", "label": "コスト分析" }
+    ]
   },
   "footer": {
     "tagline": "OpsNowパートナーが提供するクラウド最適化サービス",

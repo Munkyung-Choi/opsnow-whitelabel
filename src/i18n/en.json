@@ -1,18 +1,27 @@
 {
   "nav": {
     "home": "Home",
-    "features": "Services",
+    "features": "Features",
+    "process": "Process",
+    "faq": "FAQ",
     "about": "About",
     "contact": "Contact",
-    "cta": "Free Assessment",
+    "login": "Login",
+    "cta": "Free Consultation",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
   "hero": {
-    "exploreServices": "Explore Services",
+    "badge": "Cloud Cost Optimization",
+    "exploreServices": "Explore Features",
     "defaultTitle": "Optimize your cloud with OpsNow",
     "defaultSubtitle": "Smart cloud management solutions with your trusted partner",
-    "defaultCta": "Free Assessment"
+    "defaultCta": "Free Assessment",
+    "heroStats": [
+      { "value": "Up to 40%", "label": "Monthly bill reduction" },
+      { "value": "5 min", "label": "Initial setup" },
+      { "value": "Free", "label": "Cost analysis" }
+    ]
   },
   "footer": {
     "tagline": "Cloud optimization services provided by an OpsNow partner",

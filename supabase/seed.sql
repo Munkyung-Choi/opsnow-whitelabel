@@ -132,7 +132,7 @@ INSERT INTO public.partners (
     'partner-a',
     '6adb5034-0a0e-4f60-bbd3-b1286a071473',
     'gray', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
+    '/images/partners/partner-a-logo.svg', NULL,  -- logo_url (로컬 dev용 정적 파일), favicon_url
     NULL,        -- hero_image_url: NULL = 기본 이미지 사용
     true, '["admin@cloudsave.test"]'
   ),
@@ -142,7 +142,7 @@ INSERT INTO public.partners (
     'partner-b',
     'fab084cd-5921-44f6-85b1-a13a01d3cfd4',
     'blue', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
+    '/images/partners/partner-b-logo.svg', NULL,  -- logo_url (로컬 dev용 정적 파일), favicon_url
     NULL,        -- hero_image_url: NULL = 기본 이미지 사용
     true, '["admin@dataflow.test"]'
   ),
@@ -152,7 +152,7 @@ INSERT INTO public.partners (
     'partner-c',
     'c3000000-0000-4000-8000-000000000001',
     'green', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
+    '/images/partners/partner-c-logo.svg', NULL,  -- logo_url (로컬 dev용 정적 파일), favicon_url
     NULL,        -- hero_image_url: NULL = 기본 이미지 사용
     true, '["admin@greensave.test"]'
   ),
@@ -162,7 +162,7 @@ INSERT INTO public.partners (
     'partner-d',
     'd4000000-0000-4000-8000-000000000001',
     'orange', 'ko', ARRAY['ko'],
-    NULL, NULL,  -- logo_url, favicon_url
+    '/images/partners/partner-d-logo.svg', NULL,  -- logo_url (로컬 dev용 정적 파일), favicon_url
     NULL,        -- hero_image_url: NULL = 기본 이미지 사용
     true, '["admin@orangecloud.test"]'
   )
@@ -172,6 +172,7 @@ ON CONFLICT (id) DO UPDATE SET
   theme_key           = EXCLUDED.theme_key,
   default_locale      = EXCLUDED.default_locale,
   published_locales   = EXCLUDED.published_locales,
+  logo_url            = EXCLUDED.logo_url,
   is_active           = EXCLUDED.is_active,
   notification_emails = EXCLUDED.notification_emails,
   hero_image_url      = EXCLUDED.hero_image_url,
@@ -210,8 +211,8 @@ INSERT INTO public.contents (
     'c0000001-0000-0000-0000-000000000001',
     'b03e99fd-9cec-4ab3-a2c5-3462562f84f2',
     'hero',
-    '클라우드는 혁신적입니다. 청구서만 배고요.',
-    '{PartnerName:과/와} 함께라면 클라우드 비용을 30% 줄이고, 5분 만에 전체 현황을 파악할 수 있습니다.',
+    E'클라우드는 혁신적입니다.\n청구서만 빼고요.',
+    '이제 복잡한 수동 관리는 끝났습니다. {PartnerName:이/가} 숨겨진 낭비를 찾아내 매월 청구서를 최대 40%까지 자동 삭감해드립니다.',
     NULL,
     '지금 무료로 시작하기',
     '{"email": "", "phone": "", "address": ""}',

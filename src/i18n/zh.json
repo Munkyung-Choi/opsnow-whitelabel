@@ -1,18 +1,27 @@
 {
   "nav": {
     "home": "首页",
-    "features": "服务介绍",
+    "features": "功能",
+    "process": "流程",
+    "faq": "FAQ",
     "about": "合作伙伴介绍",
     "contact": "联系我们",
-    "cta": "申请免费诊断",
+    "login": "登录",
+    "cta": "免费咨询",
     "openMenu": "打开菜单",
     "closeMenu": "关闭菜单"
   },
   "hero": {
-    "exploreServices": "了解服务",
+    "badge": "Cloud Cost Optimization",
+    "exploreServices": "查看功能",
     "defaultTitle": "通过OpsNow优化您的云资源",
     "defaultSubtitle": "与合作伙伴共同实现智能云管理",
-    "defaultCta": "申请免费诊断"
+    "defaultCta": "申请免费诊断",
+    "heroStats": [
+      { "value": "高达40%", "label": "月账单自动节省" },
+      { "value": "5分钟", "label": "初始接入完成" },
+      { "value": "免费", "label": "费用分析提供" }
+    ]
   },
   "footer": {
     "tagline": "OpsNow合作伙伴提供的云优化服务",

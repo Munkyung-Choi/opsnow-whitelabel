@@ -1,18 +1,27 @@
 {
   "nav": {
     "home": "홈",
-    "features": "서비스 소개",
+    "features": "기능",
+    "process": "프로세스",
+    "faq": "FAQ",
     "about": "파트너 소개",
     "contact": "문의하기",
-    "cta": "무료 진단 신청",
+    "login": "로그인",
+    "cta": "무료 상담",
     "openMenu": "메뉴 열기",
     "closeMenu": "메뉴 닫기"
   },
   "hero": {
-    "exploreServices": "서비스 살펴보기",
+    "badge": "Cloud Cost Optimization",
+    "exploreServices": "주요 기능 보기",
     "defaultTitle": "OpsNow으로 클라우드를 최적화하세요",
     "defaultSubtitle": "파트너와 함께하는 스마트한 클라우드 관리 솔루션",
-    "defaultCta": "무료 진단 신청"
+    "defaultCta": "무료 진단 신청",
+    "heroStats": [
+      { "value": "최대 40%", "label": "월 청구서 자동 절감" },
+      { "value": "5분", "label": "초기 연동 완료" },
+      { "value": "무료", "label": "분석 상담 제공" }
+    ]
   },
   "footer": {
     "tagline": "OpsNow 파트너가 제공하는 클라우드 최적화 서비스",
