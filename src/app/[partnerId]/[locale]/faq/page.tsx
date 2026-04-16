@@ -55,7 +55,6 @@ export default async function FaqHubPage({ params, searchParams }: PageProps) {
       <GlobalNav partner={data.partner} locale={locale} />
       <main>
         <FaqHubHero
-          partnerId={partnerId}
           locale={locale}
           categories={categories}
           activeCategory={activeCategory}
@@ -71,7 +70,6 @@ export default async function FaqHubPage({ params, searchParams }: PageProps) {
                   <FaqItemCard
                     item={item}
                     category={categoryMap[item.categoryId] ?? null}
-                    partnerId={partnerId}
                     locale={locale}
                   />
                 </li>
@@ -86,7 +84,7 @@ export default async function FaqHubPage({ params, searchParams }: PageProps) {
             <p className="text-lg font-semibold">{t.ctaTitle}</p>
             <p className="mt-1 text-muted-foreground">{t.ctaSubtitle}</p>
             <a
-              href={`/${partnerId}/${locale}#contact`}
+              href={`/${locale}#contact`}
               className="mt-6 inline-flex items-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               {getDictionary(locale).nav.contact}

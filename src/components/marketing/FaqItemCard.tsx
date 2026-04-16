@@ -8,13 +8,12 @@ import { getDictionary } from '@/lib/i18n/dictionary';
 interface Props {
   item: FaqListItem;
   category: FaqCategoryItem | null;
-  partnerId: string;
   locale: Locale;
 }
 
-export default function FaqItemCard({ item, category, partnerId, locale }: Props) {
+export default function FaqItemCard({ item, category, locale }: Props) {
   const t = getDictionary(locale).faq;
-  const href = `/${partnerId}/${locale}/faq/${item.slug}`;
+  const href = `/${locale}/faq/${item.slug}`;
 
   return (
     <Link

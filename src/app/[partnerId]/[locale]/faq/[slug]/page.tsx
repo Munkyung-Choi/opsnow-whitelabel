@@ -18,7 +18,7 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { partnerId, locale: rawLocale, slug } = await params;
+  const { locale: rawLocale, slug } = await params;
   const locale = validateLocale(rawLocale);
   const detail = await getFaqDetailBySlug(slug, locale);
   if (!detail) return {};
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: detail.seoTitle,
     description: detail.seoDescription,
     alternates: {
-      canonical: `/${partnerId}/${locale}/faq/${slug}`,
+      canonical: `/${locale}/faq/${slug}`,
     },
   };
 }
@@ -62,11 +62,11 @@ export default async function FaqDetailPage({ params }: PageProps) {
           <div className="container mx-auto max-w-3xl px-4 py-10 sm:py-12">
             {/* Breadcrumb */}
             <nav aria-label="breadcrumb" className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-              <Link href={`/${partnerId}/${locale}`} className="hover:text-foreground transition-colors">
+              <Link href={`/${locale}`} className="hover:text-foreground transition-colors">
                 {t.breadcrumbHome}
               </Link>
               <span aria-hidden="true">/</span>
-              <Link href={`/${partnerId}/${locale}/faq`} className="hover:text-foreground transition-colors">
+              <Link href={`/${locale}/faq`} className="hover:text-foreground transition-colors">
                 {t.breadcrumbFaq}
               </Link>
               <span aria-hidden="true">/</span>
@@ -98,7 +98,7 @@ export default async function FaqDetailPage({ params }: PageProps) {
           {/* Back link */}
           <div className="mt-12 border-t pt-8">
             <Link
-              href={`/${partnerId}/${locale}/faq`}
+              href={`/${locale}/faq`}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft aria-hidden="true" className="h-4 w-4" />

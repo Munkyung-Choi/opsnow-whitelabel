@@ -4,17 +4,16 @@ import type { FaqCategoryItem } from '@/lib/faq/get-faq-data';
 import { getDictionary } from '@/lib/i18n/dictionary';
 
 interface Props {
-  partnerId: string;
   locale: Locale;
   categories: FaqCategoryItem[];
   activeCategory: string | null;
 }
 
-export default function FaqHubHero({ partnerId, locale, categories, activeCategory }: Props) {
+export default function FaqHubHero({ locale, categories, activeCategory }: Props) {
   const t = getDictionary(locale).faq;
 
   const buildHref = (categoryId: string | null) => {
-    const base = `/${partnerId}/${locale}/faq`;
+    const base = `/${locale}/faq`;
     return categoryId ? `${base}?category=${categoryId}` : base;
   };
 
@@ -23,7 +22,7 @@ export default function FaqHubHero({ partnerId, locale, categories, activeCatego
       <div className="container mx-auto max-w-5xl px-4 py-12 sm:py-16">
         {/* Breadcrumb */}
         <nav aria-label="breadcrumb" className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-          <Link href={`/${partnerId}/${locale}`} className="hover:text-foreground transition-colors">
+          <Link href={`/${locale}`} className="hover:text-foreground transition-colors">
             {t.breadcrumbHome}
           </Link>
           <span aria-hidden="true">/</span>
