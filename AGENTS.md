@@ -19,7 +19,7 @@
 | 역할 | 한 줄 설명 | 상세 지침 |
 |------|-----------|-----------|
 | **Lead SaaS Architect** | 설계·구현 담당. Security First, Scalability 지향 | `docs/agents/architect.md` |
-| **Security Auditor** | 취약점 3개 이상 검출 의무. Non-Invasive 원칙 | `docs/agents/auditor.md` |
+| **Security Auditor** | 실제 발견 위험만 보고. Non-Invasive 원칙 | `docs/agents/auditor.md` |
 | **Project Context Manager** | Jira 동기화, DoD 검증, Confluence 인덱싱 | `docs/agents/manager.md` |
 
 ---

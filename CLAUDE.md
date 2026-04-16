@@ -9,10 +9,11 @@
 
 ## [0. Source of Truth & Context]
 
-- 모든 개발의 최상위 권위는 Confluence Space `WS` (White-label Site)에 있다.
+- **CLAUDE.md가 운영의 최상위 권위(SSOT)다.** Claude는 세션 시작 시 이 파일을 읽고 행동 지침으로 삼는다.
+- Confluence Space `WS`는 **결과물 저장소(Archive)** 역할이다. 설계 배경·장기 히스토리 참조용이며, 운영 규칙 충돌 시 CLAUDE.md가 우선한다.
 - **Space**: `WS` / **cloudId**: `opsnowinc.atlassian.net`
 - **Space Homepage ID**: `290849306`
-- **구현 전 반드시** `getConfluencePage`로 관련 문서를 읽고 요약하여 승인받을 것.
+- 작업 전 배경 파악이 필요할 때만 `getConfluencePage`로 관련 문서를 선택적으로 조회하라.
 - 세션이 길어지면 컨텍스트를 스스로 리프레시하라.
 
 ### 문서 Page ID 목록
@@ -30,44 +31,100 @@
 | 8. 운영 및 유지보수 매뉴얼               | 289177762 |
 | 9. SEO 및 분석 전략 문서                 | 289276134 |
 
-## 🛠️ Sequential Work Process (Harness Engineering)
+## 🛠️ 위험도 기반 3트랙 워크플로우 (Harness Engineering)
 
-모든 작업은 다음의 순서를 엄격히 준수한다:
+모든 작업은 **위험 등급**에 따라 3가지 경로 중 하나로 진행한다.  
+등급 판단이 불확실하면 한 단계 높은 트랙을 적용한다 (Fail-safe 원칙).
 
-1. **Step 1: Context Manager** - Jira 티켓 번호 선언 및 Confluence 관련 문서 인덱싱.
-2. **Step 2: Lead Architect** - 아키텍처 설계안(또는 코드 초안) 작성 및 데이터 흐름 설명.
-3. **Step 3: Security Auditor** - 설계안에 대한 비판적 검토 및 보안 취약점 리포트 제출.
-4. **Step 4: Iteration** - Auditor의 지적 사항을 Architect가 반영하여 최종안 도출.
-5. **Step 5: Human Approval** - **문경 님**의 최종 승인 대기 (중요 의사결정 시).
-6. **Step 6: Execution** - 코드 작성 및 깃허브 푸시.
-7. **Step 7: Reporting** - 작업 요약본 작성 및 Jira 업데이트 (아래 양식 준수).
-   - **Jira 댓글 양식**:
-     - 작업 상태: [Success / Partial / Fail]
-     - 수정된 주요 파일: [파일명 목록]
-     - 테스트 결과: [Pass한 시나리오 번호 및 결과 요약]
-   - **Auditor Digest** (🚨 HIGH 위험 작업 시 필수 출력 — 외부 모델 교차검증용):
-     ```
-     ### 📝 Auditor Digest (For External Review)
-     - **Core Logic**: [구현된 로직의 핵심 요약 — 3줄 이내]
-     - **Potential Risks**: [Claude Auditor가 발견했거나 우려되는 엣지 케이스 2~3개]
-     - **Questions for Reviewer**:
-       1. [보안/아키텍처 관점에서 확인받고 싶은 질문]
-       2. [성능/확장성 관점에서 확인받고 싶은 질문]
-       3. [설계 대안 또는 놓쳤을 수 있는 시나리오 관련 질문]
-     ```
+### 트랙 분류표
 
-## 🔄 Handoff Protocol (에이전트 간 협업 규약)
+| 트랙 | 대상 작업 예시 | 단계 |
+|------|--------------|------|
+| ✅ **LOW** | UI 컴포넌트, 텍스트·CSS 수정, 문서화 | Impl → Verify → Done |
+| ⚠️ **MED** | 기능 추가, API 연동, 비즈니스 로직 수정 | Context → Design → Audit → Impl → Verify → Report |
+| 🚨 **HIGH** | DB 스키마 변경, RLS·Auth 설계, 멀티테넌시 핵심 로직, 외부 비용 발생 | Context → Design → Audit → ✋Human → Impl → Verify → Report |
 
-모든 작업은 단독으로 결정하지 않으며, 다음의 핸드오프 절차를 준수한다:
+---
 
-1. **Architect → Auditor**:
-   - 설계 또는 코드 작성이 완료되면 반드시 Auditor에게 검토를 요청한다.
-   - 발화 형식: `"설계를 완료했습니다. Auditor, 이 설계에서 [보안/성능/격리] 관점의 취약점 3가지를 찾아주세요."`
-2. **Auditor → Architect**:
-   - Auditor는 비판적 검토 후 승인(Approve) 또는 수정 요청(Request Changes)을 보낸다.
-   - 발화 형식: `"리뷰 결과입니다. [위험 요소]를 발견했습니다. 이 부분을 수정하기 전까지는 다음 단계(구현)로 진행하지 마십시오."`
-3. **Manager → Owner(문경 님)**:
-   - 두 에이전트 간의 합의가 완료되면 최종적으로 문경 님에게 요약 보고를 하고 승인을 구한다.
+### ✅ LOW 트랙 (자율 진행)
+
+1. **Impl**: 구현. 테스트 코드를 함께 작성한다 (아래 테스트 원칙 참조).
+2. **Verify**: `npm run lint` + `npx tsc --noEmit` 실행.
+3. **Done**: 필요 시 Jira 상태 업데이트.
+
+---
+
+### ⚠️ MED 트랙 (표준 절차)
+
+1. **Context**: Jira 티켓 확인. 필요 시 Confluence 관련 문서 조회.
+2. **Design**: 구현 방향 정리 (컴포넌트 구조, 데이터 흐름).
+3. **Audit**: Self-Audit — 실제 발견된 위험 요소만 보고 (개수 무관, 없으면 "없음"으로 명시).
+4. **Test Contract**: Impl 착수 전, 어떤 파일에 어떤 테스트를 작성할지 명시하고 stub을 생성한다.
+   - E2E: `test.todo('시나리오 설명')` 로 Playwright 파일에 미리 추가.
+   - Unit: `describe.todo('함수명 — 입출력 명세')` 로 Vitest 파일에 미리 추가.
+   - **Test Contract 없이 Impl 단계 진입 불가.**
+5. **Impl**: 구현 + Test Contract의 stub을 실제 passing 테스트로 교체.
+6. **Verify**: `npm run lint` + `npx tsc --noEmit` + `npx vitest run`.
+7. **Report**: Jira 댓글 업데이트 (아래 양식 참조).
+
+---
+
+### 🚨 HIGH 트랙 (안전 우선)
+
+1. **Context**: Jira 티켓 확인 + Confluence 설계 문서 인덱싱.
+2. **Design**: 아키텍처 설계안 작성 (데이터 흐름, 파트너 격리 전략 포함).
+3. **Audit**: Self-Audit — 실제 위험 요소 보고. Auditor Digest 초안 작성.
+4. **✋ Human Check**: 문경 님 승인 대기. **승인 없이 Impl로 진행 불가.**
+5. **Test Contract**: Human Check 승인 후, Impl 착수 전 테스트 stub 생성.
+   - E2E: `test.todo('시나리오 설명')` 로 Playwright 파일에 미리 추가.
+   - Unit: `describe.todo('함수명 — 입출력 명세')` 로 Vitest 파일에 미리 추가.
+   - **Test Contract 없이 Impl 단계 진입 불가.**
+6. **Impl**: 구현 + Test Contract의 stub을 실제 passing 테스트로 교체.
+7. **Verify**: `npm run lint` + `npx tsc --noEmit` + `npx vitest run`.
+8. **Report**: Jira 댓글 업데이트 + Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장.
+
+---
+
+### 테스트 원칙 (모든 트랙 공통)
+
+> "테스트가 없는 코드는 미완성 코드다."
+
+- **구현보다 테스트 stub이 먼저다.** Impl 착수 전 Test Contract(stub)를 작성해야 한다.
+- **테스트 레이어 기준**: 파서/헬퍼 로직 → Vitest 단위 테스트. UI 렌더링·라우팅·사용자 흐름 → Playwright E2E. 단순 presentational 컴포넌트는 파서 단위 테스트 + E2E 조합으로 충분하며 컴포넌트 렌더 단위 테스트를 강제하지 않는다.
+- E2E·A11y·Performance 자동화 검증은 테스트 인프라 구축 완료 후 적용한다.
+
+---
+
+### Jira 댓글 양식 (MED·HIGH 공통)
+
+- 작업 상태: [Success / Partial / Fail]
+- 수정된 주요 파일: [파일명 목록]
+- 테스트 결과: [작성된 테스트 및 결과 요약]
+
+**Auditor Digest** (🚨 HIGH 트랙 필수 — `docs/audits/{ticket_id}.md`에 저장):
+
+```
+### 📝 Auditor Digest
+- **Core Logic**: [구현 핵심 — 3줄 이내]
+- **Identified Risks**: [발견된 실제 위험 요소. 없으면 "없음"]
+- **Human Check 승인 포인트**: [문경 님이 확인한 사항]
+```
+
+## 🔄 Audit & Escalation Protocol
+
+### Self-Audit (MED·HIGH 트랙)
+
+- Design 단계 완료 후 Audit을 수행한다.
+- 실제 발견된 위험만 보고한다. 위험이 없으면 "위험 요소 없음"으로 명시하고 다음 단계로 진행한다.
+- 위험이 발견된 경우: 수정 방향을 제시하고 Design을 수정한 뒤 Impl로 진행한다.
+- 보고 형식: `"Audit 결과: [위험 요소 또는 '없음']. [수정 방향 또는 '다음 단계 진행']."`
+
+### 에스컬레이션 → 문경 님
+
+다음 상황에서 즉시 보고하고 의사결정을 요청한다:
+- HIGH 트랙의 Human Check 단계 도달 시
+- 아키텍처 방향에서 성능(Performance)과 보안(Isolation) 간 트레이드오프가 발생할 때
+- 의사결정이 교착 상태에 빠질 때
 
 ## 🛑 Human-in-the-loop Breakpoints (필수 중단점)
 
@@ -164,35 +221,37 @@
 
 ## [8.⚖️ Harness Enforcement Rules (강제 이행 규칙)]
 
-**설계·구현·보안 검토 작업(Step 2~6)에 해당하는 답변**의 최상단에는 반드시 아래의 [Status Header]를 포함해야 한다.  
-단순 질의응답·현황 조회·문서 확인 등 Step 2~6에 해당하지 않는 답변에는 생략할 수 있다.  
-헤더가 누락된 Step 2~6 작업은 무효로 간주한다.
+**MED·HIGH 트랙의 Design·Audit·Impl 단계 답변** 최상단에는 반드시 아래 [Status Header]를 포함해야 한다.  
+LOW 트랙·단순 질의응답·현황 조회는 생략 가능하다.  
+헤더가 누락된 MED·HIGH 트랙 작업은 무효로 간주한다.
 
 **[Status Header Format]**
 
-- **Current Step**: [Step 1~7 중 현재 단계]
-- **Active Persona**: [현재 역할을 수행 중인 에이전트명]
-- **Handoff Status**: [준수 / 건너뜀 (사유)]
-- **Verification Proof**: [Step 3 Auditor의 검토 결과 요약 또는 링크]
+- **Track**: [LOW / MED / HIGH]
+- **Current Phase**: [현재 단계명 — Design / Audit / Impl / Verify / Report]
+- **Audit Status**: [완료 (위험 N건 발견) / 없음 (LOW 트랙) / 대기중]
+- **Human Check**: [불필요 (LOW·MED) / 대기중 / 승인완료 (날짜)]
 
 **이행 원칙**:
 
-1. **Auditor Pass**: Step 3의 비판적 검토(취약점 3개 도출)가 없는 설계는 Step 6(구현)으로 넘어갈 수 없다.
-2. **Self-Stop**: Architect가 Auditor의 검토 없이 구현을 시도하려 하면, 스스로 오류를 선언하고 Step 3로 돌아가야 한다.
-3. **Error Escalation**: `lint`·`build` 에러 발생 시 독단적으로 수정하지 말고, Auditor에게 에러 로그를 전달하여 원인을 분석하게 한 뒤 수정안을 승인받아라. ([6. Verification Workflow] 항목 2와 연동)
+1. **Audit Gate**: MED·HIGH 트랙에서 Audit 없이 Impl로 진행할 수 없다. 위험이 없더라도 "위험 요소 없음"을 명시해야 통과된다.
+2. **Test Contract Gate**: MED·HIGH 트랙에서 Test Contract(어떤 파일에 어떤 stub을 작성할지) 없이 Impl로 진행할 수 없다. "테스트 계획 없음"은 Impl 진입 거부 사유다.
+3. **Self-Stop**: Audit 또는 Test Contract를 건너뛰고 구현을 시도하려 하면 스스로 오류를 선언하고 해당 단계로 돌아간다.
+3. **Error Escalation**: `lint`·`build` 에러 발생 시 원인을 분석하여 수정안을 문경 님에게 보고하고 승인받은 뒤 수정한다. ([6. Verification Workflow] §2와 연동)
+4. **HIGH Human Gate**: HIGH 트랙의 Human Check는 절대 생략 불가. 승인 전 Impl 시작 금지.
 
-### 위험도 기반 검증 정책 (Risk-based Verification Tiering)
+### 외부 LLM 피드백 검증 원칙
 
-모든 작업에 동일한 수준의 검증을 적용하면 과도한 피로와 토큰 낭비가 발생한다.
-아래 등급에 따라 검증 강도를 선택하라.
+다른 LLM(ChatGPT, Gemini 등) 또는 외부 도구가 **기능 변경 이상**의 내용을 제안한 경우, 구현 전 반드시 다음 절차를 거쳐야 한다.
 
-| 위험 등급 | 대상 작업 | 검증 방식 | 비고 |
-|-----------|-----------|-----------|------|
-| 🚨 **HIGH** | RLS 설계, Auth 로직, DB Schema 변경 | **2중 루프** (Claude Auditor + 외부 모델) | Auditor Digest 필수 출력 |
-| ⚠️ **MEDIUM** | 복잡한 비즈니스 로직, 외부 API 연동 | **내부 루프** (Claude Auditor 전용) | 필요 시 수동 승인 루프 가동 |
-| ✅ **LOW** | UI 컴포넌트, 단순 문서화, 리팩토링 | **자율 진행** (Self-contained 테스트) | Auditor 생략 가능 |
+> **적용 범위**: 로직·구조·API·보안·DB 등 기능에 영향을 주는 제안에 한정한다.  
+> 텍스트·CSS·오탈자 수정 등 LOW 트랙 수준의 단순 제안은 일반 절차를 따른다.
 
-> ⚠️ 등급 판단이 불확실하면 한 단계 높은 등급을 적용하라 (Fail-safe 원칙).
+1. **Validation**: 제안의 타당성을 현재 코드·설계 맥락에서 자체 검증하고, 동의·반박·수정안을 정리한다.
+2. **Report**: 검증 결과를 문경 님에게 보고한다.
+3. **Proceed**: 문경 님의 최종 승인 후에만 구현을 시작한다.
+
+> 외부 피드백은 **참고 자료**이며, **구현 지시**가 아니다.
 
 ## [9. UI/Frontend Standards]
 
@@ -239,8 +298,9 @@ src/components/
 
 ### 10.1 Acrylic DNS Proxy 설치 (Windows — 1회 설정)
 
-`*.localhost` 와일드카드 DNS를 로컬에서 동작시키기 위한 설정이다.  
-hosts 파일 수동 수정 없이 모든 파트너 서브도메인(`partner-a.localhost` 등)을 즉시 사용할 수 있다.
+`*.localhost` 및 `*.opsnow.test` 와일드카드 DNS를 로컬에서 동작시키기 위한 설정이다.  
+hosts 파일 수동 수정 없이 모든 파트너 서브도메인(`partner-a.localhost`, `partner-a.opsnow.test` 등)을 즉시 사용할 수 있다.  
+> **왜 `.local`이 아닌 `.test`인가?** `.local`은 Windows/macOS가 mDNS(Bonjour)용으로 선점하여 Acrylic DNS가 개입하지 못한다. `.test`는 IANA가 테스트 목적으로 예약한 TLD로 mDNS 간섭이 없다.
 
 **1. 설치**
 ```
@@ -252,6 +312,7 @@ https://mayakron.altervista.org/support/acrylic/Home.htm
 Acrylic UI 실행 → `Open Acrylic Hosts` 클릭 후 맨 아래에 추가:
 ```
 127.0.0.1  *.localhost
+127.0.0.1  *.opsnow.test
 ```
 
 **3. Windows DNS 서버를 Acrylic으로 변경**
