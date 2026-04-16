@@ -28,7 +28,8 @@
     "contact": "联系方式",
     "legal": "法律声明",
     "terms": "服务条款",
-    "privacy": "隐私政策"
+    "privacy": "隐私政策",
+    "cookies": "Cookie政策"
   },
   "corporate": {
     "companyName": "公司名称",
@@ -44,7 +45,77 @@
     "defaultTitle": "隐私政策",
     "comingSoon": "隐私政策内容准备中。"
   },
+  "cookiesPage": {
+    "defaultTitle": "Cookie政策",
+    "comingSoon": "Cookie政策内容准备中。"
+  },
+  "faq": {
+    "helpCenter": "帮助中心",
+    "pageTitle": "我们能帮您什么？",
+    "searchPlaceholder": "搜索问题 — 例：计费、安全、接入...",
+    "searchBtn": "搜索",
+    "allCategory": "全部",
+    "breadcrumbHome": "首页",
+    "breadcrumbFaq": "FAQ",
+    "noResults": "该分类下暂无问题。",
+    "ctaTitle": "没有找到您想要的答案？",
+    "ctaSubtitle": "请直接联系我们的专属FinOps工程师。",
+    "backToFaq": "返回FAQ列表",
+    "updatedAt": "最后更新"
+  },
   "contactForm": {
-    "defaultCta": "提交咨询"
+    "title": "立即联系我们",
+    "subtitle": "专业顾问将为您的企业量身定制最优云资源优化方案。",
+    "defaultCta": "提交咨询",
+    "fields": {
+      "name": "联系人姓名",
+      "email": "电子邮件",
+      "company": "公司名称",
+      "phone": "联系电话",
+      "usage": "月均云资源费用",
+      "message": "咨询内容"
+    },
+    "placeholders": {
+      "name": "张三",
+      "email": "example@company.com",
+      "company": "示例科技有限公司",
+      "phone": "+86-000-0000-0000",
+      "usage": "请选择",
+      "message": "请描述您的问题或需求。"
+    },
+    "usageOptions": [
+      { "value": "under_1m",  "label": "100万韩元以下" },
+      { "value": "1m_5m",     "label": "100万 ~ 500万韩元" },
+      { "value": "5m_20m",    "label": "500万 ~ 2000万韩元" },
+      { "value": "20m_plus",  "label": "2000万韩元以上" }
+    ],
+    "legalPrefix": "提交即表示您同意我们的",
+    "legalSeparator": "和",
+    "legalSuffix": "。",
+    "terms": "服务条款",
+    "privacy": "隐私政策",
+    "successMessage": "您的咨询已收到，我们将尽快与您联系。",
+    "badge": "免费分析咨询",
+    "mainTitle": "立即了解",
+    "mainTitleHighlight": "隐藏的浪费有多少。",
+    "mainDescription": "5分钟接入，24小时内获得首份报告。仅在实现实际节省后才收费。立即申请免费咨询，专属FinOps工程师将直接分析贵公司的云支出。",
+    "trustPoints": [
+      "只读权限 — 零资源变更",
+      "SOC2 Type II 认证",
+      "5分钟接入 · 24小时内首报告",
+      "无节省，不收费"
+    ],
+    "socialProof": [
+      { "value": "340+",   "label": "企业客户" },
+      { "value": "平均31%", "label": "月账单节省" },
+      { "value": "4.9 / 5", "label": "客户满意度" }
+    ],
+    "formTitle": "申请免费分析咨询",
+    "formSubtitle": "填写所有字段可获得更精准的分析结果。",
+    "submitCta": "申请免费分析咨询",
+    "submitting": "提交中…",
+    "successTitle": "申请已完成！",
+    "successDescription": "专属工程师将在1个工作日内与您联系。请查收邮件。",
+    "resetCta": "重新填写"
   }
 }

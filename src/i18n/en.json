@@ -28,7 +28,8 @@
     "contact": "Contact",
     "legal": "Legal",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "cookies": "Cookie Policy"
   },
   "corporate": {
     "companyName": "Company",
@@ -44,7 +45,77 @@
     "defaultTitle": "Privacy Policy",
     "comingSoon": "Privacy policy coming soon."
   },
+  "cookiesPage": {
+    "defaultTitle": "Cookie Policy",
+    "comingSoon": "Cookie policy coming soon."
+  },
+  "faq": {
+    "helpCenter": "HELP CENTER",
+    "pageTitle": "How can we help you?",
+    "searchPlaceholder": "Search questions — e.g. billing, security, setup...",
+    "searchBtn": "Search",
+    "allCategory": "All",
+    "breadcrumbHome": "Home",
+    "breadcrumbFaq": "FAQ",
+    "noResults": "No questions in this category.",
+    "ctaTitle": "Couldn't find your answer?",
+    "ctaSubtitle": "Contact our dedicated FinOps engineer directly.",
+    "backToFaq": "Back to FAQ",
+    "updatedAt": "Last updated"
+  },
   "contactForm": {
-    "defaultCta": "Contact Us"
+    "title": "Get in touch today",
+    "subtitle": "Our expert consultants will guide you to the right cloud optimization solution for your business.",
+    "defaultCta": "Contact Us",
+    "fields": {
+      "name": "Contact Name",
+      "email": "Email",
+      "company": "Company",
+      "phone": "Phone",
+      "usage": "Monthly Cloud Spend",
+      "message": "Message"
+    },
+    "placeholders": {
+      "name": "John Doe",
+      "email": "example@company.com",
+      "company": "Acme Corp",
+      "phone": "+1-000-000-0000",
+      "usage": "Select an option",
+      "message": "Please describe your inquiry or request."
+    },
+    "usageOptions": [
+      { "value": "under_1m",  "label": "Under ₩1M / month" },
+      { "value": "1m_5m",     "label": "₩1M ~ ₩5M / month" },
+      { "value": "5m_20m",    "label": "₩5M ~ ₩20M / month" },
+      { "value": "20m_plus",  "label": "₩20M+ / month" }
+    ],
+    "legalPrefix": "By submitting, you agree to our ",
+    "legalSeparator": " and ",
+    "legalSuffix": ".",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "successMessage": "Your inquiry has been received. We will get back to you shortly.",
+    "badge": "Free Analysis",
+    "mainTitle": "Find out right now.",
+    "mainTitleHighlight": "How much is being wasted.",
+    "mainDescription": "5-minute setup, first report in 24 hours. You only pay after real savings are achieved. Request a free consultation and our dedicated FinOps engineer will analyze your cloud spend directly.",
+    "trustPoints": [
+      "Read-only access — zero resource changes",
+      "SOC2 Type II certified",
+      "5-min setup · First report in 24h",
+      "No savings, no charge"
+    ],
+    "socialProof": [
+      { "value": "340+",     "label": "Enterprise Clients" },
+      { "value": "Avg. 31%", "label": "Monthly Bill Reduction" },
+      { "value": "4.9 / 5",  "label": "Customer Satisfaction" }
+    ],
+    "formTitle": "Request Free Analysis",
+    "formSubtitle": "Fill in all fields for a more accurate analysis result.",
+    "submitCta": "Request Free Analysis",
+    "submitting": "Submitting…",
+    "successTitle": "Request received!",
+    "successDescription": "Our dedicated engineer will contact you within 1 business day. Please check your email.",
+    "resetCta": "Submit again"
   }
 }

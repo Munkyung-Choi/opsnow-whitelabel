@@ -28,7 +28,8 @@
     "contact": "連絡先",
     "legal": "法的通知",
     "terms": "利用規約",
-    "privacy": "プライバシーポリシー"
+    "privacy": "プライバシーポリシー",
+    "cookies": "クッキーポリシー"
   },
   "corporate": {
     "companyName": "会社名",
@@ -44,7 +45,77 @@
     "defaultTitle": "プライバシーポリシー",
     "comingSoon": "プライバシーポリシーの内容は準備中です。"
   },
+  "cookiesPage": {
+    "defaultTitle": "クッキーポリシー",
+    "comingSoon": "クッキーポリシーの内容は準備中です。"
+  },
+  "faq": {
+    "helpCenter": "ヘルプセンター",
+    "pageTitle": "何をお探しですか？",
+    "searchPlaceholder": "質問を検索 — 例：請求、セキュリティ、設定...",
+    "searchBtn": "検索",
+    "allCategory": "すべて",
+    "breadcrumbHome": "ホーム",
+    "breadcrumbFaq": "FAQ",
+    "noResults": "このカテゴリには質問がありません。",
+    "ctaTitle": "お探しの回答が見つかりませんでしたか？",
+    "ctaSubtitle": "専任FinOpsエンジニアに直接お問い合わせください。",
+    "backToFaq": "FAQリストへ戻る",
+    "updatedAt": "最終更新"
+  },
   "contactForm": {
-    "defaultCta": "お問い合わせを申し込む"
+    "title": "今すぐお問い合わせ",
+    "subtitle": "専門のコンサルタントが、貴社に最適なクラウド最適化プランをご案内します。",
+    "defaultCta": "お問い合わせを申し込む",
+    "fields": {
+      "name": "担当者名",
+      "email": "メールアドレス",
+      "company": "会社名",
+      "phone": "電話番号",
+      "usage": "月間クラウド利用額",
+      "message": "お問い合わせ内容"
+    },
+    "placeholders": {
+      "name": "山田 太郎",
+      "email": "example@company.com",
+      "company": "株式会社サンプル",
+      "phone": "+81-00-0000-0000",
+      "usage": "選択してください",
+      "message": "ご質問やご要望を自由にご記入ください。"
+    },
+    "usageOptions": [
+      { "value": "under_1m",  "label": "100万ウォン未満" },
+      { "value": "1m_5m",     "label": "100万 ～ 500万ウォン" },
+      { "value": "5m_20m",    "label": "500万 ～ 2,000万ウォン" },
+      { "value": "20m_plus",  "label": "2,000万ウォン以上" }
+    ],
+    "legalPrefix": "送信することで",
+    "legalSeparator": "および",
+    "legalSuffix": "に同意したことになります。",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "successMessage": "お問い合わせを受け付けました。近日中にご連絡いたします。",
+    "badge": "無料分析相談",
+    "mainTitle": "今すぐ確認してください。",
+    "mainTitleHighlight": "隠れた無駄がいくらあるか。",
+    "mainDescription": "接続5分、レポート24時間以内。費用は実際の削減後にのみ発生します。今すぐ無料相談をお申し込みいただければ、専任FinOpsエンジニアが貴社のクラウド支出を直接分析します。",
+    "trustPoints": [
+      "読み取り専用権限 — リソース変更なし",
+      "SOC2 Type II 認定",
+      "5分接続 · 24h以内に初回レポート",
+      "削減なければ費用なし"
+    ],
+    "socialProof": [
+      { "value": "340+",   "label": "導入企業" },
+      { "value": "平均31%", "label": "月額請求削減" },
+      { "value": "4.9 / 5", "label": "顧客満足度" }
+    ],
+    "formTitle": "無料分析相談を申し込む",
+    "formSubtitle": "すべての項目を入力すると、より正確な分析結果が得られます。",
+    "submitCta": "無料分析相談を申し込む",
+    "submitting": "送信中…",
+    "successTitle": "申し込みが完了しました！",
+    "successDescription": "営業日1日以内に専任エンジニアよりご連絡いたします。メールをご確認ください。",
+    "resetCta": "再入力する"
   }
 }

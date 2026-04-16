@@ -55,7 +55,6 @@ const DynamicFinalCTASection = dynamic(
   () => import('@/components/marketing/FinalCTASection'),
   { ssr: true }
 );
-
 // ── SectionRegistry ───────────────────────────────────────────────────────────────
 
 type SectionRenderFn = (data: PartnerPageData) => React.ReactNode;
@@ -78,18 +77,25 @@ const SECTION_REGISTRY: Readonly<Record<string, SectionRenderFn>> = {
     <DynamicFinOpsAutomation content={data.globalContents.get('finops_automation') ?? null} />
   ),
   core_engines: (data) => (
-    <DynamicCoreEngines content={data.globalContents.get('core_engines') ?? null} />
+    <DynamicCoreEngines
+      content={data.globalContents.get('core_engines') ?? null}
+      partnerName={data.partner.business_name}
+    />
   ),
   role_based_value: (data) => (
-    <DynamicRoleBasedValue content={data.globalContents.get('role_based_value') ?? null} />
+    <DynamicRoleBasedValue
+      content={data.globalContents.get('role_based_value') ?? null}
+      partnerName={data.partner.business_name}
+    />
   ),
   faq: (data) => (
-    <DynamicFaqSection content={data.contents.get('faq') ?? null} />
+    <DynamicFaqSection content={data.globalContents.get('faq') ?? null} />
   ),
   final_cta: (data) => (
     <DynamicFinalCTASection
       content={data.contents.get('final_cta') ?? null}
       partnerId={data.partner.id}
+      locale={data.locale}
     />
   ),
 } as const;

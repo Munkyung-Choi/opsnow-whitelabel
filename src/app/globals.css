@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -191,37 +192,51 @@
   }
 
   /* ── Heading / Body typography ──────────────────────────── */
+  /*
+   * Heading line-height 체계 (2026-04-14 통일)
+   *
+   * h1 1.25 : Tailwind leading-tight 과 동일 값으로 통일.
+   *            HeroSection에서 leading-tight 유틸리티를 쓰더라도 충돌 없음.
+   * h2 1.4  : 섹션 타이틀(text-3xl/4xl) 한국어 가독성 핵심 값.
+   *            PainPoints · Stats · HowItWorks 등 섹션 h2 전체에 즉시 반영.
+   * h3 1.45 : 카드 타이틀 여백 보강.
+   * h4 1.5  : 기존 유지 (소형 레이블 수준).
+   * p  1.7  : 본문 호흡 확보 (leading-relaxed 1.625 ≈ 동일 시각 효과).
+   *
+   * 규칙: 컴포넌트에서 leading-* 유틸리티를 추가하면 이 설정을 덮어쓴다.
+   *       특별한 이유 없이 leading-* 를 개별 컴포넌트에 추가하지 말 것.
+   */
   h1 {
     font-family: var(--font-sans);
     font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
+    line-height: 1.25;
+    letter-spacing: 0em;
   }
 
   h2 {
     font-family: var(--font-sans);
     font-weight: 700;
-    line-height: 1.3;
-    letter-spacing: -0.02em;
+    line-height: 1.4;
+    letter-spacing: 0em;
   }
 
   h3 {
     font-family: var(--font-sans);
     font-weight: 600;
-    line-height: 1.4;
-    letter-spacing: -0.01em;
+    line-height: 1.45;
+    letter-spacing: 0em;
   }
 
   h4 {
     font-family: var(--font-sans);
     font-weight: 600;
     line-height: 1.5;
-    letter-spacing: -0.01em;
+    letter-spacing: 0em;
   }
 
   p {
     font-family: var(--font-sans);
-    line-height: 1.65;
+    line-height: 1.5;
   }
 
   label {

@@ -51,8 +51,8 @@ export default function GlobalNav({ partner, locale }: GlobalNavProps) {
   const homeHref = `/${partner.id}/${locale}`;
 
   const NAV_LINKS = [
-    { label: t.features, href: '#features' },
-    { label: t.process,  href: '#process' },
+    { label: t.features, href: '#core-engines' },
+    { label: t.process,  href: '#how-it-works' },
     { label: t.faq,      href: '#faq' },
   ];
 

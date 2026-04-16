@@ -20,7 +20,7 @@ const GLOBAL_SECTION_TYPES = [
   'finops_automation',
   'core_engines',
   'role_based_value',
-  'features',
+  'faq',
 ] as const;
 
 // Default section order when partner has no partner_sections rows (new partners)
@@ -42,22 +42,49 @@ const DEFAULT_SECTIONS: SectionConfig[] = [
 ];
 
 /**
- * [WL-61] JSONB {"ko": "...", "en": null} 구조에서 locale 키 추출.
+ * [WL-61] {"ko": "...", "en": "..."} 구조에서 locale 키 추출.
  * 컴포넌트에서 직접 호출할 수 있도록 export됨.
+ *
+ * TEXT 컬럼에 JSON 포맷 문자열이 저장된 경우도 처리한다.
+ * Supabase는 TEXT 컬럼을 파싱 없이 string으로 반환하므로,
+ * '{' pre-check 후 JSON.parse를 시도하고 실패하면 레거시 plain string으로 취급.
+ *
+ * 폴백 순서: 요청 locale → ko → en → 첫 번째 값 → plain string 원본
  */
 export function extractI18n(value: Json | null | undefined, locale: Locale): string | null {
   if (value === null || value === undefined) return null;
-  // 마이그레이션 전 레거시 데이터 (plain string) 호환
-  if (typeof value === 'string') return value;
+  if (typeof value === 'string') {
+    // Performance: '{' 로 시작하는 문자열만 JSON.parse 시도 (ReDoS·성능 방어)
+    if (value.trimStart().startsWith('{')) {
+      try {
+        const parsed: unknown = JSON.parse(value);
+        if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return extractFromObj(parsed as Record<string, unknown>, locale) ?? value;
+        }
+      } catch {
+        // JSON 파싱 실패 — 레거시 plain string으로 취급
+      }
+    }
+    return value;
+  }
   if (typeof value === 'object' && !Array.isArray(value)) {
-    const obj = value as Record<string, Json>;
-    const localized = obj[locale];
-    if (typeof localized === 'string' && localized.length > 0) return localized;
-    // 요청 locale 값이 null/빈 문자열이면 'ko'로 폴백
-    const fallback = obj['ko'];
-    return typeof fallback === 'string' ? fallback : null;
+    return extractFromObj(value as Record<string, Json>, locale);
   }
   return null;
+}
+
+/** locale 키 추출 내부 헬퍼. 폴백 순서: locale → ko → en → 첫 번째 문자열 값 */
+function extractFromObj(obj: Record<string, unknown>, locale: string): string | null {
+  const tryStr = (v: unknown): string | null =>
+    typeof v === 'string' && v.length > 0 ? v : null;
+
+  return (
+    tryStr(obj[locale]) ??
+    tryStr(obj['ko']) ??
+    tryStr(obj['en']) ??
+    (Object.values(obj).find((v) => typeof v === 'string' && (v as string).length > 0) as string | undefined) ??
+    null
+  );
 }
 
 /**
@@ -97,8 +124,13 @@ function applyInterp(value: string | null, businessName: string): string | null 
 }
 
 function localizeContentRow(row: ContentRow, locale: Locale, businessName: string): LocalizedContentRow {
+  // body는 TEXT 컬럼이므로 항상 string. '[' 로 시작하면 JSON 배열 문자열로 파싱 시도.
   const rawBody = row.body;
-  const bodyIsArray = Array.isArray(rawBody);
+  let parsedBody: Json | null = rawBody;
+  if (typeof rawBody === 'string' && rawBody.trimStart().startsWith('[')) {
+    try { parsedBody = JSON.parse(rawBody) as Json; } catch { /* keep string */ }
+  }
+  const bodyIsArray = Array.isArray(parsedBody);
   return {
     id: row.id,
     partner_id: row.partner_id,
@@ -106,82 +138,55 @@ function localizeContentRow(row: ContentRow, locale: Locale, businessName: strin
     is_published: row.is_published,
     title: applyInterp(extractI18n(row.title as Json, locale), businessName),
     subtitle: applyInterp(extractI18n(row.subtitle as Json, locale), businessName),
-    body: bodyIsArray ? null : applyInterp(extractI18n(rawBody as Json, locale), businessName),
-    body_json: bodyIsArray ? interpolateJson(rawBody as Json, businessName) : null,
+    body: bodyIsArray ? null : applyInterp(extractI18n(parsedBody, locale), businessName),
+    body_json: bodyIsArray ? interpolateJson(parsedBody, businessName) : null,
     cta_text: applyInterp(extractI18n(row.cta_text as Json, locale), businessName),
     contact_info: row.contact_info, // excluded from interpolation (email/phone/address)
     updated_at: row.updated_at,
   };
 }
 
+/**
+ * [WL-92] Option B: meta JSON을 깊이 순회하여 i18n 객체를 locale 문자열로 치환.
+ *
+ * i18n 탐지 기준: { ko, en, ja, zh } 중 하나 이상의 키가 string 값으로 존재.
+ * plain string / number / boolean / null → 변환 없이 통과 (Backward Compatible).
+ * 재귀 깊이: 현재 실측 meta 구조(1~2레벨)를 커버하며 최대 10레벨로 제한.
+ */
+function deepLocalizeJson(value: Json, locale: Locale, depth = 0): Json {
+  if (depth > 10 || value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) {
+    return (value as Json[]).map((item) => deepLocalizeJson(item, locale, depth + 1));
+  }
+  const obj = value as Record<string, Json>;
+  // i18n 객체 탐지: locale key가 string 값으로 존재
+  if (['ko', 'en', 'ja', 'zh'].some((k) => typeof obj[k] === 'string')) {
+    const extracted = extractI18n(value, locale);
+    return extracted !== null ? extracted : value;
+  }
+  // 일반 객체: 각 값을 재귀 처리
+  const result: Record<string, Json> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    result[k] = deepLocalizeJson(v, locale, depth + 1);
+  }
+  return result;
+}
+
 function localizeGlobalContentRow(row: GlobalContentRow, locale: Locale, businessName: string): LocalizedGlobalContentRow {
+  const interpolated = interpolateJson(row.meta, businessName);
   return {
     id: row.id,
     section_type: row.section_type,
     title: applyInterp(extractI18n(row.title as Json, locale), businessName),
     subtitle: applyInterp(extractI18n(row.subtitle as Json, locale), businessName),
-    meta: interpolateJson(row.meta, businessName),
+    // meta: interpolation 후 deep localize — 파서는 locale-free 순수 구조 변환기가 됨
+    meta: interpolated !== null ? deepLocalizeJson(interpolated, locale) : null,
     updated_at: row.updated_at,
   };
 }
 
-// ─── Legacy types (backward-compat — FeaturesSection, AboutSection) ───────────
-
-export interface FeatureCard {
-  icon: string;
-  title: string;
-  description: string;
-}
-
-export interface FeaturesContent {
-  title: string | null;
-  subtitle: string | null;
-  cards: FeatureCard[];
-}
-
-export interface FooterContactInfo {
-  email?: string;
-  phone?: string;
-  address?: string;
-}
-
-export function parseFooterContactInfo(contactInfo: Json | null): FooterContactInfo {
-  if (!contactInfo || typeof contactInfo !== 'object' || Array.isArray(contactInfo)) return {};
-  const obj = contactInfo as Record<string, Json>;
-  return {
-    email: typeof obj.email === 'string' ? obj.email : undefined,
-    phone: typeof obj.phone === 'string' ? obj.phone : undefined,
-    address: typeof obj.address === 'string' ? obj.address : undefined,
-  };
-}
-
-// [WL-58] LocalizedGlobalContentRow를 받도록 변경 — title/subtitle은 이미 locale 추출 + 인터폴레이션 완료.
-// meta 내부 카드들의 i18n 객체는 여전히 locale 추출이 필요하므로 locale 파라미터 유지.
-function parseFeaturesContent(row: LocalizedGlobalContentRow | null, locale: Locale): FeaturesContent | null {
-  if (!row) return null;
-  const meta = row.meta;
-  let cards: FeatureCard[] = [];
-  if (meta && typeof meta === 'object' && !Array.isArray(meta)) {
-    const rawCards = (meta as Record<string, Json>)['cards'];
-    if (Array.isArray(rawCards)) {
-      cards = rawCards.flatMap((card) => {
-        if (!card || typeof card !== 'object' || Array.isArray(card)) return [];
-        const c = card as Record<string, Json>;
-        const title = extractI18n(c.title, locale) ?? (typeof c.title === 'string' ? c.title : '');
-        const description = extractI18n(c.description, locale) ?? (typeof c.description === 'string' ? c.description : '');
-        if (typeof c.icon !== 'string' || !title || !description) return [];
-        return [{ icon: c.icon, title, description }];
-      });
-    }
-  }
-  return {
-    title: row.title,
-    subtitle: row.subtitle,
-    cards,
-  };
-}
-
 // ─── Main exported interface ──────────────────────────────────────────────────
+// FeatureCard, FeaturesContent 타입은 parsers.ts에서 import (WL-92)
 
 export interface PartnerPageData {
   partner: Partner;
@@ -196,7 +201,7 @@ export interface PartnerPageData {
   footer: LocalizedContentRow | null;
   terms: LocalizedContentRow | null;
   privacy: LocalizedContentRow | null;
-  features: FeaturesContent | null;
+  cookie_policy: LocalizedContentRow | null;
 }
 
 export const getPartnerPageData = cache(async (
@@ -270,6 +275,6 @@ export const getPartnerPageData = cache(async (
     footer: bySection('footer'),
     terms: bySection('terms'),
     privacy: bySection('privacy'),
-    features: parseFeaturesContent(globalContents.get('features') ?? null, locale),
+    cookie_policy: bySection('cookie_policy'),
   };
 });

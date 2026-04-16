@@ -9,7 +9,6 @@ export { validateLocale }; // 내부 import 바인딩을 그대로 재노출
 const ADMIN_HOST = 'admin-whitelabel.opsnow.com';
 const BASE_DOMAIN = 'opsnow.com';
 const IS_DEV = process.env.NODE_ENV === 'development';
-const IS_PREVIEW = process.env.VERCEL_ENV === 'preview';
 
 // ─── Middleware In-Memory Cache ───────────────────────────────────────────────
 // Edge Worker 인스턴스 내에서 파트너 조회 중복 방지.
@@ -122,10 +121,24 @@ function isPlainLocalhost(host: string): boolean {
   );
 }
 
-/** *.localhost 서브도메인 추출 — e.g. "partner-a.localhost:3000" → "partner-a" */
-function extractLocalhostSubdomain(host: string): string | null {
+/**
+ * 로컬 개발 TLD에서 서브도메인(슬러그) 추출
+ *
+ * 지원 TLD:
+ *   - *.localhost     — Acrylic DNS 기본 (CLAUDE.md §10.1)
+ *   - *.opsnow.test   — 사내 Acrylic 대체 TLD (WL-60 확장)
+ *                       (.local은 Windows mDNS가 선점하므로 IANA 예약 .test TLD 사용)
+ *
+ * 예시:
+ *   "partner-a.localhost:3000"   → "partner-a"
+ *   "partner-a.opsnow.test:3000" → "partner-a"
+ *   "opsnow.test"                → null  (서브도메인 없음 → /not-found)
+ */
+const LOCAL_TLD_RE = /^(.+)\.(localhost|opsnow\.test)$/;
+
+function extractLocalSubdomain(host: string): string | null {
   const cleanHost = host.split(':')[0];
-  const match = cleanHost.match(/^(.+)\.localhost$/);
+  const match = cleanHost.match(LOCAL_TLD_RE);
   return match ? match[1] : null;
 }
 
@@ -214,10 +227,10 @@ async function resolvePartnerByCustomDomain(domain: string): Promise<PartnerLoca
 async function resolvePartnerFromHost(host: string): Promise<PartnerLocaleData | null> {
   const cleanHost = host.split(':')[0];
 
-  // 1. *.localhost 서브도메인 (로컬 개발)
-  const localhostSubdomain = extractLocalhostSubdomain(host);
-  if (localhostSubdomain) {
-    return resolvePartnerBySubdomain(localhostSubdomain);
+  // 1. *.localhost / *.opsnow.local 서브도메인 (로컬 개발)
+  const localSubdomain = extractLocalSubdomain(host);
+  if (localSubdomain) {
+    return resolvePartnerBySubdomain(localSubdomain);
   }
 
   // 2. *.opsnow.com 서브도메인 (프로덕션 및 dev- 접두어 개발 환경)

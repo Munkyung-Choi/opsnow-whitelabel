@@ -28,7 +28,8 @@
     "contact": "연락처",
     "legal": "법적 고지",
     "terms": "이용약관",
-    "privacy": "개인정보 처리방침"
+    "privacy": "개인정보 처리방침",
+    "cookies": "쿠키 정책"
   },
   "corporate": {
     "companyName": "상호명",
@@ -44,7 +45,77 @@
     "defaultTitle": "개인정보 처리방침",
     "comingSoon": "개인정보 처리방침 내용이 준비 중입니다."
   },
+  "cookiesPage": {
+    "defaultTitle": "쿠키 정책",
+    "comingSoon": "쿠키 정책 내용이 준비 중입니다."
+  },
+  "faq": {
+    "helpCenter": "HELP CENTER",
+    "pageTitle": "무엇을 도와드릴까요?",
+    "searchPlaceholder": "질문을 검색하세요 — 예: 요금, 보안, 연동...",
+    "searchBtn": "검색",
+    "allCategory": "전체",
+    "breadcrumbHome": "홈",
+    "breadcrumbFaq": "FAQ",
+    "noResults": "해당 카테고리의 질문이 없습니다.",
+    "ctaTitle": "원하는 답변을 찾지 못하셨나요?",
+    "ctaSubtitle": "전담 FinOps 엔지니어에게 직접 문의하세요.",
+    "backToFaq": "FAQ 목록으로",
+    "updatedAt": "마지막 업데이트"
+  },
   "contactForm": {
-    "defaultCta": "문의 신청하기"
+    "title": "지금 바로 문의하세요",
+    "subtitle": "전문 컨설턴트가 귀사에 맞는 클라우드 최적화 방안을 안내해 드립니다.",
+    "defaultCta": "문의 신청하기",
+    "fields": {
+      "name": "담당자 이름",
+      "email": "이메일",
+      "company": "회사명",
+      "phone": "연락처",
+      "usage": "월 클라우드 사용량",
+      "message": "문의 내용"
+    },
+    "placeholders": {
+      "name": "홍길동",
+      "email": "example@company.com",
+      "company": "(주)OpsNow",
+      "phone": "010-1234-5678",
+      "usage": "선택해주세요",
+      "message": "궁금하신 점이나 요청 사항을 자유롭게 작성해주세요."
+    },
+    "usageOptions": [
+      { "value": "under_1m", "label": "100만원 미만" },
+      { "value": "1m_5m",    "label": "100만원 ~ 500만원" },
+      { "value": "5m_20m",   "label": "500만원 ~ 2,000만원" },
+      { "value": "20m_plus", "label": "2,000만원 이상" }
+    ],
+    "legalPrefix": "제출 시 ",
+    "legalSeparator": " 및 ",
+    "legalSuffix": "에 동의하는 것으로 간주합니다.",
+    "terms": "이용약관",
+    "privacy": "개인정보 처리방침",
+    "successMessage": "문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.",
+    "badge": "무료 분석 상담",
+    "mainTitle": "지금 바로 확인하세요.",
+    "mainTitleHighlight": "숨겨진 낭비가 얼마인지.",
+    "mainDescription": "연동 5분, 리포트 24시간. 비용은 실제 절감 이후에만 발생합니다. 지금 무료 상담을 신청하면 전담 FinOps 엔지니어가 귀사의 클라우드 지출을 직접 분석해드립니다.",
+    "trustPoints": [
+      "읽기 전용 권한 — 리소스 무변경",
+      "SOC2 Type II 인증 완료",
+      "5분 연동 · 24h 내 첫 리포트",
+      "절감 없으면 비용 없음"
+    ],
+    "socialProof": [
+      { "value": "340+",    "label": "도입 기업" },
+      { "value": "평균 31%", "label": "월 청구서 절감" },
+      { "value": "4.9 / 5", "label": "고객 만족도" }
+    ],
+    "formTitle": "무료 분석 상담 신청",
+    "formSubtitle": "모든 항목을 입력하면 더 정확한 분석 결과를 받으실 수 있습니다.",
+    "submitCta": "무료 분석 상담 신청하기",
+    "submitting": "제출 중…",
+    "successTitle": "신청이 완료되었습니다!",
+    "successDescription": "영업일 기준 1일 이내에 전담 엔지니어가 연락드립니다. 이메일을 확인해 주세요.",
+    "resetCta": "다시 입력하기"
   }
 }

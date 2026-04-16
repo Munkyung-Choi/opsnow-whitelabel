@@ -16,12 +16,12 @@ export default function AboutSection({ content }: AboutSectionProps) {
           </p>
         )}
         {content.title && (
-          <h2 className="mb-6 text-3xl font-bold text-foreground sm:text-4xl">
+          <h2 className="mb-6 text-3xl/[1.4] font-bold text-foreground sm:text-4xl/[1.4]">
             {content.title}
           </h2>
         )}
         {content.body && (
-          <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+          <p className="sm:text-lg/[1.5] text-muted-foreground">
             {content.body}
           </p>
         )}

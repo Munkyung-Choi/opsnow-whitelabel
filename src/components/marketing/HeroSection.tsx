@@ -2,6 +2,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HeroImage from '@/components/marketing/HeroImage';
 import type { LocalizedContentRow } from '@/lib/marketing/get-partner-page-data';
+import { parseMiniStats } from '@/lib/marketing/parsers';
 import { getDictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/proxy';
 
@@ -20,10 +21,14 @@ interface HeroSectionProps {
 export default function HeroSection({ content, locale, heroImageUrl }: HeroSectionProps) {
   const t = getDictionary(locale).hero;
 
-  const title    = content?.title    ?? t.defaultTitle;
+  const title    = content?.title    ?? null;
   const subtitle = content?.subtitle ?? t.defaultSubtitle;
   const ctaText  = content?.cta_text ?? t.defaultCta;
   const imageSrc = heroImageUrl ?? DEFAULT_HERO_IMAGE;
+
+  // WL-94: DB mini_stats 우선, 없으면 dictionary heroStats 폴백
+  const dbStats = parseMiniStats(content?.body_json ?? null);
+  const stats = dbStats.length > 0 ? dbStats : t.heroStats;
 
   return (
     <section
@@ -47,12 +52,14 @@ export default function HeroSection({ content, locale, heroImageUrl }: HeroSecti
 
             {/* 메인 타이틀 — {PartnerName} 인터폴레이션 + 조사 처리는 get-partner-page-data.ts에서 수행
                 whitespace-pre-line: DB title의 \n 문자를 시각적 줄바꿈으로 렌더링 */}
-            <h1 className="whitespace-pre-line text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem]">
-              {title}
-            </h1>
+            {title && (
+              <h1 className="whitespace-pre-line text-4xl/[1.25] font-bold text-foreground sm:text-5xl/[1.25] lg:text-[3.5rem]/[1.25]">
+                {title}
+              </h1>
+            )}
 
             {/* 서브타이틀 */}
-            <p className="text-lg leading-relaxed text-muted-foreground sm:text-xl">
+            <p className="text-lg/[1.5] text-muted-foreground sm:text-xl/[1.5]">
               {subtitle}
             </p>
 
@@ -66,16 +73,17 @@ export default function HeroSection({ content, locale, heroImageUrl }: HeroSecti
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="#features">
+                <a href="#core-engines">
                   {t.exploreServices}
                   <ChevronDown className="ml-1.5 h-4 w-4" aria-hidden="true" />
                 </a>
               </Button>
             </div>
 
-            {/* 미니 스탯 — 숫자에 Primary Color 적용 (파트너 포인트 컬러 노출 전략) */}
+            {/* 미니 스탯 — 숫자에 Primary Color 적용 (파트너 포인트 컬러 노출 전략)
+                WL-94: DB body_json 우선, 없으면 dictionary heroStats 폴백 */}
             <div className="flex flex-wrap justify-center gap-8 pt-2 lg:justify-start">
-              {t.heroStats.map((stat) => (
+              {stats.map((stat) => (
                 <div key={stat.label}>
                   {/* FIXED: text-primary는 파트너 테마 포인트 컬러 — 화이트라벨 핵심 */}
                   <p className="text-2xl font-bold text-primary">{stat.value}</p>
