@@ -139,7 +139,7 @@ function localizeContentRow(row: ContentRow, locale: Locale, businessName: strin
     title: applyInterp(extractI18n(row.title as Json, locale), businessName),
     subtitle: applyInterp(extractI18n(row.subtitle as Json, locale), businessName),
     body: bodyIsArray ? null : applyInterp(extractI18n(parsedBody, locale), businessName),
-    body_json: bodyIsArray ? interpolateJson(parsedBody, businessName) : null,
+    body_json: bodyIsArray ? deepLocalizeJson(interpolateJson(parsedBody, businessName), locale) : null,
     cta_text: applyInterp(extractI18n(row.cta_text as Json, locale), businessName),
     contact_info: row.contact_info, // excluded from interpolation (email/phone/address)
     updated_at: row.updated_at,

@@ -339,6 +339,72 @@ describe('parsePainPoints', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// parseStats / parseSteps / parsePainPoints — i18n pre-resolved inputs
+// deepLocalizeJson이 body_json / meta.cards에 적용된 뒤의 상태를 시뮬레이션.
+// 파서가 이미 locale 추출된 string을 받았을 때도 정상 동작하는지 검증.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('parseStats — i18n pre-resolved', () => {
+  it('label/unit/detail이 이미 locale 추출된 string → 정상 파싱', () => {
+    // deepLocalizeJson이 body_json에 적용된 후: {"ko":"..","en":".."} → 단일 string
+    const input = [
+      { value: '30%', unit: 'avg', label: 'Monthly Cloud Cost Reduction', detail: 'Up to 47% achieved' },
+      { value: '5', unit: 'min', label: 'Initial Setup Complete' },
+    ];
+    const result = parseStats(input);
+    expect(result).toHaveLength(2);
+    expect(result[0].label).toBe('Monthly Cloud Cost Reduction');
+    expect(result[0].unit).toBe('avg');
+    expect(result[1].unit).toBe('min');
+  });
+});
+
+describe('parseSteps — i18n pre-resolved', () => {
+  it('subtitle/description이 이미 locale 추출된 string → 정상 파싱', () => {
+    const input = [{
+      step: 1, title: 'Connect',
+      subtitle: 'Cloud Account Connection',
+      description: 'Complete integration in under 5 minutes.',
+    }];
+    const result = parseSteps(input);
+    expect(result[0].subtitle).toBe('Cloud Account Connection');
+    expect(result[0].description).toBe('Complete integration in under 5 minutes.');
+  });
+
+  it('details 배열 항목이 이미 locale 추출된 string → 정상 파싱', () => {
+    const input = [{
+      step: 1, title: 'Connect', description: 'desc',
+      details: ['Read-only IAM role', 'SOC2 Type II certified', 'No data egress outside VPC'],
+    }];
+    const result = parseSteps(input);
+    expect(result[0].details).toEqual([
+      'Read-only IAM role',
+      'SOC2 Type II certified',
+      'No data egress outside VPC',
+    ]);
+  });
+});
+
+describe('parsePainPoints — i18n pre-resolved', () => {
+  it('title/description/tag/pain이 이미 locale 추출된 string → 정상 파싱', () => {
+    // deepLocalizeJson이 global_contents.meta에 적용된 후의 상태
+    const input = {
+      cards: [{
+        icon: 'EyeOff',
+        tag: 'PROBLEM 01',
+        title: 'Lack of Visibility',
+        description: 'Costs scattered across separate consoles.',
+        pain: 'Teams navigating 3+ consoles daily',
+      }],
+    };
+    const result = parsePainPoints(input);
+    expect(result[0].title).toBe('Lack of Visibility');
+    expect(result[0].description).toBe('Costs scattered across separate consoles.');
+    expect(result[0].tag).toBe('PROBLEM 01');
+    expect(result[0].pain).toBe('Teams navigating 3+ consoles daily');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // parseMiniStats (WL-94)
 // DB 구조: contents.body_json = [{ value, label }, ...]
 // 빈 배열 반환 → 호출부(HeroSection)가 dictionary heroStats로 폴백
