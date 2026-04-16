@@ -117,5 +117,136 @@
     "successTitle": "신청이 완료되었습니다!",
     "successDescription": "영업일 기준 1일 이내에 전담 엔지니어가 연락드립니다. 이메일을 확인해 주세요.",
     "resetCta": "다시 입력하기"
+  },
+  "painPoints": {
+    "title": "아직도 감으로 클라우드 비용을 관리하시나요?",
+    "subtitle": "대부분의 팀이 겪는 세 가지 구조적 문제를 진단합니다. 인지하지 못하는 낭비가 가장 비싼 낭비입니다."
+  },
+  "stats": {
+    "badge": "숫자로 보는 성과"
+  },
+  "howItWorks": {
+    "defaultTitle": "비용을 줄이는 3단계",
+    "defaultSubtitle": "설치부터 절감까지, 단 하루면 충분합니다. 복잡한 설정 없이 세 단계로 비용 최적화를 시작하세요."
+  },
+  "finops": {
+    "defaultTitle": "엑셀과 감에 의존하던 관리, 이제 AI로 자율주행하십시오.",
+    "defaultSubtitle": "운영팀이 직접 겪는 세 가지 만성 비효율을 자동화 기반의 To-be 상태로 전환합니다. 각 항목은 실 도입 기업의 Before/After 데이터에 근거합니다.",
+    "transitions": [
+      {
+        "category": "Visibility (가시성)",
+        "asIs": { "tag": "사후 확인", "title": "수동 엑셀 추적", "description": "월말 청구서를 수령한 뒤에야 예산 초과를 뒤늦게 발견합니다." },
+        "toBe": { "tag": "실시간", "title": "AI 통합 대시보드", "description": "역할별(CTO/CFO) 대시보드로 100% 투명한 가시성을 즉시 확보합니다." }
+      },
+      {
+        "category": "Commitment (약정 관리)",
+        "asIs": { "tag": "방치된 자산", "title": "약정 커버리지 누수", "description": "복잡한 RI/SP 관리 실패로 낭비되는 인스턴스가 발생합니다." },
+        "toBe": { "tag": "자동화", "title": "약정 24시간 자동 매매", "description": "실시간 사용량 분석을 통해 낭비 없는 100% 약정 커버리지를 유지합니다." }
+      },
+      {
+        "category": "Operation (운영 효율)",
+        "asIs": { "tag": "피로도 증가", "title": "노이즈 알람 폭탄", "description": "의미 없는 중복 경고 알람으로 인해 핵심 비용 폭증 인시던트를 놓칩니다." },
+        "toBe": { "tag": "선제 대응", "title": "스마트 이상 비용 탐지", "description": "조치가 필요한 5%의 핵심 알람만 필터링하여 사전 예방합니다." }
+      }
+    ]
+  },
+  "coreEngines": {
+    "title": "절감을 현실로 만드는 핵심 엔진",
+    "subtitle": "{PartnerName}의 세 가지 엔진이 복잡한 절감 과정을 완전히 자동화합니다.",
+    "engines": [
+      {
+        "tag": "Engine 01",
+        "title": "AI 비용 예측",
+        "badge": "AI Powered",
+        "description": "과거 소비 패턴과 서비스 성장률을 조합해 향후 90일간의 클라우드 비용을 정밀 예측합니다. 예산 초과 전에 먼저 알려드립니다.",
+        "metricValue": "96%",
+        "metricLabel": "예측 정확도",
+        "checks": ["ML 기반 이상 지출 자동 탐지", "팀/서비스별 예산 임계값 설정", "월말 청구액 사전 예상 리포트", "비용 급증 패턴 조기 경고 알림"]
+      },
+      {
+        "tag": "Engine 02",
+        "title": "자동 절감 권고",
+        "badge": "Automation",
+        "description": "유휴 EC2, 과도한 RDS 인스턴스 유형, 불필요한 EBS 스냅샷까지 실행 가능한 수백 가지 절감 액션을 우선순위에 따라 자동 큐에 올립니다.",
+        "metricValue": "27%",
+        "metricLabel": "즉시 절감 평균",
+        "checks": ["원클릭 최적화 즉시 실행", "RI / Savings Plan 갱신 자동 권고", "Spot Instance 전환 가이드", "안전 모드 → 롤백 1분 이내 완료"]
+      },
+      {
+        "tag": "Engine 03",
+        "title": "멀티 클라우드 통합",
+        "badge": "Multi-Cloud",
+        "description": "AWS, Azure, GCP 비용을 단일 대시보드에서 통합 관리합니다. 벤더별 단가를 비교하고 워크로드 재배치 시 절감 가능 금액을 자동 산출합니다.",
+        "metricValue": "3개",
+        "metricLabel": "클라우드 통합 지원",
+        "checks": ["통합 태그 정책 기반 비용 배분", "팀/프로젝트별 차지백 리포트", "멀티 클라우드 비교 분석 뷰", "벤더 마이그레이션 비용 시뮬레이션"]
+      }
+    ]
+  },
+  "roleBasedValue": {
+    "title": "당신의 역할에 최적화된 대시보드",
+    "subtitle": "{PartnerName:은/는} CTO, DevOps, CFO 각자의 언어로 클라우드 비용을 말합니다. 같은 데이터를 역할에 맞게 다르게 보여줍니다.",
+    "ctaTitle": "{label}용 무료 환경 분석",
+    "ctaSubtitle": "현재 환경의 절감 가능 금액을 무료로 산출해 드립니다.",
+    "ctaButton": "지금 신청하기",
+    "personas": [
+      {
+        "id": "cto",
+        "label": "CTO",
+        "headline": "기술 전략과 비용 효율을 동시에 달성하세요",
+        "description": "클라우드 아키텍처의 낭비 요인을 구조적으로 진단합니다. 팀별 비용 책임 배분과 예산 거버넌스를 자동화해 기술 로드맵에 집중할 수 있게 합니다.",
+        "metrics": [
+          { "value": "40%",  "label": "인프라 비용 절감" },
+          { "value": "8h",   "label": "주간 운영 시간 절약" },
+          { "value": "100%", "label": "가시성 확보율" }
+        ],
+        "benefits": [
+          "조직 전체 클라우드 비용 한 화면에서 실시간 파악",
+          "팀/서비스/환경별 비용 책임 자동 배분 (차지백)",
+          "아키텍처 비용 영향도 사전 시뮬레이션",
+          "이사회 보고용 비용 최적화 KPI 대시보드 제공"
+        ],
+        "quote": "\"분기마다 AWS 청구서 설명하는 데 반나절씩 쏟았는데, 이제는 {PartnerName} 대시보드 화면 하나로 5분 내에 끝냅니다.\"",
+        "quoteAuthor": "CTO, Series B SaaS 기업"
+      },
+      {
+        "id": "devops",
+        "label": "DevOps",
+        "headline": "인프라 운영 효율을 코드처럼 자동화하세요",
+        "description": "온콜 없이 비용 이상을 자동 탐지하고, Terraform·Pulumi 파이프라인과 통합해 인프라 변경 시 비용 영향을 사전에 확인합니다.",
+        "metrics": [
+          { "value": "72%",   "label": "비용 알림 노이즈 감소" },
+          { "value": "3min",  "label": "이상 탐지 평균 대응" },
+          { "value": "99.9%", "label": "서비스 다운 없는 최적화" }
+        ],
+        "benefits": [
+          "Terraform / Pulumi PR에 비용 변화량 자동 코멘트",
+          "Slack 채널로 임계값 초과 즉시 알림",
+          "환경별(dev/staging/prod) 비용 격리 관리",
+          "유휴 리소스 자동 스케줄링 정책 설정"
+        ],
+        "quote": "\"새벽 2시에 스토리지 비용 폭증 알람 받은 게 이제 없어졌어요. {PartnerName:이/가} 먼저 막아주니까요.\"",
+        "quoteAuthor": "DevOps 리드, 국내 핀테크 유니콘 기업"
+      },
+      {
+        "id": "cfo",
+        "label": "CFO",
+        "headline": "클라우드 예산을 예측 가능한 고정비로 만드세요",
+        "description": "변동성 높은 클라우드 청구액을 예산 계획 가능한 구조로 전환합니다. 재무팀이 직접 이해할 수 있는 비용 리포트와 ROI 분석을 자동 생성합니다.",
+        "metrics": [
+          { "value": "±3%",  "label": "월별 예산 예측 오차" },
+          { "value": "15min","label": "임원 리포트 생성 시간" },
+          { "value": "2.4×", "label": "{PartnerName} 투자 대비 ROI" }
+        ],
+        "benefits": [
+          "회계 기준 클라우드 비용 분류 및 집계 자동화",
+          "부서/프로젝트별 예산 대비 실적 월간 리포트",
+          "계약 갱신 타이밍에 맞춘 RI/SP 최적 포트폴리오 권고",
+          "감사 대응용 비용 증빙 자료 원클릭 내보내기"
+        ],
+        "quote": "\"클라우드 비용이 단순 지출이 아니라, 성장을 위한 전략적 투자 항목으로 관리되기 시작했습니다.\"",
+        "quoteAuthor": "재무 총괄(CFO), 코스닥 상장 IT 기업"
+      }
+    ]
   }
 }

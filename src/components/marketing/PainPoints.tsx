@@ -3,17 +3,19 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import IconRenderer from '@/components/marketing/IconRenderer';
 import { parsePainPoints } from '@/lib/marketing/parsers';
+import { getDictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/lib/i18n/locales';
 
 interface Props {
   content: LocalizedGlobalContentRow | null;
+  locale: Locale;
 }
 
-export default function PainPoints({ content }: Props) {
-  const subtitle =
-    content?.subtitle ??
-    '대부분의 팀이 겪는 세 가지 구조적 문제를 진단합니다. 인지하지 못하는 낭비가 가장 비싼 낭비입니다.';
+export default function PainPoints({ content, locale }: Props) {
+  const t = getDictionary(locale).painPoints;
+  const subtitle = content?.subtitle ?? t.subtitle;
 
-  const problems = parsePainPoints(content?.meta ?? null);
+  const problems = parsePainPoints(content?.meta ?? null, locale);
 
   return (
     <section
@@ -26,8 +28,7 @@ export default function PainPoints({ content }: Props) {
         <div className="mb-12">
           <Badge variant="outline" className="mb-4">Pain Points</Badge>
           <h2 className="mb-4 max-w-2xl text-3xl/[1.4] font-bold text-foreground sm:text-4xl/[1.4]">
-            아직도 감으로 클라우드 비용을
-            <br />관리하시나요?
+            {t.title}
           </h2>
           <p className="max-w-2xl text-muted-foreground">
             {subtitle}

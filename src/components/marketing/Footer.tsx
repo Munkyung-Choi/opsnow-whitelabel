@@ -68,8 +68,8 @@ export default function Footer({ partner, content, locale }: FooterProps) {
   const contactInfo = parseFooterContactInfo(content?.contact_info ?? null);
   const year = new Date().getFullYear();
 
-  // legal 링크 — partner.id 기반 절대 경로 (GlobalNav 패턴과 동일)
-  const legalBase = `/${partner.id}/${locale}`;
+  // legal 링크 — 사용자 노출 경로 사용 (프록시가 파트너 컨텍스트 주입)
+  const legalBase = `/${locale}`;
 
   return (
     <footer className="bg-foreground text-background">

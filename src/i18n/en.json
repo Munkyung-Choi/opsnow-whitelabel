@@ -117,5 +117,136 @@
     "successTitle": "Request received!",
     "successDescription": "Our dedicated engineer will contact you within 1 business day. Please check your email.",
     "resetCta": "Submit again"
+  },
+  "painPoints": {
+    "title": "Still managing cloud costs by gut feeling?",
+    "subtitle": "Diagnose the three structural problems most teams face. The waste you don't notice is the most expensive waste."
+  },
+  "stats": {
+    "badge": "Proven by Numbers"
+  },
+  "howItWorks": {
+    "defaultTitle": "3 Steps to Real Savings",
+    "defaultSubtitle": "From setup to savings, one day is all it takes. Start cost optimization in three simple steps — no complex configuration required."
+  },
+  "finops": {
+    "defaultTitle": "Stop relying on spreadsheets. Let AI autopilot your cloud costs.",
+    "defaultSubtitle": "Transform three chronic inefficiencies your team faces every day into an automated To-Be state. Each item is backed by real Before/After data from deployed enterprises.",
+    "transitions": [
+      {
+        "category": "Visibility",
+        "asIs": { "tag": "Reactive", "title": "Manual Spreadsheet Tracking", "description": "Budget overruns are discovered only after receiving end-of-month invoices. You never see them coming." },
+        "toBe": { "tag": "Real-time", "title": "AI-Integrated Dashboard", "description": "Role-based (CTO/CFO) dashboards deliver 100% transparent visibility instantly." }
+      },
+      {
+        "category": "Commitment",
+        "asIs": { "tag": "Neglected Assets", "title": "Commitment Coverage Leakage", "description": "Failed RI/SP management leaves idle instances bleeding budget." },
+        "toBe": { "tag": "Automated", "title": "24/7 Automated Commitment Management", "description": "Real-time usage analysis maintains 100% commitment coverage with zero waste." }
+      },
+      {
+        "category": "Operations",
+        "asIs": { "tag": "Alert Fatigue", "title": "Noisy Alert Overload", "description": "Meaningless duplicate alerts cause critical cost surge incidents to go unnoticed." },
+        "toBe": { "tag": "Proactive", "title": "Smart Cost Anomaly Detection", "description": "Only the critical 5% of actionable alerts get through — preventing issues before they escalate." }
+      }
+    ]
+  },
+  "coreEngines": {
+    "title": "The Core Engines Behind Real Savings",
+    "subtitle": "{PartnerName}'s three engines fully automate the complex savings process.",
+    "engines": [
+      {
+        "tag": "Engine 01",
+        "title": "AI Cost Prediction",
+        "badge": "AI Powered",
+        "description": "Combines historical consumption patterns with service growth rates to precisely forecast cloud costs 90 days out. You'll know before budgets are breached.",
+        "metricValue": "96%",
+        "metricLabel": "Prediction Accuracy",
+        "checks": ["ML-based automatic anomaly detection", "Team/service-level budget threshold alerts", "Month-end billing advance estimates", "Early warning alerts for cost surge patterns"]
+      },
+      {
+        "tag": "Engine 02",
+        "title": "Automated Savings Recommendations",
+        "badge": "Automation",
+        "description": "From idle EC2 to oversized RDS instances to unnecessary EBS snapshots — hundreds of actionable savings opportunities are automatically queued by priority.",
+        "metricValue": "27%",
+        "metricLabel": "Avg. Immediate Savings",
+        "checks": ["One-click optimization execution", "RI / Savings Plan renewal auto-recommendations", "Spot Instance migration guide", "Safe mode → rollback in under 1 minute"]
+      },
+      {
+        "tag": "Engine 03",
+        "title": "Multi-Cloud Integration",
+        "badge": "Multi-Cloud",
+        "description": "Manage AWS, Azure, and GCP costs from a single dashboard. Compare vendor pricing and automatically calculate savings when relocating workloads.",
+        "metricValue": "3",
+        "metricLabel": "Cloud platforms integrated",
+        "checks": ["Unified tag policy-based cost allocation", "Team/project-level chargeback reports", "Multi-cloud comparative analysis view", "Vendor migration cost simulation"]
+      }
+    ]
+  },
+  "roleBasedValue": {
+    "title": "Dashboards Optimized for Your Role",
+    "subtitle": "{PartnerName} speaks the language of every role — CTO, DevOps, and CFO. Same data, viewed differently for each.",
+    "ctaTitle": "Free {label} Environment Analysis",
+    "ctaSubtitle": "We'll calculate your potential savings at no cost.",
+    "ctaButton": "Get started now",
+    "personas": [
+      {
+        "id": "cto",
+        "label": "CTO",
+        "headline": "Achieve technical strategy and cost efficiency simultaneously",
+        "description": "Diagnose the structural waste drivers in your cloud architecture. Automate team-level cost accountability and budget governance so you can focus on the technical roadmap.",
+        "metrics": [
+          { "value": "40%",  "label": "Infrastructure cost savings" },
+          { "value": "8h",   "label": "Weekly ops time saved" },
+          { "value": "100%", "label": "Visibility coverage" }
+        ],
+        "benefits": [
+          "Real-time cloud cost overview for your entire org on a single screen",
+          "Automated team/service/environment cost accountability (chargeback)",
+          "Pre-deployment cost impact simulation for architecture decisions",
+          "Board-ready cost optimization KPI dashboard"
+        ],
+        "quote": "\"We used to spend half a day every quarter explaining the AWS bill. Now it takes 5 minutes with the {PartnerName} dashboard.\"",
+        "quoteAuthor": "CTO, Series B SaaS Company"
+      },
+      {
+        "id": "devops",
+        "label": "DevOps",
+        "headline": "Automate infrastructure operations efficiency like code",
+        "description": "Automatically detect cost anomalies without on-call, and integrate with Terraform/Pulumi pipelines to preview cost impact before infrastructure changes go live.",
+        "metrics": [
+          { "value": "72%",   "label": "Alert noise reduction" },
+          { "value": "3min",  "label": "Avg. anomaly response time" },
+          { "value": "99.9%", "label": "Optimization without downtime" }
+        ],
+        "benefits": [
+          "Automatic cost change annotations on Terraform/Pulumi PRs",
+          "Instant Slack alerts when thresholds are breached",
+          "Per-environment (dev/staging/prod) cost isolation management",
+          "Automated idle resource scheduling policies"
+        ],
+        "quote": "\"No more 2am alerts about storage cost spikes. {PartnerName} catches them first.\"",
+        "quoteAuthor": "DevOps Lead, Domestic Fintech Unicorn"
+      },
+      {
+        "id": "cfo",
+        "label": "CFO",
+        "headline": "Turn cloud budget into a predictable fixed cost",
+        "description": "Convert volatile cloud billing into a budget-plannable structure. Automatically generate cost reports and ROI analysis that finance teams can directly understand.",
+        "metrics": [
+          { "value": "±3%",  "label": "Monthly budget forecast variance" },
+          { "value": "15min","label": "Executive report generation time" },
+          { "value": "2.4×", "label": "{PartnerName} ROI" }
+        ],
+        "benefits": [
+          "Automated cloud cost classification and aggregation by accounting standards",
+          "Monthly budget vs. actual reports by department and project",
+          "Optimal RI/SP portfolio recommendations timed to contract renewals",
+          "One-click export of cost evidence documents for audits"
+        ],
+        "quote": "\"Cloud costs have shifted from a simple expense line to a strategically managed investment.\"",
+        "quoteAuthor": "CFO, KOSDAQ-listed IT Company"
+      }
+    ]
   }
 }

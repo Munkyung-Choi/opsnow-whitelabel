@@ -14,16 +14,16 @@ import {
 // parseStats
 // ─────────────────────────────────────────────────────────────────────────────
 describe('parseStats', () => {
-  it('null 입력 → DEFAULT_STATS 반환', () => {
-    expect(parseStats(null)).toEqual(DEFAULT_STATS);
+  it('null 입력 → DEFAULT_STATS.ko 반환 (locale 기본값 ko)', () => {
+    expect(parseStats(null)).toEqual(DEFAULT_STATS.ko);
   });
 
-  it('배열이 아닌 입력 → DEFAULT_STATS 반환', () => {
-    expect(parseStats({ value: '30%', label: 'test' })).toEqual(DEFAULT_STATS);
+  it('배열이 아닌 입력 → DEFAULT_STATS.ko 반환', () => {
+    expect(parseStats({ value: '30%', label: 'test' })).toEqual(DEFAULT_STATS.ko);
   });
 
-  it('빈 배열 → DEFAULT_STATS 반환', () => {
-    expect(parseStats([])).toEqual(DEFAULT_STATS);
+  it('빈 배열 → DEFAULT_STATS.ko 반환', () => {
+    expect(parseStats([])).toEqual(DEFAULT_STATS.ko);
   });
 
   it('표준 포맷 { value, label } → 정상 파싱', () => {
@@ -57,9 +57,37 @@ describe('parseStats', () => {
     expect(result[0].label).toBe('비용 절감');
   });
 
-  it('모든 항목이 유효하지 않으면 → DEFAULT_STATS 반환', () => {
+  it('모든 항목이 유효하지 않으면 → DEFAULT_STATS.ko 반환', () => {
     const input = [{ value: '30%' }, { label: '비용 절감' }];
-    expect(parseStats(input)).toEqual(DEFAULT_STATS);
+    expect(parseStats(input)).toEqual(DEFAULT_STATS.ko);
+  });
+});
+
+describe('parseStats — locale-aware fallback', () => {
+  it('locale=ko → 한국어 DEFAULT_STATS 반환', () => {
+    expect(parseStats(null, 'ko')).toEqual(DEFAULT_STATS.ko);
+    expect(parseStats(null, 'ko')[0].label).toBe('월 클라우드 비용 절감');
+  });
+
+  it('locale=en → 영어 DEFAULT_STATS 반환', () => {
+    const result = parseStats(null, 'en');
+    expect(result).toEqual(DEFAULT_STATS.en);
+    expect(result[0].label).toBe('Monthly cloud cost reduction');
+  });
+
+  it('locale=ja → 일본어 DEFAULT_STATS 반환', () => {
+    const result = parseStats(null, 'ja');
+    expect(result[0].label).toBe('月間クラウドコスト削減');
+  });
+
+  it('locale=zh → 중국어 DEFAULT_STATS 반환', () => {
+    const result = parseStats(null, 'zh');
+    expect(result[0].label).toBe('月均云成本节省');
+  });
+
+  it('유효하지 않은 배열 입력 + locale=en → en DEFAULT_STATS 반환', () => {
+    const input = [{ value: '30%' }];
+    expect(parseStats(input, 'en')).toEqual(DEFAULT_STATS.en);
   });
 });
 
@@ -67,12 +95,12 @@ describe('parseStats', () => {
 // parseSteps
 // ─────────────────────────────────────────────────────────────────────────────
 describe('parseSteps', () => {
-  it('null → DEFAULT_STEPS 반환', () => {
-    expect(parseSteps(null)).toEqual(DEFAULT_STEPS);
+  it('null → DEFAULT_STEPS.ko 반환 (locale 기본값 ko)', () => {
+    expect(parseSteps(null)).toEqual(DEFAULT_STEPS.ko);
   });
 
-  it('빈 배열 → DEFAULT_STEPS 반환', () => {
-    expect(parseSteps([])).toEqual(DEFAULT_STEPS);
+  it('빈 배열 → DEFAULT_STEPS.ko 반환', () => {
+    expect(parseSteps([])).toEqual(DEFAULT_STEPS.ko);
   });
 
   it('표준 포맷 파싱', () => {
@@ -102,6 +130,29 @@ describe('parseSteps', () => {
     ];
     const result = parseSteps(input);
     expect(result).toHaveLength(1);
+  });
+});
+
+describe('parseSteps — locale-aware fallback', () => {
+  it('locale=ko → 한국어 DEFAULT_STEPS 반환', () => {
+    expect(parseSteps(null, 'ko')).toEqual(DEFAULT_STEPS.ko);
+    expect(parseSteps(null, 'ko')[0].subtitle).toBe('클라우드 계정 연결');
+  });
+
+  it('locale=en → 영어 DEFAULT_STEPS 반환', () => {
+    const result = parseSteps(null, 'en');
+    expect(result).toEqual(DEFAULT_STEPS.en);
+    expect(result[0].subtitle).toBe('Connect Cloud Accounts');
+  });
+
+  it('locale=ja → 일본어 DEFAULT_STEPS 반환', () => {
+    const result = parseSteps(null, 'ja');
+    expect(result[0].subtitle).toBe('クラウドアカウントの連携');
+  });
+
+  it('locale=zh → 중국어 DEFAULT_STEPS 반환', () => {
+    const result = parseSteps(null, 'zh');
+    expect(result[0].subtitle).toBe('连接云账户');
   });
 });
 
@@ -241,26 +292,26 @@ describe('parseRoles', () => {
 // tag·pain 필드는 DB 미포함 → 자동 생성/undefined 처리
 // ─────────────────────────────────────────────────────────────────────────────
 describe('parsePainPoints', () => {
-  it('null → DEFAULT_PAIN_POINTS 반환', () => {
-    expect(parsePainPoints(null)).toEqual(DEFAULT_PAIN_POINTS);
+  it('null → DEFAULT_PAIN_POINTS.ko 반환 (locale 기본값 ko)', () => {
+    expect(parsePainPoints(null)).toEqual(DEFAULT_PAIN_POINTS.ko);
   });
 
-  it('배열이 아닌 입력 → DEFAULT_PAIN_POINTS 반환', () => {
-    expect(parsePainPoints('string')).toEqual(DEFAULT_PAIN_POINTS);
+  it('배열이 아닌 입력 → DEFAULT_PAIN_POINTS.ko 반환', () => {
+    expect(parsePainPoints('string')).toEqual(DEFAULT_PAIN_POINTS.ko);
   });
 
-  it('"cards" 키 없음 → DEFAULT_PAIN_POINTS 반환', () => {
+  it('"cards" 키 없음 → DEFAULT_PAIN_POINTS.ko 반환', () => {
     // items·engines 등 잘못된 키로는 폴백
-    expect(parsePainPoints({ items: [{ title: '제목', description: '설명' }] })).toEqual(DEFAULT_PAIN_POINTS);
+    expect(parsePainPoints({ items: [{ title: '제목', description: '설명' }] })).toEqual(DEFAULT_PAIN_POINTS.ko);
   });
 
-  it('cards 빈 배열 → DEFAULT_PAIN_POINTS 반환', () => {
-    expect(parsePainPoints({ cards: [] })).toEqual(DEFAULT_PAIN_POINTS);
+  it('cards 빈 배열 → DEFAULT_PAIN_POINTS.ko 반환', () => {
+    expect(parsePainPoints({ cards: [] })).toEqual(DEFAULT_PAIN_POINTS.ko);
   });
 
-  it('모든 항목이 유효하지 않으면 → DEFAULT_PAIN_POINTS 반환', () => {
+  it('모든 항목이 유효하지 않으면 → DEFAULT_PAIN_POINTS.ko 반환', () => {
     const input = { cards: [{ icon: 'EyeOff' }, { description: '설명만' }] };
-    expect(parsePainPoints(input)).toEqual(DEFAULT_PAIN_POINTS);
+    expect(parsePainPoints(input)).toEqual(DEFAULT_PAIN_POINTS.ko);
   });
 
   it('표준 포맷 { title, description } → 정상 파싱', () => {
@@ -381,6 +432,34 @@ describe('parseSteps — i18n pre-resolved', () => {
       'SOC2 Type II certified',
       'No data egress outside VPC',
     ]);
+  });
+});
+
+describe('parsePainPoints — locale-aware fallback', () => {
+  it('null + locale ko → DEFAULT_PAIN_POINTS.ko (한국어 title)', () => {
+    const result = parsePainPoints(null, 'ko');
+    expect(result).toEqual(DEFAULT_PAIN_POINTS.ko);
+    expect(result[0].title).toBe('가시성 부족');
+  });
+
+  it('null + locale en → DEFAULT_PAIN_POINTS.en (영어 title)', () => {
+    const result = parsePainPoints(null, 'en');
+    expect(result).toEqual(DEFAULT_PAIN_POINTS.en);
+    expect(result[0].title).toBe('Lack of Visibility');
+  });
+
+  it('null + locale ja → DEFAULT_PAIN_POINTS.ja (일본어 title)', () => {
+    const result = parsePainPoints(null, 'ja');
+    expect(result[0].title).toBe('可視性の欠如');
+  });
+
+  it('null + locale zh → DEFAULT_PAIN_POINTS.zh (중국어 title)', () => {
+    const result = parsePainPoints(null, 'zh');
+    expect(result[0].title).toBe('可见性不足');
+  });
+
+  it('cards 빈 배열 + locale en → DEFAULT_PAIN_POINTS.en 반환', () => {
+    expect(parsePainPoints({ cards: [] }, 'en')).toEqual(DEFAULT_PAIN_POINTS.en);
   });
 });
 

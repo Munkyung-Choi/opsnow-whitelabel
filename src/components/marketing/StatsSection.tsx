@@ -3,14 +3,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import type { LocalizedContentRow } from '@/lib/marketing/get-partner-page-data';
 import { parseStats } from '@/lib/marketing/parsers';
+import { getDictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/lib/i18n/locales';
 
 interface Props {
   content: LocalizedContentRow | null;
+  locale: Locale;
 }
 
-export default function StatsSection({ content }: Props) {
+export default function StatsSection({ content, locale }: Props) {
+  const t = getDictionary(locale).stats;
   const sectionTitle = content?.title ?? null;
-  const stats = parseStats(content?.body_json ?? null);
+  const stats = parseStats(content?.body_json ?? null, locale);
 
   return (
     <section
@@ -20,7 +24,7 @@ export default function StatsSection({ content }: Props) {
       <div className="mx-auto max-w-6xl px-6 py-20">
         <div className="mb-12">
           <Badge variant="outline" className="mb-4">
-            숫자로 보는 성과
+            {t.badge}
           </Badge>
           {sectionTitle && (
             <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">

@@ -65,27 +65,41 @@ type SectionRenderFn = (data: PartnerPageData) => React.ReactNode;
  */
 const SECTION_REGISTRY: Readonly<Record<string, SectionRenderFn>> = {
   pain_points: (data) => (
-    <DynamicPainPoints content={data.globalContents.get('pain_points') ?? null} />
+    <DynamicPainPoints
+      content={data.globalContents.get('pain_points') ?? null}
+      locale={data.locale}
+    />
   ),
   stats: (data) => (
-    <DynamicStatsSection content={data.contents.get('stats') ?? null} />
+    <DynamicStatsSection
+      content={data.contents.get('stats') ?? null}
+      locale={data.locale}
+    />
   ),
   how_it_works: (data) => (
-    <DynamicHowItWorks content={data.contents.get('how_it_works') ?? null} />
+    <DynamicHowItWorks
+      content={data.contents.get('how_it_works') ?? null}
+      locale={data.locale}
+    />
   ),
   finops_automation: (data) => (
-    <DynamicFinOpsAutomation content={data.globalContents.get('finops_automation') ?? null} />
+    <DynamicFinOpsAutomation
+      content={data.globalContents.get('finops_automation') ?? null}
+      locale={data.locale}
+    />
   ),
   core_engines: (data) => (
     <DynamicCoreEngines
       content={data.globalContents.get('core_engines') ?? null}
       partnerName={data.partner.business_name}
+      locale={data.locale}
     />
   ),
   role_based_value: (data) => (
     <DynamicRoleBasedValue
       content={data.globalContents.get('role_based_value') ?? null}
       partnerName={data.partner.business_name}
+      locale={data.locale}
     />
   ),
   faq: (data) => (

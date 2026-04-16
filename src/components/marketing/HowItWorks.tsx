@@ -3,18 +3,22 @@ import { Badge } from '@/components/ui/badge';
 import IconRenderer from '@/components/marketing/IconRenderer';
 import type { LocalizedContentRow } from '@/lib/marketing/get-partner-page-data';
 import { parseSteps } from '@/lib/marketing/parsers';
+import { getDictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/lib/i18n/locales';
 
 interface Props {
   content: LocalizedContentRow | null;
+  locale: Locale;
 }
 
 // DB에 iconName 미입력 시 스텝 순서별 기본 아이콘
 const STEP_ICONS = ['Link', 'ScanSearch', 'Zap'] as const;
 
-export default function HowItWorks({ content }: Props) {
-  const title    = content?.title    ?? '비용을 줄이는 3단계';
-  const subtitle = content?.subtitle ?? '설치부터 절감까지, 단 하루면 충분합니다. 복잡한 설정 없이 세 단계로 비용 최적화를 시작하세요.';
-  const steps = parseSteps(content?.body_json ?? null);
+export default function HowItWorks({ content, locale }: Props) {
+  const t = getDictionary(locale).howItWorks;
+  const title    = content?.title    ?? t.defaultTitle;
+  const subtitle = content?.subtitle ?? t.defaultSubtitle;
+  const steps = parseSteps(content?.body_json ?? null, locale);
 
   return (
     <section id="how-it-works" className="scroll-mt-16 bg-background px-4 py-20 sm:px-6">

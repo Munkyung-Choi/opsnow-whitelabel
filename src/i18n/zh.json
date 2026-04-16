@@ -117,5 +117,136 @@
     "successTitle": "申请已完成！",
     "successDescription": "专属工程师将在1个工作日内与您联系。请查收邮件。",
     "resetCta": "重新填写"
+  },
+  "painPoints": {
+    "title": "还在凭感觉管理云成本吗？",
+    "subtitle": "诊断大多数团队面临的三个结构性问题。您没有注意到的浪费是最昂贵的浪费。"
+  },
+  "stats": {
+    "badge": "数字见证成果"
+  },
+  "howItWorks": {
+    "defaultTitle": "三步实现真正的节省",
+    "defaultSubtitle": "从安装到节省，仅需一天。无需复杂配置，三个步骤即可开始成本优化。"
+  },
+  "finops": {
+    "defaultTitle": "告别电子表格与经验判断，让AI实现云成本自动驾驶。",
+    "defaultSubtitle": "将运营团队每天面临的三大长期低效问题转化为自动化的未来状态。每个案例均基于实际部署企业的前后对比数据。",
+    "transitions": [
+      {
+        "category": "可见性",
+        "asIs": { "tag": "事后确认", "title": "手动表格跟踪", "description": "只有在收到月末账单后才发现预算超支，事先毫无预警。" },
+        "toBe": { "tag": "实时", "title": "AI集成仪表板", "description": "基于角色（CTO/CFO）的仪表板即时提供100%透明的可见性。" }
+      },
+      {
+        "category": "承诺管理",
+        "asIs": { "tag": "闲置资产", "title": "承诺覆盖率泄漏", "description": "复杂的RI/SP管理失败导致闲置实例浪费大量预算。" },
+        "toBe": { "tag": "自动化", "title": "24小时自动承诺管理", "description": "通过实时使用量分析，以零浪费维持100%的承诺覆盖率。" }
+      },
+      {
+        "category": "运营效率",
+        "asIs": { "tag": "警报疲劳", "title": "噪音警报轰炸", "description": "无意义的重复告警导致真正重要的成本激增事件被忽视。" },
+        "toBe": { "tag": "主动应对", "title": "智能异常成本检测", "description": "只有需要处理的关键5%警报才会被过滤出来，实现提前预防。" }
+      }
+    ]
+  },
+  "coreEngines": {
+    "title": "将节省变为现实的核心引擎",
+    "subtitle": "{PartnerName}的三大引擎全面自动化复杂的节省流程。",
+    "engines": [
+      {
+        "tag": "Engine 01",
+        "title": "AI成本预测",
+        "badge": "AI Powered",
+        "description": "结合历史消耗模式与服务增长率，精确预测未来90天的云成本。在预算超支前提前预警。",
+        "metricValue": "96%",
+        "metricLabel": "预测准确率",
+        "checks": ["基于ML的异常支出自动检测", "按团队/服务设置预算阈值告警", "月末账单提前预测报告", "成本激增模式早期预警"]
+      },
+      {
+        "tag": "Engine 02",
+        "title": "自动节省建议",
+        "badge": "Automation",
+        "description": "从闲置EC2到超配的RDS实例类型，再到不必要的EBS快照，数百个可执行的节省操作按优先级自动排队。",
+        "metricValue": "27%",
+        "metricLabel": "即时节省均值",
+        "checks": ["一键优化立即执行", "RI/Savings Plan续订自动推荐", "Spot Instance迁移指南", "安全模式 → 1分钟内完成回滚"]
+      },
+      {
+        "tag": "Engine 03",
+        "title": "多云集成",
+        "badge": "Multi-Cloud",
+        "description": "在单一仪表板统一管理AWS、Azure、GCP成本。比较各厂商单价，自动计算工作负载迁移时的潜在节省金额。",
+        "metricValue": "3",
+        "metricLabel": "已集成云平台数",
+        "checks": ["基于统一标签策略的成本分配", "按团队/项目的退款报告", "多云对比分析视图", "厂商迁移成本模拟"]
+      }
+    ]
+  },
+  "roleBasedValue": {
+    "title": "针对您角色优化的仪表板",
+    "subtitle": "{PartnerName}以CTO、DevOps、CFO各自的语言诠释云成本。相同数据，因角色而异，呈现不同视角。",
+    "ctaTitle": "为{label}提供免费环境分析",
+    "ctaSubtitle": "我们将免费计算您当前环境的潜在节省金额。",
+    "ctaButton": "立即申请",
+    "personas": [
+      {
+        "id": "cto",
+        "label": "CTO",
+        "headline": "同时实现技术战略与成本效率",
+        "description": "从结构层面诊断云架构中的浪费因素。自动化团队层面的成本责任分配和预算治理，让您专注于技术路线图。",
+        "metrics": [
+          { "value": "40%",  "label": "基础设施成本节省" },
+          { "value": "8h",   "label": "每周运营时间节约" },
+          { "value": "100%", "label": "可见性覆盖率" }
+        ],
+        "benefits": [
+          "在单一屏幕上实时掌握全组织云成本",
+          "自动按团队/服务/环境分配成本责任（分摊计费）",
+          "架构决策前的成本影响模拟",
+          "董事会级成本优化KPI仪表板"
+        ],
+        "quote": "\"以前每季度要花半天解释AWS账单，现在用{PartnerName}仪表板5分钟内就能搞定。\"",
+        "quoteAuthor": "CTO，B轮SaaS企业"
+      },
+      {
+        "id": "devops",
+        "label": "DevOps",
+        "headline": "像代码一样自动化基础设施运营效率",
+        "description": "无需待命即可自动检测成本异常，并与Terraform/Pulumi流水线集成，在基础设施变更前预判成本影响。",
+        "metrics": [
+          { "value": "72%",   "label": "告警噪音降低" },
+          { "value": "3min",  "label": "异常检测平均响应时间" },
+          { "value": "99.9%", "label": "零停机优化" }
+        ],
+        "benefits": [
+          "在Terraform/Pulumi PR上自动注释成本变化量",
+          "阈值超出时即时推送Slack通知",
+          "按环境（dev/staging/prod）隔离成本管理",
+          "设置闲置资源自动调度策略"
+        ],
+        "quote": "\"凌晨2点再也没有收到存储成本激增的告警了。因为{PartnerName}会提前处理。\"",
+        "quoteAuthor": "DevOps负责人，国内金融科技独角兽企业"
+      },
+      {
+        "id": "cfo",
+        "label": "CFO",
+        "headline": "将云预算转变为可预测的固定成本",
+        "description": "将波动较大的云账单转化为可进行预算规划的结构。自动生成财务团队可直接理解的成本报告和ROI分析。",
+        "metrics": [
+          { "value": "±3%",  "label": "月度预算预测误差" },
+          { "value": "15min","label": "高管报告生成时间" },
+          { "value": "2.4×", "label": "{PartnerName} 投资回报率" }
+        ],
+        "benefits": [
+          "按会计标准自动分类汇总云成本",
+          "按部门/项目的月度预算对比实际报告",
+          "结合合同续签时机的RI/SP最优组合推荐",
+          "一键导出审计所需成本凭证材料"
+        ],
+        "quote": "\"云成本已不再是单纯的支出，而是作为战略性投资项目进行管理了。\"",
+        "quoteAuthor": "财务总监（CFO），KOSDAQ上市IT企业"
+      }
+    ]
   }
 }
