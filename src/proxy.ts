@@ -246,6 +246,25 @@ async function resolvePartnerFromHost(host: string): Promise<PartnerLocaleData |
   return resolvePartnerByCustomDomain(cleanHost);
 }
 
+/**
+ * URL pathname에서 locale 접두사를 추출하고 제거한다.
+ * /ko/faq  → { locale: 'ko', cleanPathname: '/faq' }
+ * /ko      → { locale: 'ko', cleanPathname: '/' }
+ * /faq     → { locale: null,  cleanPathname: '/faq' }
+ *
+ * cookie/IP 감지보다 URL 명시 locale을 우선하기 위해 호출 전 적용.
+ */
+function extractPathLocale(pathname: string): { locale: Locale | null; cleanPathname: string } {
+  const found = SUPPORTED_LOCALES.find(
+    (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`)
+  ) as Locale | undefined;
+  if (!found) return { locale: null, cleanPathname: pathname };
+  return {
+    locale: found,
+    cleanPathname: pathname.slice(found.length + 1) || '/',
+  };
+}
+
 /** proxy.ts 내부용: 로케일 + 파트너 ID로 최종 리라이트 URL 생성 */
 function buildRewriteUrl(
   request: NextRequest,
@@ -296,11 +315,12 @@ export async function proxy(request: NextRequest) {
     if (devSlug) {
       const partner = await resolvePartnerBySubdomain(devSlug);
       if (partner) {
-        const locale = detectLocale(request, partner.default_locale);
+        const { locale: pathLocale, cleanPathname } = extractPathLocale(pathname);
+        const locale = pathLocale ?? detectLocale(request, partner.default_locale);
         const finalLocale = partner.published_locales.includes(locale)
-          ? locale
+          ? validateLocale(locale)
           : validateLocale(partner.default_locale);
-        const url = buildRewriteUrl(request, partner.id, finalLocale, pathname);
+        const url = buildRewriteUrl(request, partner.id, finalLocale, cleanPathname);
         if (IS_DEV) console.log(`[Proxy] → DEV_PARTNER_SLUG rewrite to ${url.pathname}`);
         return NextResponse.rewrite(url);
       }
@@ -322,15 +342,19 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/not-found', notFoundBase));
   }
 
+  // URL 경로 locale 최우선 추출 (/ko/faq → locale='ko', path='/faq')
+  // cookie/IP 감지(detectLocale)보다 URL 명시 locale을 우선한다.
+  const { locale: pathLocale, cleanPathname } = extractPathLocale(pathname);
+
   // [WL-61] 로케일 감지
-  const locale = detectLocale(request, partner.default_locale);
+  const locale = pathLocale ?? detectLocale(request, partner.default_locale);
 
   // [WL-61] Published Locales Guard — 미발행 언어는 기본 언어로 Soft-landing
   const finalLocale: Locale = partner.published_locales.includes(locale)
     ? validateLocale(locale)
     : validateLocale(partner.default_locale);
 
-  const url = buildRewriteUrl(request, partner.id, finalLocale, pathname);
+  const url = buildRewriteUrl(request, partner.id, finalLocale, cleanPathname);
   if (IS_DEV) console.log(`[Proxy] → Rewriting to ${url.pathname} (locale=${finalLocale})`);
   return NextResponse.rewrite(url);
 }
