@@ -2,7 +2,7 @@ import { Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import IconRenderer from '@/components/marketing/IconRenderer';
 import type { LocalizedContentRow } from '@/lib/marketing/get-partner-page-data';
-import { DEFAULT_STEPS } from '@/lib/marketing/parsers';
+import { parseSteps } from '@/lib/marketing/parsers';
 
 interface Props {
   content: LocalizedContentRow | null;
@@ -14,8 +14,7 @@ const STEP_ICONS = ['Link', 'ScanSearch', 'Zap'] as const;
 export default function HowItWorks({ content }: Props) {
   const title    = content?.title    ?? '비용을 줄이는 3단계';
   const subtitle = content?.subtitle ?? '설치부터 절감까지, 단 하루면 충분합니다. 복잡한 설정 없이 세 단계로 비용 최적화를 시작하세요.';
-  // 스텝 콘텐츠는 파트너별 수정 불가(고정) — DB body_json 무시하고 DEFAULT_STEPS 항상 사용
-  const steps = DEFAULT_STEPS;
+  const steps = parseSteps(content?.body_json ?? null);
 
   return (
     <section id="how-it-works" className="scroll-mt-16 bg-background px-4 py-20 sm:px-6">
