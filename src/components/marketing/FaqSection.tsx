@@ -25,7 +25,6 @@ const MAX_VISIBLE = 5;
 // React.memo: 'use client' Client Component이므로 memo가 유효합니다.
 const FaqSection = memo(function FaqSection({ content }: Props) {
   const params = useParams();
-  const partnerId = params?.partnerId as string | undefined;
   const locale = params?.locale as string | undefined;
 
   const [activeCategory, setActiveCategory] = useState<FaqCategory | '전체'>('전체');
@@ -41,8 +40,8 @@ const FaqSection = memo(function FaqSection({ content }: Props) {
       ? allItems.slice(0, MAX_VISIBLE)
       : allItems.filter((f) => f.category === activeCategory).slice(0, MAX_VISIBLE);
 
-  // /{partnerId}/{locale}/faq — 전체 FAQ 페이지 (WL-96 완료 후 활성화)
-  const faqBase = partnerId && locale ? `/${partnerId}/${locale}/faq` : undefined;
+  // /{locale}/faq — 전체 FAQ 페이지 (WL-96 완료 후 활성화)
+  const faqBase = locale ? `/${locale}/faq` : undefined;
 
   return (
     <section id="faq" className="scroll-mt-16 bg-background px-4 py-20 sm:px-6">

@@ -48,7 +48,7 @@ export default function GlobalNav({ partner, locale }: GlobalNavProps) {
   const t = getDictionary(locale).nav;
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const homeHref = `/${partner.id}/${locale}`;
+  const homeHref = `/${locale}`;
 
   const NAV_LINKS = [
     { label: t.features, href: '#core-engines' },
