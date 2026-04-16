@@ -99,7 +99,6 @@ export default function GlobalNav({ partner, locale }: GlobalNavProps) {
           <LanguageSelector
             locale={locale}
             publishedLocales={partner.published_locales}
-            partnerId={partner.id}
           />
 
           <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">

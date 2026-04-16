@@ -22,17 +22,16 @@ interface LanguageSelectorProps {
   locale: Locale;
   /** partners.published_locales — null이면 단일 언어로 간주 */
   publishedLocales: string[] | null;
-  /** partners.id (UUID) — 로케일 전환 URL 구성에 사용 */
-  partnerId: string;
 }
 
 /**
  * 파트너의 published_locales 기준으로 언어 전환 Select를 렌더링한다.
  * 발행된 언어가 1개 이하면 숨김 처리한다.
  *
- * URL 패턴: /{partnerId}/{locale}
+ * 언어 전환 시 현재 페이지 경로의 locale 세그먼트만 교체하여 같은 페이지에 머문다.
+ * e.g. /ko/faq → /en/faq
  */
-export function LanguageSelector({ locale, publishedLocales, partnerId }: LanguageSelectorProps) {
+export function LanguageSelector({ locale, publishedLocales }: LanguageSelectorProps) {
   const available = SUPPORTED_LOCALES.filter((l) =>
     (publishedLocales ?? []).includes(l)
   );
@@ -41,9 +40,12 @@ export function LanguageSelector({ locale, publishedLocales, partnerId }: Langua
   if (available.length <= 1) return null;
 
   function handleChange(val: string) {
-    // /api/set-locale → 서버사이드 Set-Cookie 후 / 리다이렉트
-    // document.cookie 직접 설정은 미들웨어 타이밍 불일치로 locale 감지 실패
-    window.location.href = `/api/set-locale?locale=${encodeURIComponent(val)}`;
+    // window.location.pathname은 미들웨어 rewrite 후에도 브라우저 표시 경로를 반환
+    // e.g. /ko/faq → /en/faq (locale 세그먼트만 교체)
+    const currentPath = window.location.pathname;
+    const newPath = currentPath.replace(/^\/[a-z]{2}(\/|$)/, `/${val}$1`);
+    // /api/set-locale → NEXT_LOCALE 쿠키 설정 후 returnTo 경로로 리다이렉트
+    window.location.href = `/api/set-locale?locale=${encodeURIComponent(val)}&returnTo=${encodeURIComponent(newPath)}`;
   }
 
   const current = LOCALE_META[locale];
