@@ -109,11 +109,11 @@ test.describe('WL-100 P-1: PainPoints — WL-74', () => {
   });
 
   test('P-1-4: global_contents 기반 카드 제목이 노출된다', async () => {
-    // global_contents.pain_points.meta.cards에 seed 데이터가 있으므로 DEFAULT 미사용
-    // 실제 DB 값: "엑셀 수작업", "예산 초과 알림 부재", "멀티 클라우드 복잡성" (seed.sql 기준)
-    await expect(mp.painPointsSection.getByText('엑셀 수작업', { exact: true })).toBeVisible();
-    await expect(mp.painPointsSection.getByText('예산 초과 알림 부재', { exact: true })).toBeVisible();
-    await expect(mp.painPointsSection.getByText('멀티 클라우드 복잡성', { exact: true })).toBeVisible();
+    // global_seed.sql에 pain_points meta.cards 데이터 없음 → DEFAULT_PAIN_POINTS 폴백
+    // DEFAULT_PAIN_POINTS.ko: '가시성 부족' / '대응 지연' / '최적화 난제'
+    await expect(mp.painPointsSection.getByText('가시성 부족', { exact: true })).toBeVisible();
+    await expect(mp.painPointsSection.getByText('대응 지연', { exact: true })).toBeVisible();
+    await expect(mp.painPointsSection.getByText('최적화 난제', { exact: true })).toBeVisible();
   });
 
   test('P-1-5: PROBLEM 배지 태그(01·02·03)가 각 카드에 노출된다', async () => {
@@ -160,7 +160,9 @@ test.describe('WL-100 S-1: StatsSection — WL-82/83 회귀 방지', () => {
 
   test('S-1-4: DEFAULT 수치(30%·5분·99.9%)가 노출된다', async () => {
     await expect(mp.statsSection.getByText('30%', { exact: true })).toBeVisible();
-    await expect(mp.statsSection.getByText('5분', { exact: true })).toBeVisible();
+    // DB stats: value="5", unit="분 이내" — 별도 span 렌더링
+    // .tabular-nums span에 "5", 인접 span에 "분 이내" → statValues.nth(1)로 검증
+    await expect(mp.statValues.nth(1)).toHaveText('5');
     await expect(mp.statsSection.getByText('99.9%', { exact: true })).toBeVisible();
   });
 
@@ -170,10 +172,11 @@ test.describe('WL-100 S-1: StatsSection — WL-82/83 회귀 방지', () => {
     await expect(mp.statsSection.getByText('서비스 가용성 보장', { exact: true })).toBeVisible();
   });
 
-  test('S-1-6: DEFAULT_STATS 폴백 — partner-a 수치가 기본값과 동일하다 (DB 오버라이드 없음)', async () => {
-    // DB stats body_json 없을 때 DEFAULT_STATS 사용 → 30%/5분/99.9% 고정
+  test('S-1-6: partner-a DB stats 수치가 정상 노출된다', async () => {
+    // partner-a DB stats: [30%, 5(분 이내), 99.9%]
+    // 2번째 항목: value="5", unit="분 이내" — .tabular-nums에는 "5"만 포함
     await expect(mp.statValues.nth(0)).toContainText('30%');
-    await expect(mp.statValues.nth(1)).toContainText('5분');
+    await expect(mp.statValues.nth(1)).toContainText('5');
     await expect(mp.statValues.nth(2)).toContainText('99.9%');
   });
 });

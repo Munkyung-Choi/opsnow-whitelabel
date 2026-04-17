@@ -1,10 +1,5 @@
 @AGENTS.md
 
-<!-- ⚠️ 위 @AGENTS.md 참조는 반드시 이 파일 최상단에 유지되어야 합니다.
-     Claude Code가 세션 시작 시 AGENTS.md에 정의된 에이전트 페르소나
-     (Lead Architect, Security Auditor, Context Manager)를 자동으로 로드하기 위한
-     필수 지시문입니다. 이 줄을 삭제하면 Maker-Checker 워크플로우가 동작하지 않습니다. -->
-
 # CLAUDE.md - OpsNow White-label Site Builder - Operational Guide
 
 ## [0. Source of Truth & Context]
@@ -56,42 +51,57 @@
 
 ### ⚠️ MED 트랙 (표준 절차)
 
-1. **Context**: Jira 티켓 확인. 필요 시 Confluence 관련 문서 조회.
-2. **Design**: 구현 방향 정리 (컴포넌트 구조, 데이터 흐름).
-3. **Audit**: Self-Audit — 실제 발견된 위험 요소만 보고 (개수 무관, 없으면 "없음"으로 명시).
-4. **Test Contract**: Impl 착수 전, 어떤 파일에 어떤 테스트를 작성할지 명시하고 stub을 생성한다.
-   - E2E: `test.todo('시나리오 설명')` 로 Playwright 파일에 미리 추가.
-   - Unit: `describe.todo('함수명 — 입출력 명세')` 로 Vitest 파일에 미리 추가.
+1. **Context**: Jira 티켓 확인. 필요 시 Confluence 관련 문서 조회. **트랙 등급·스코프 항목·완료 기준(AC)·영향 파일을 즉시 선언한다 — 사람의 추가 지시를 기다리지 않는다.**
+2. **Design**: 구현 방향 정리 (컴포넌트 구조, 데이터 흐름). 코드 작성 금지.
+3. **Audit**: Self-Audit — 실제 발견된 위험 요소만 보고 (개수 무관, 없으면 "없음"으로 명시). 보고 형식: `"Audit 결과: [위험 요소 또는 '없음']. [수정 방향 또는 '다음 단계 진행']."`
+4. **Test Contract**: Impl 착수 전 반드시 아래를 수행한다. **이 단계를 건너뛰고 구현 코드를 작성하는 것을 금지한다.**
+   - **테스트 종류 판단**: 이 기능에 Unit(Vitest)과 E2E(Playwright) 중 무엇이 적합한지 근거와 함께 명시한다.
+     - 파서/헬퍼/변환 로직 → Unit Test.
+     - 브라우저에서 사용자에게 보이는 결과가 있는 기능 → E2E Test 필수.
+     - 둘 다 해당하면 둘 다 작성.
+   - **기존 테스트 영향 분석**: 이번 변경이 영향을 주는 기존 테스트 파일 목록을 제시한다. 없으면 "영향받는 기존 테스트 없음" 명시.
+   - **Stub 생성**: `test.todo('시나리오')` (E2E) / `describe.todo('함수명 — 입출력 명세')` (Unit) 로 stub 파일 생성.
    - **Test Contract 없이 Impl 단계 진입 불가.**
-5. **Impl**: 구현 + Test Contract의 stub을 실제 passing 테스트로 교체.
-6. **Verify**: `npm run lint` + `npx tsc --noEmit` + `npx vitest run`.
+5. **Impl**: 아래 3가지를 함께 수행한다.
+   - (a) 기능 구현 코드 작성.
+   - (b) Test Contract의 stub을 실제 passing 테스트로 교체.
+   - (c) **기존 테스트 동기화**: 이번 변경으로 기존 테스트의 기대값/locator가 맞지 않게 된 경우 함께 수정한다. 새 테스트만 추가하고 기존 테스트를 방치하지 않는다.
+   - 완료 후 보고: 추가된 새 테스트 목록 + 수정된 기존 테스트 목록.
+6. **Verify**: **사람의 지시 없이 자율 실행한다.** 아래 4단계를 순서대로 실행한다. **4개 모두 에러 0개가 완료 기준이다.**
+   - `npm run lint`
+   - `npx tsc --noEmit`
+   - `npx vitest run`
+   - `npx playwright test` — 기존 테스트 포함 전체 실행. 실패 시 A/B/C 버킷으로 원인 분류 후 보고.
 7. **Report**: Jira 댓글 업데이트 (아래 양식 참조).
 
 ---
 
 ### 🚨 HIGH 트랙 (안전 우선)
 
-1. **Context**: Jira 티켓 확인 + Confluence 설계 문서 인덱싱.
+1. **Context**: Jira 티켓 확인 + Confluence 설계 문서 인덱싱. **트랙 등급·스코프 항목·완료 기준(AC)·영향 파일을 즉시 선언한다 — 사람의 추가 지시를 기다리지 않는다.**
 2. **Design**: 아키텍처 설계안 작성 (데이터 흐름, 파트너 격리 전략 포함).
-3. **Audit**: Self-Audit — 실제 위험 요소 보고. Auditor Digest 초안 작성.
-4. **✋ Human Check**: 문경 님 승인 대기. **승인 없이 Impl로 진행 불가.**
-5. **Test Contract**: Human Check 승인 후, Impl 착수 전 테스트 stub 생성.
-   - E2E: `test.todo('시나리오 설명')` 로 Playwright 파일에 미리 추가.
-   - Unit: `describe.todo('함수명 — 입출력 명세')` 로 Vitest 파일에 미리 추가.
+3. **Audit**: Security Auditor를 **별도 sub-agent로 분리 스폰**하여 메인 컨텍스트와 독립적인 교차검증을 수행한다.
+   - 스폰 방식: `Agent({ subagent_type: "general-purpose", prompt: "docs/agents/auditor.md 역할로 다음 파일들을 감사하라: [변경 파일 목록]. 실제 발견된 위험 요소만 보고하고, 없으면 '없음'으로 명시하라." })`
+   - sub-agent 결과를 메인 컨텍스트로 통합한 뒤 Auditor Digest 초안을 작성한다.
+   - Admin 기능 변경이 포함된 경우: `/admin-security-check` 스킬을 추가로 실행한다.
+4. **✋ Human Check**: 문경 님 승인 대기. **승인 없이 다음 단계로 진행 불가.**
+5. **Test Contract**: Human Check 승인 후, MED 트랙 Step 4와 동일한 절차를 수행한다.
+   - 테스트 종류 판단 (Unit vs E2E) + 기존 테스트 영향 분석 + stub 생성.
    - **Test Contract 없이 Impl 단계 진입 불가.**
-6. **Impl**: 구현 + Test Contract의 stub을 실제 passing 테스트로 교체.
-7. **Verify**: `npm run lint` + `npx tsc --noEmit` + `npx vitest run`.
+6. **Impl**: MED 트랙 Step 5와 동일 — 구현 + stub 교체 + 기존 테스트 동기화.
+7. **Verify**: MED 트랙 Step 6과 동일 — lint + tsc + vitest + **playwright** 4단계 전부 실행.
 8. **Report**: Jira 댓글 업데이트 + Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장.
 
 ---
 
 ### 테스트 원칙 (모든 트랙 공통)
 
-> "테스트가 없는 코드는 미완성 코드다."
-
-- **구현보다 테스트 stub이 먼저다.** Impl 착수 전 Test Contract(stub)를 작성해야 한다.
 - **테스트 레이어 기준**: 파서/헬퍼 로직 → Vitest 단위 테스트. UI 렌더링·라우팅·사용자 흐름 → Playwright E2E. 단순 presentational 컴포넌트는 파서 단위 테스트 + E2E 조합으로 충분하며 컴포넌트 렌더 단위 테스트를 강제하지 않는다.
-- E2E·A11y·Performance 자동화 검증은 테스트 인프라 구축 완료 후 적용한다.
+- **Admin E2E 4대 필수 시나리오**: Admin 기능의 E2E 테스트는 아래 4가지를 모두 포함해야 한다.
+  - (1) Happy Path — 정상 CRUD 동작 확인.
+  - (2) 권한 차단 — 권한 없는 역할이 접근 시 차단 확인.
+  - (3) 입력 검증 — 잘못된 입력 시 에러 표시 확인.
+  - (4) 데이터 격리 — 파트너 간 데이터 분리 확인.
 
 ---
 
@@ -99,7 +109,11 @@
 
 - 작업 상태: [Success / Partial / Fail]
 - 수정된 주요 파일: [파일명 목록]
-- 테스트 결과: [작성된 테스트 및 결과 요약]
+- Verify 결과: lint [N] errors / tsc [N] errors
+- 테스트 결과: Vitest [N]개 통과 / Playwright [N]개 통과, [N]개 실패, [N]개 skip
+- 추가/수정된 테스트 파일: [파일명 목록]
+
+> ⚠️ "테스트 결과" 란에 `lint/tsc 0 errors`를 기재하지 않는다. lint/tsc는 Verify 항목이지 테스트가 아니다. 테스트 결과에는 반드시 Vitest와 Playwright 실행 결과만 기재한다.
 
 **Auditor Digest** (🚨 HIGH 트랙 필수 — `docs/audits/{ticket_id}.md`에 저장):
 
@@ -109,22 +123,6 @@
 - **Identified Risks**: [발견된 실제 위험 요소. 없으면 "없음"]
 - **Human Check 승인 포인트**: [문경 님이 확인한 사항]
 ```
-
-## 🔄 Audit & Escalation Protocol
-
-### Self-Audit (MED·HIGH 트랙)
-
-- Design 단계 완료 후 Audit을 수행한다.
-- 실제 발견된 위험만 보고한다. 위험이 없으면 "위험 요소 없음"으로 명시하고 다음 단계로 진행한다.
-- 위험이 발견된 경우: 수정 방향을 제시하고 Design을 수정한 뒤 Impl로 진행한다.
-- 보고 형식: `"Audit 결과: [위험 요소 또는 '없음']. [수정 방향 또는 '다음 단계 진행']."`
-
-### 에스컬레이션 → 문경 님
-
-다음 상황에서 즉시 보고하고 의사결정을 요청한다:
-- HIGH 트랙의 Human Check 단계 도달 시
-- 아키텍처 방향에서 성능(Performance)과 보안(Isolation) 간 트레이드오프가 발생할 때
-- 의사결정이 교착 상태에 빠질 때
 
 ## 🛑 Human-in-the-loop Breakpoints (필수 중단점)
 
@@ -138,6 +136,8 @@
    - 유료 API 연동, Vercel 설정 변경 등 비용이나 외부 설정이 개입될 때.
 4. **Conflict 발생**:
    - Architect와 Auditor 간의 의견 차이가 2회 이상 반복되어 의사결정이 교착 상태에 빠질 때.
+5. **아키텍처 트레이드오프**:
+   - 성능(Performance)과 보안(Isolation) 간 트레이드오프가 발생하여 방향 결정이 필요할 때.
 
 ### 마이그레이션 실행 운영 규칙 (2026-04-08 확정)
 
@@ -185,31 +185,64 @@
 - **Proxy**: `proxy.ts`는 Edge Runtime에서 동작하므로 Node.js 전용 라이브러리(fs, crypto 등)를 사용하지 마라.
 - **Theme Injection**: 파트너별 테마 컬러는 `layout.tsx`에서 CSS Variables로 주입하여 전역 컴포넌트가 참조하게 하라.
 
+### 3.1 Admin Mutation Rules (데이터 변경 시 필수)
+
+Admin에서는 **모든 데이터 변경(생성·수정·삭제)에** 아래를 적용한다.
+
+- **Partner-Scoped Mutation Guard**: 모든 UPDATE/DELETE 쿼리에 반드시 `WHERE partner_id = (현재 사용자의 partner_id)` 조건을 포함한다. `master_admin`만 다른 파트너 데이터에 접근 가능. 이 조건 없는 mutation 코드를 절대 작성하지 않는다.
+- **Server Action 7단계 보안 체크체인**: Admin의 모든 Server Action은 아래 순서를 따른다. 단계를 건너뛰지 않는다.
+  1. 인증 확인 (세션 유효성)
+  2. 역할 확인 (해당 작업 권한이 있는 역할인가)
+  3. 소유권 검증 (`partner_admin`이면 자기 파트너 데이터만 접근 가능)
+  4. 입력 검증 (Zod `safeParse`)
+  5. 변경 실행 (DB mutation)
+  6. 감사 로그 (`system_logs`에 who/what/when/detail 기록)
+  7. 캐시 무효화 (`revalidatePath` / `revalidateTag` 호출)
+- **역할 체크 위치**: 데이터 접근 권한 검증은 반드시 **Server Component 또는 Server Action**에서 수행한다. Client Component의 역할 기반 UI 분기(버튼 숨기기 등)는 UX 편의일 뿐 보안 수단이 아니다.
+- **캐시 무효화 필수**: Server Action에서 DB 변경 후 `revalidatePath`/`revalidateTag`를 호출하지 않으면 사용자에게 변경사항이 보이지 않는다. 모든 mutation Server Action에 캐시 무효화를 포함한다.
+- **감사 로그 필수**: Admin의 모든 데이터 변경 Server Action에 감사 로그를 포함한다. 감사 로그 없는 mutation Server Action은 Verify 미통과다.
+
+### 3.2 Admin 선행 인프라 규칙
+
+Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
+1. **인증 미들웨어** — Admin 라우트에 미인증 접근 차단
+2. **역할 컨텍스트** — Server Component에서 현재 사용자의 role/partner_id 접근 가능
+3. **Server Action 표준 헬퍼** — 7단계 보안 체크체인을 캡슐화한 재사용 함수
+4. **폼 검증 패턴** — Zod 스키마 + `useActionState` + 인라인 에러 표시
+5. **Playwright Auth Fixture** — `storageState` 기반 인증 세션 재사용
+
+하나라도 미준비 시 해당 인프라 구축을 먼저 수행한다.
+
 ## [4. Security & Privacy Enforcement]
 
 > **⚠️ 보안 상세 규칙은 `SECURITY.md`를 참조하라.** 이 섹션은 핵심 원칙만 요약한다.
 
 - **Masking**: `leads` 관련 API는 `master_admin`에게 반드시 `leads_masked_view`를 통해서만 데이터를 반환하라. 직접 테이블 접근 금지.
 - **RLS Policy**: 테이블 생성 혹은 수정 시 반드시 관련 RLS 정책을 함께 작성하고, `SECURITY.md`의 접근 행렬을 업데이트하라.
-- **service_role 격리**: `supabaseAdmin`(service_role key)은 서버사이드 Route Handler에서만 사용. 클라이언트 컴포넌트에 절대 노출 금지.
+- **service_role 격리**: `supabaseAdmin`(service_role key)은 서버사이드 Route Handler에서만 사용. 클라이언트 컴포넌트에 절대 노출 금지. 허가된 Route Handler: `/api/visits/upsert`, `/api/admin/logs`, `/api/auth/provision`, `/api/admin/domain-approval` (4개 한정).
+- **Server Action 인증 필수**: Admin 영역의 모든 Server Action은 실행 시작 시 반드시 세션 유효성과 역할 권한을 확인한다. 인증 체크 없는 Server Action을 작성하지 않는다.
+- **입력 검증 경계**: 사용자 입력(폼 데이터, URL 파라미터)은 반드시 Server Action 진입 시점에서 Zod 스키마로 검증한다. 클라이언트 검증은 UX 편의이며, 서버 검증을 대체하지 않는다.
 
 ## [5. Design Documentation Sync]
 
 - **DB Schema Diagram Sync**: DB 스키마(테이블 생성/수정/삭제, 컬럼 변경) 시 반드시 `docs/design/db-schema.md`의 Mermaid ERD를 함께 업데이트하라.
 - **Type Sync**: DB 변경 후 `npm run gen:types`를 실행하여 TypeScript 타입을 동기화하라.
-- **Auditor Digest 영속화**: 🚨 HIGH 위험 작업 완료 시 Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장하라.
+- **Auditor Digest 영속화**: 🚨 HIGH 위험 작업 완료 시 아래 기준으로 Digest를 저장한다.
+
+  | 구분 | 판단 기준 | Digest 저장 |
+  |------|----------|------------|
+  | **HIGH-Critical** | RLS·Auth 설계, 트리거·ENUM 신설, 멀티테넌시 핵심 로직 — 설계 의도가 코드만으로 파악 불가 | `docs/audits/{ticket_id}.md` **필수** |
+  | **HIGH-Standard** | 단순 컬럼 추가·인덱스·환경변수 추가 등 물리적 변경이 명확한 작업 | Jira 댓글로 대체 |
+
   - 템플릿: `docs/audits/_template.md` 참조
   - 파일명 예시: `docs/audits/WL-9.md`, `docs/audits/WL-31.md`
   - 채팅에만 존재하는 Digest는 세션 종료 시 소실되므로 반드시 파일로 커밋할 것.
+  - 판단이 불확실하면 HIGH-Critical로 간주한다 (Fail-safe 원칙).
 
 ## [6. Verification Workflow]
 
-작업을 마친 후 클로드 코드는 스스로 다음을 체크해야 합니다.
-
-1. `npm run lint`와 `npx tsc`를 실행하여 문법 및 타입 에러를 상시 확인하라.
-2. **에러 발생 시 대응**: `lint`나 `build` 에러 발생 시 독단적으로 고치지 말고, 원인 분석 후 수정안을 문경 님에게 보고하고 승인받아라. Auditor 검토 강제 규칙은 **[8. Harness Enforcement Rules]** 참조.
-3. **환경 변수 관리**: 새로운 환경 변수가 필요한 경우 직접 `.env`를 수정하지 말고, **문경 님**에게 변수명과 용도를 보고한 뒤 추가를 요청하라.
-4. Confluence Page ID `289308723` (6. 테스트 케이스)를 기준으로 작업 성공 여부를 검증하라.
+1. **환경 변수 관리**: 새로운 환경 변수가 필요한 경우 직접 `.env`를 수정하지 말고, **문경 님**에게 변수명과 용도를 보고한 뒤 추가를 요청하라.
+2. Confluence Page ID `289308723` (6. 테스트 케이스)를 기준으로 작업 성공 여부를 검증하라.
 
 ## [7.💰 Token Management & Optimization]
 
@@ -234,11 +267,18 @@ LOW 트랙·단순 질의응답·현황 조회는 생략 가능하다.
 
 **이행 원칙**:
 
+0. **Work Item Declaration Gate**: MED·HIGH 트랙에서 티켓 번호 또는 URL이 제공되면, Claude는 사람의 추가 지시 없이 즉시 "Context 단계 필수 출력 형식"에 따라 스코프 항목과 완료 기준을 선언한다. 이 선언 없이 Design 단계로 진입하는 것을 금지한다.
 1. **Audit Gate**: MED·HIGH 트랙에서 Audit 없이 Impl로 진행할 수 없다. 위험이 없더라도 "위험 요소 없음"을 명시해야 통과된다.
-2. **Test Contract Gate**: MED·HIGH 트랙에서 Test Contract(어떤 파일에 어떤 stub을 작성할지) 없이 Impl로 진행할 수 없다. "테스트 계획 없음"은 Impl 진입 거부 사유다.
+2. **Test Contract Gate**: MED·HIGH 트랙에서 Test Contract 없이 Impl로 진행할 수 없다. Test Contract에는 (a) 테스트 종류 판단 근거, (b) 기존 영향 테스트 목록, (c) stub 파일 생성이 모두 포함되어야 한다. "테스트 계획 없음"은 Impl 진입 거부 사유다. **Claude는 사람의 지시를 기다리지 않고 Design→Audit 후 자동으로 Test Contract를 생성한다.**
 3. **Self-Stop**: Audit 또는 Test Contract를 건너뛰고 구현을 시도하려 하면 스스로 오류를 선언하고 해당 단계로 돌아간다.
-3. **Error Escalation**: `lint`·`build` 에러 발생 시 원인을 분석하여 수정안을 문경 님에게 보고하고 승인받은 뒤 수정한다. ([6. Verification Workflow] §2와 연동)
-4. **HIGH Human Gate**: HIGH 트랙의 Human Check는 절대 생략 불가. 승인 전 Impl 시작 금지.
+4. **Test Sync Gate**: Impl 완료 시, 기존 테스트 중 이번 변경으로 영향받는 것이 수정되지 않았으면 Verify로 진행할 수 없다. 새 테스트만 추가하고 기존 테스트를 방치하면 녹색 인플레이션(통과 수만 늘고 실패 방치)이 발생한다.
+5. **Regression Gate**: `npx playwright test`에서 기존 테스트가 1건이라도 실패하면 Verify 미통과다. 실패 원인을 아래 버킷으로 분류하여 보고한다.
+   - **A(앱 버그)**: 앱 자체가 잘못 동작 → 앱 코드 수정.
+   - **B(테스트 부정합)**: 앱은 정상이지만 기대값/locator가 현재 앱과 불일치 → 테스트 수정.
+   - **C(데이터 불일치)**: 앱·테스트 모두 정상이지만 DB 데이터가 테스트 전제와 다름 → 시딩 수정.
+6. **Error Escalation**: `lint`·`build` 에러 발생 시 원인을 분석하여 수정안을 문경 님에게 보고하고 승인받은 뒤 수정한다.
+7. **HIGH Human Gate**: HIGH 트랙의 Human Check는 절대 생략 불가. 승인 전 Impl 시작 금지.
+8. **Report Accuracy**: Jira 댓글의 "테스트 결과"에 lint/tsc 결과를 기재하지 않는다. Vitest와 Playwright 실행 결과만 기재한다.
 
 ### 외부 LLM 피드백 검증 원칙
 
@@ -294,64 +334,61 @@ src/components/
 
 ## [10. Local Development Environment]
 
-멀티 테넌트 로컬 개발 환경 구성 가이드. **신규 개발자는 아래 절차를 순서대로 따른다.**
+> 설치 가이드(Acrylic DNS 설정 등) 전체는 `docs/local-dev-setup.md` 참조.
 
-### 10.1 Acrylic DNS Proxy 설치 (Windows — 1회 설정)
+- **로컬 파트너 접근 URL**: `http://{partner-subdomain}.localhost:3000` — `partner-subdomain`은 Supabase `partners.subdomain` 값과 일치해야 한다.
+- **CI/CD Fallback**: 서브도메인 미지원 환경에서는 `.env.local`에 `DEV_PARTNER_SLUG=partner-a` 설정 시 `http://localhost:3000`으로 접근 가능.
 
-`*.localhost` 및 `*.opsnow.test` 와일드카드 DNS를 로컬에서 동작시키기 위한 설정이다.  
-hosts 파일 수동 수정 없이 모든 파트너 서브도메인(`partner-a.localhost`, `partner-a.opsnow.test` 등)을 즉시 사용할 수 있다.  
-> **왜 `.local`이 아닌 `.test`인가?** `.local`은 Windows/macOS가 mDNS(Bonjour)용으로 선점하여 Acrylic DNS가 개입하지 못한다. `.test`는 IANA가 테스트 목적으로 예약한 TLD로 mDNS 간섭이 없다.
+## [11. Anti-Fragmentation Rules]
 
-**1. 설치**
-```
-https://mayakron.altervista.org/support/acrylic/Home.htm
-```
-설치 파일 다운로드 후 관리자 권한으로 실행.
+> Claude는 코드를 생성하는 기계가 아니라, 전체 코드베이스의 질서를 유지하는 **정원사(Gardener)**로 행동한다.
+> 새로운 파일(나무)을 심기보다 기존 코드를 전정(Refactor)하는 것에 우선순위를 둔다.
 
-**2. AcrylicHosts.txt에 와일드카드 추가**  
-Acrylic UI 실행 → `Open Acrylic Hosts` 클릭 후 맨 아래에 추가:
-```
-127.0.0.1  *.localhost
-127.0.0.1  *.opsnow.test
-```
+### 11.1 New File Quarantine (신규 파일 생성 전 전수 조사)
 
-**3. Windows DNS 서버를 Acrylic으로 변경**
-```
-설정 → 네트워크 및 인터넷 → 어댑터 옵션 변경
-→ 사용 중인 어댑터 우클릭 → 속성 → IPv4 → 속성
-→ "다음 DNS 서버 주소 사용" → 기본 설정 DNS: 127.0.0.1
-```
+신규 파일을 생성하기 **전**, 반드시 아래를 수행하고 결과를 보고한다.
 
-**4. 서비스 재시작** (관리자 PowerShell)
-```powershell
-Restart-Service AcrylicDNSProxySvc
-```
+- 동일하거나 유사한 기능을 수행하는 파일·함수·컴포넌트가 없는지 확인한다.
+- 조사 결과 "없음"을 확인한 후에만 신규 파일 생성을 진행한다.
+- **예외**: `supabase/migrations/`, `supabase/seeds/`, `tests/`, `docs/` 하위 파일은 적용 제외.
 
-**5. 설치 검증**
-```powershell
-nslookup partner-a.localhost
-# 기대 결과: Address: 127.0.0.1
-```
+### 11.2 SSOT & Reporting (중복 발견 시 보고 후 결정)
 
-### 10.2 로컬 파트너 페이지 접근
+동일한 비즈니스 로직(identical logic)이 2곳 이상 발견될 경우:
 
-Acrylic DNS 설정 완료 + 개발 서버(`npm run dev`) 실행 후:
+1. **현재 Task를 중단하지 않는다.** 진행 중인 작업을 먼저 완료한다.
+2. 발견 즉시 사용자에게 보고한다: `"[SSOT 경고] [파일A]와 [파일B]에서 동일 로직 발견. 통합 리팩터링을 다음 티켓으로 제안합니다."`
+3. 통합 리팩터링은 **문경 님 승인 후 별도 작업(별도 티켓)**으로 진행한다.
+4. 보고 없이 현재 Task에 리팩터링을 끼워 넣는 것을 금지한다 — PR 단위의 원자성(atomicity)을 유지한다.
 
-```
-http://{partner-subdomain}.localhost:3000
-```
+### 11.3 Conservative Abstraction (보수적 추상화)
 
-- `partner-subdomain`은 Supabase `partners.subdomain` 컬럼 값과 일치해야 한다.
-- `is_active = true`인 파트너만 접근 가능하다.
-- 미존재 슬러그 접근 시 `/not-found`로 리다이렉트된다.
+| 상황 | 처리 |
+|------|------|
+| 로직이 **완전히 일치(identical)** — 2곳 이상 | 즉시 `shared/` 또는 `lib/`로 추상화 |
+| 로직이 **유사(similar)** — 2곳 | 관찰 유지, 추상화 보류 |
+| 로직이 **유사(similar)** — 3곳 이상 | 추상화 제안 후 사용자 승인 시 실행 |
 
-### 10.3 CI/CD 환경 Fallback
+- 추상화 인터페이스가 틀리면 세 번째 사례가 나왔을 때 오히려 코드가 더 복잡해진다. 확실할 때만 추상화한다.
 
-서브도메인 접근이 불가한 CI/CD 환경에서는 서버 전용 환경변수를 사용한다:
+### 11.4 Atomic Modification (최소 단위 수정)
+
+기존 파일을 수정할 때:
+
+- 함수 전체를 새로 쓰지 않고, 변경이 필요한 **최소 단위(line/block)**만 수정한다.
+- `git diff`가 작을수록 리뷰·롤백이 쉽다. 불필요한 공백·포맷·리네임 변경을 끼워 넣지 않는다.
+- 기능 변경과 포맷 정리를 **같은 커밋에 섞지 않는다.**
+
+### 11.5 Red-Green-Refactor Gate (실패 확인 후 구현 진입)
+
+Test Contract의 stub을 실제 assertion으로 교체한 뒤, **구현 코드 작성 전**에 반드시 테스트가 RED(실패) 상태임을 확인한다.
 
 ```bash
-# .env.local (NEXT_PUBLIC_ 접두사 없음 — 클라이언트 번들에 노출되지 않음)
-DEV_PARTNER_SLUG=partner-a
+# RED 확인
+npx vitest run path/to/test-file   # 또는
+npx playwright test path/to/spec
 ```
 
-`http://localhost:3000` 접근 시 해당 파트너 페이지로 자동 리라이트된다.
+- 테스트가 RED인 것을 확인한 후에만 구현에 진입한다.
+- 처음부터 GREEN인 테스트는 구현을 검증하지 못하는 테스트다 — 로직을 재점검한다.
+- `test.todo()` stub은 "pending" 상태로 RED와 동일하게 간주한다.

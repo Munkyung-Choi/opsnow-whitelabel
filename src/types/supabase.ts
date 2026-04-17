@@ -7,68 +7,48 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
       contents: {
         Row: {
-          body: string | null
+          body: Json | null
           contact_info: Json | null
-          cta_text: string | null
+          cta_text: Json | null
           id: string
           is_published: boolean | null
           partner_id: string
           section_type: string
-          subtitle: string | null
-          title: string | null
+          subtitle: Json | null
+          title: Json | null
           updated_at: string | null
         }
         Insert: {
-          body?: string | null
+          body?: Json | null
           contact_info?: Json | null
-          cta_text?: string | null
+          cta_text?: Json | null
           id?: string
           is_published?: boolean | null
           partner_id: string
           section_type: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
         }
         Update: {
-          body?: string | null
+          body?: Json | null
           contact_info?: Json | null
-          cta_text?: string | null
+          cta_text?: Json | null
           id?: string
           is_published?: boolean | null
           partner_id?: string
           section_type?: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
         }
         Relationships: [
@@ -81,34 +61,84 @@ export type Database = {
           },
         ]
       }
+      domain_requests: {
+        Row: {
+          activated_at: string | null
+          created_at: string | null
+          id: string
+          partner_id: string
+          rejection_reason: string | null
+          request_type: string | null
+          requested_domain: string
+          reviewed_at: string | null
+          status: Database["public"]["Enums"]["domain_request_status"]
+          updated_at: string | null
+          verification_record: Json | null
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          rejection_reason?: string | null
+          request_type?: string | null
+          requested_domain: string
+          reviewed_at?: string | null
+          status?: Database["public"]["Enums"]["domain_request_status"]
+          updated_at?: string | null
+          verification_record?: Json | null
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          rejection_reason?: string | null
+          request_type?: string | null
+          requested_domain?: string
+          reviewed_at?: string | null
+          status?: Database["public"]["Enums"]["domain_request_status"]
+          updated_at?: string | null
+          verification_record?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_requests_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       global_contents: {
         Row: {
-          body: string | null
+          body: Json | null
           id: string
           meta: Json | null
           section_type: string
-          subtitle: string | null
-          title: string | null
+          subtitle: Json | null
+          title: Json | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          body?: string | null
+          body?: Json | null
           id?: string
           meta?: Json | null
           section_type: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          body?: string | null
+          body?: Json | null
           id?: string
           meta?: Json | null
           section_type?: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -412,7 +442,12 @@ export type Database = {
       get_my_role: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      domain_request_status:
+        | "pending"
+        | "approved"
+        | "active"
+        | "rejected"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -538,11 +573,15 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
-    Enums: {},
+    Enums: {
+      domain_request_status: [
+        "pending",
+        "approved",
+        "active",
+        "rejected",
+        "expired",
+      ],
+    },
   },
 } as const
-

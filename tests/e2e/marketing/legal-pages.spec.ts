@@ -63,6 +63,33 @@ test.describe('S5c: /ko/cookie-policy — 쿠키 정책 [WL-84]', () => {
 
 
 // =============================================================================
+// WL-111: cookie-policy slug → cookie_policy DB 타입 명시적 매핑 검증
+// =============================================================================
+
+test.describe('WL-111: slug → section_type 명시적 매핑', () => {
+  test('S5c-1: /ko/cookie-policy 정상 렌더링 (404 아님)', async ({ page }) => {
+    const legalPage = new LegalPage(page, 'partner-a', 'cookie-policy');
+    await legalPage.goto();
+    await expect(page).not.toHaveURL(/not-found/);
+    const mainText = await page.locator('main').textContent();
+    expect((mainText ?? '').trim().length).toBeGreaterThan(0);
+  });
+
+  test('S5c-2: /en/cookie-policy 정상 렌더링 (404 아님)', async ({ page }) => {
+    await page.goto('http://partner-a.localhost:3000/en/cookie-policy', { waitUntil: 'load' });
+    await expect(page).not.toHaveURL(/not-found/);
+    const mainText = await page.locator('main').textContent();
+    expect((mainText ?? '').trim().length).toBeGreaterThan(0);
+  });
+
+  test('S5c-3: 잘못된 slug /ko/invalid-legal → 404 페이지 렌더링', async ({ page }) => {
+    await page.goto('http://partner-a.localhost:3000/ko/invalid-legal', { waitUntil: 'load' });
+    // Next.js App Router notFound()는 현재 URL 유지 + 404 UI 렌더링
+    await expect(page.locator('p').filter({ hasText: '404' })).toBeVisible();
+  });
+});
+
+// =============================================================================
 // WL-101: Legal pages 콘텐츠 수준 검증 (기존 파일 확장)
 // =============================================================================
 

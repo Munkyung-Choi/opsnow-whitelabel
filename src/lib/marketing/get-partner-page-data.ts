@@ -4,6 +4,7 @@ import type { Database, Json } from '@/types/supabase';
 import { validatePartner, type Partner } from '@/services/partnerService';
 import type { Locale } from '@/proxy';
 import { interpolateString, interpolateJson } from '@/lib/utils/interpolate';
+import type { MarketingSectionType } from '@/types/section-type';
 
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,7 +16,7 @@ type GlobalContentRow = Database['public']['Tables']['global_contents']['Row'];
 type PartnerSectionRow = Database['public']['Tables']['partner_sections']['Row'];
 
 // Global section types fetched for all partners (fixed / not partner-editable)
-const GLOBAL_SECTION_TYPES = [
+export const GLOBAL_SECTION_TYPES: readonly MarketingSectionType[] = [
   'pain_points',
   'finops_automation',
   'core_engines',
@@ -25,12 +26,12 @@ const GLOBAL_SECTION_TYPES = [
 
 // Default section order when partner has no partner_sections rows (new partners)
 export interface SectionConfig {
-  section_type: string;
+  section_type: MarketingSectionType;
   is_visible: boolean;
   display_order: number;
 }
 
-const DEFAULT_SECTIONS: SectionConfig[] = [
+export const DEFAULT_SECTIONS: SectionConfig[] = [
   { section_type: 'pain_points', is_visible: true, display_order: 1 },
   { section_type: 'stats', is_visible: true, display_order: 2 },
   { section_type: 'how_it_works', is_visible: true, display_order: 3 },
@@ -254,7 +255,7 @@ export const getPartnerPageData = cache(async (
   const sections: SectionConfig[] =
     rawSections.length > 0
       ? rawSections.map((r) => ({
-          section_type: r.section_type,
+          section_type: r.section_type as MarketingSectionType,
           is_visible: r.is_visible,
           display_order: r.display_order,
         }))

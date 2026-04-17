@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q 'db push' && echo '🚨 BREAKPOINT #1: supabase db push 감지 — 신규 migration 파일인지 확인. 기존 파일 수정 반영 목적이면 SQL Editor 직접 실행 필요 (CLAUDE.md §마이그레이션 운영 규칙)' || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q 'supabase/migrations' && echo '⚠️  기존 마이그레이션 파일 편집 감지 — 이 변경은 supabase db push로 반영되지 않습니다. 멱등성 확인 후 SQL Editor에서 직접 실행하세요 (CLAUDE.md §마이그레이션 운영 규칙)' || true"
+          }
+        ]
+      }
+    ]
+  }
+}

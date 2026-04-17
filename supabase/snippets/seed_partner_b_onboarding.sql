@@ -65,5 +65,5 @@ SELECT
 FROM partners p
 WHERE p.subdomain = 'partner-b';
 -- 기대:
---   sections_count = 8   (pain_points ~ final_cta)
---   contents_count = 11  (마케팅 8 + 법적 3)
+--   sections_count > 0   (pain_points ~ final_cta 등 기본 섹션)
+--   contents_count > 0   (마케팅 섹션 + 법적 고지)

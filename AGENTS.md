@@ -39,6 +39,20 @@
 
 ---
 
+## 프로젝트 전용 스킬 (슬래시 명령어)
+
+자주 쓰는 반복 작업은 아래 스킬로 즉시 실행한다. 매번 동일한 지시를 반복하지 않아도 된다.
+
+| 스킬 | 명령어 | 사용 시점 |
+|------|--------|----------|
+| **partner-onboard** | `/partner-onboard [slug]` | 신규 파트너 온보딩 전 과정 (DB → RLS → 서브도메인 → E2E) |
+| **admin-security-check** | `/admin-security-check [파일경로]` | Admin Server Action Impl 완료 후 Verify 전 |
+| **migration-safe** | `/migration-safe [목적]` | 마이그레이션 파일 작성 전 안전 체크 |
+| **database-migration** | `/database-migration` | Supabase 마이그레이션 작성 패턴 참조 |
+| **supabase-audit-rls** | `/supabase-audit-rls` | RLS 정책 bypass 취약점 검증 |
+
+---
+
 ## 아키텍처 결정 우선순위
 
 1. **Isolation over Convenience** — 파트너 간 데이터 격리 최우선

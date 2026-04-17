@@ -1,2 +1,2 @@
 ALTER TABLE public.partners
-ADD COLUMN hero_image_url TEXT DEFAULT NULL;
+ADD COLUMN IF NOT EXISTS hero_image_url TEXT DEFAULT NULL;

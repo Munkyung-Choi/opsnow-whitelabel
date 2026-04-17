@@ -97,15 +97,13 @@ test.describe('WL-99 N-2: LanguageSelector', () => {
     await expect(page.getByRole('listbox')).toBeVisible();
   });
 
-  test('N-2-3: 드롭다운에 partner-a 공개 로케일(한국어·English)이 노출된다', async ({ page }) => {
-    // partner-a.published_locales = ['ko', 'en'] — 2개 로케일만 게시됨
-    // 4개 로케일 검증은 ja/zh가 published인 파트너 fixture 구축 후 활성화
+  test('N-2-3: 드롭다운에 partner-a 공개 로케일(한국어·English·日本語·中文)이 노출된다', async ({ page }) => {
+    // partner-a.published_locales = ['ko', 'en', 'ja', 'zh'] — 4개 로케일 게시됨
     await mp.langSelector.click();
     await expect(page.getByRole('option', { name: /한국어/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /English/ })).toBeVisible();
-    // 미게시 로케일은 노출되지 않음
-    await expect(page.getByRole('option', { name: /日本語/ })).toHaveCount(0);
-    await expect(page.getByRole('option', { name: /中文/ })).toHaveCount(0);
+    await expect(page.getByRole('option', { name: /日本語/ })).toBeVisible();
+    await expect(page.getByRole('option', { name: /中文/ })).toBeVisible();
   });
 
   test('N-2-4: published_locales 제한 파트너에서 미공개 로케일이 필터링된다', async () => {

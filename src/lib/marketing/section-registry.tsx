@@ -11,6 +11,7 @@
 import dynamic from 'next/dynamic';
 import type React from 'react';
 import type { PartnerPageData } from './get-partner-page-data';
+import type { MarketingSectionType } from '@/types/section-type';
 
 /** 모든 섹션 컴포넌트가 준수해야 하는 기본 인터페이스 */
 export interface SectionProps {
@@ -63,7 +64,7 @@ type SectionRenderFn = (data: PartnerPageData) => React.ReactNode;
  * section_type → 렌더 함수 매핑 테이블.
  * `as const` + `Readonly`로 런타임 변조를 방지합니다.
  */
-const SECTION_REGISTRY: Readonly<Record<string, SectionRenderFn>> = {
+const SECTION_REGISTRY: Readonly<Record<MarketingSectionType, SectionRenderFn>> = {
   pain_points: (data) => (
     <DynamicPainPoints
       content={data.globalContents.get('pain_points') ?? null}
@@ -125,7 +126,7 @@ export function renderSection(
   sectionType: string,
   data: PartnerPageData,
 ): React.ReactNode {
-  const renderFn = SECTION_REGISTRY[sectionType];
+  const renderFn = SECTION_REGISTRY[sectionType as keyof typeof SECTION_REGISTRY];
   if (!renderFn) {
     console.warn(
       `[SectionRegistry] Unknown section_type: "${sectionType}" — skipping render. ` +

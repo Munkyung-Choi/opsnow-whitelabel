@@ -59,8 +59,8 @@ INSERT INTO public.contents (partner_id, section_type, title, subtitle, is_publi
 SELECT
   p.id AS partner_id,
   s.section_type,
-  s.default_title,
-  s.default_subtitle,
+  s.default_title::jsonb,
+  s.default_subtitle::jsonb,
   true AS is_published
 FROM public.partners p
 CROSS JOIN (VALUES
@@ -117,7 +117,7 @@ ON CONFLICT (partner_id, section_type) DO NOTHING;
 
 UPDATE public.contents
 SET
-  title      = tmpl.default_title,
+  title      = tmpl.default_title::jsonb,
   updated_at = NOW()
 FROM (VALUES
   ('stats'::text,      '{"ko": "데이터가 증명하는 {PartnerName}의 실제 성과", "en": "{PartnerName} Results by Numbers"}'),
@@ -143,7 +143,7 @@ INSERT INTO public.contents (partner_id, section_type, title, is_published)
 SELECT
   p.id AS partner_id,
   s.section_type,
-  s.default_title,
+  s.default_title::jsonb,
   false AS is_published   -- 초안 상태: 어드민이 본문 작성 후 직접 발행
 FROM public.partners p
 CROSS JOIN (VALUES
@@ -166,7 +166,7 @@ ON CONFLICT (partner_id, section_type) DO NOTHING;
 -- 법적 문서 title IS NULL 보완 (기존 행)
 UPDATE public.contents
 SET
-  title      = tmpl.default_title,
+  title      = tmpl.default_title::jsonb,
   updated_at = NOW()
 FROM (VALUES
   ('terms'::text,    '{"ko": "{PartnerName} 이용약관", "en": "{PartnerName} Terms of Service"}'),

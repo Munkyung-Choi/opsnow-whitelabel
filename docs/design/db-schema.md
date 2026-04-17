@@ -40,7 +40,7 @@ erDiagram
     contents {
         uuid id PK
         uuid partner_id FK
-        text section_type "hero|about|contact|terms|privacy"
+        text section_type "marketing 8 + legacy 2 + legal 3 — src/types/section-type.ts 참조"
         text title
         text subtitle
         text body
@@ -193,7 +193,7 @@ Supabase `auth.users`와 1:1 연결. `role`로 접근 권한을 구분한다.
 
 | 컬럼 | 설명 |
 |------|------|
-| `section_type` | `hero`, `stats`, `how_it_works`, `faq`, `final_cta`, `footer`, `terms`, `privacy`. **(partner_id, section_type) UNIQUE** — 섹션당 1행만 존재 |
+| `section_type` | **Marketing (8)**: `pain_points` `stats` `how_it_works` `finops_automation` `core_engines` `role_based_value` `faq` `final_cta` / **Legacy (2)**: `hero` `footer` / **Legal (3)**: `terms` `privacy` `cookie_policy`. **(partner_id, section_type) UNIQUE** — 섹션당 1행만 존재. 정전 타입: `src/types/section-type.ts` |
 | `body` | 텍스트 섹션은 i18n 문자열 / 배열 섹션(`stats`, `how_it_works`, `faq`)은 JSONB 배열 |
 | `is_published` | `false`(초안, 비공개) / `true`(발행, 공개). RLS `contents_public_anon_read` 정책으로 미발행 콘텐츠는 마케팅 사이트에 노출되지 않음 |
 | `contact_info` | `{"email": "", "phone": "", "address": ""}` 구조의 JSONB |
@@ -342,3 +342,184 @@ approved → expired             (DNS 검증 타임아웃)
 | `idx_system_logs_on_behalf_of` | system_logs | on_behalf_of | Impersonation 대상 기준 감사 |
 | `idx_system_logs_created_at` | system_logs | created_at DESC | 시간순 감사 로그 |
 | `unique_active_request_per_partner` | domain_requests | partner_id (WHERE status IN 'pending','approved','active') | 진행 중 도메인 신청 중복 방지 |
+
+---
+
+## JSONB 컬럼 스키마 명세 (Admin 타입 계약)
+
+> **목적**: Admin 편집 폼의 Zod 스키마 및 Server Action 입력 검증과 1:1 매칭되는 JSONB 내부 구조 명세.
+> **출처**: `src/lib/marketing/parsers.ts`, `supabase/migrations/20260415000001_normalize_partner_content.sql`, 파트너 seed 파일.
+> **원칙**: 이 섹션을 SSOT로 삼아 `src/types/*`의 Zod/TS 타입과 동기화한다. JSONB 구조 추가·변경 시 이 섹션을 먼저 업데이트한 뒤 구현한다.
+
+### i18n 공통 래퍼
+
+Marketing 콘텐츠의 다국어 문자열은 아래 래퍼로 저장된다. 로케일 폴백은 `extractI18n(value, locale)` → 누락 시 `partners.default_locale`로 soft-landing (`src/lib/marketing/get-partner-page-data.ts`).
+
+```ts
+type I18nString = { ko: string; en: string; ja?: string; zh?: string }
+```
+
+### `contents.body` — section_type별 body 스키마
+
+> ⚠️ ERD 및 §3 테이블 설명의 `section_type` 목록(5~8종)은 실제 13종(아래)보다 축약되어 있다. 별도 티켓으로 ERD·컬럼 설명 동기화 예정 (Anti-Fragmentation §11.2 — 본 작업 범위에서는 이 명세 섹션만 추가).
+
+| `section_type` | `body` 타입 | 설명 |
+|----------------|-------------|------|
+| `hero` | `I18nString \| null` | 메인 카피 |
+| `pain_points` | `null` | `global_contents.meta.cards` 사용, partner row는 title/subtitle만 편집 |
+| `stats` | `StatItem[]` | 아래 참조 |
+| `how_it_works` | `StepItem[]` | 아래 참조 |
+| `finops_automation` | `null` | global meta 사용, title/subtitle만 편집 |
+| `core_engines` | `null` | 동일 |
+| `role_based_value` | `null` | 동일 |
+| `faq` | `FaqItem[]` | 아래 참조 |
+| `final_cta` | `I18nString \| null` | CTA 카피 |
+| `footer` | `null` | `is_published`만 사용 |
+| `about` | `I18nString \| null` | 장문 본문 |
+| `contact` | `null` | `contact_info` 컬럼 별도 사용 |
+| `terms` / `privacy` / `cookie_policy` | `I18nString \| null` | 법적 문서 본문 |
+
+**배열 아이템 정의:**
+
+```ts
+interface StatItem {
+  value: string;             // "30%"
+  unit: I18nString;          // {ko:"평균", en:"avg"}
+  label: I18nString;
+  detail: I18nString;
+}
+
+interface StepItem {
+  step: number;              // 1부터
+  title: string;             // 비i18n 영문 태그
+  subtitle: I18nString;
+  description: I18nString;
+  details: I18nString[];     // 불릿 리스트
+  iconName: string;          // lucide-react 아이콘명
+}
+
+interface FaqItem {
+  question: I18nString;
+  answer: I18nString;
+  category?: string;
+}
+```
+
+### `contents.contact_info`
+
+```ts
+interface ContactInfo {
+  email: string;
+  phone: string;
+  address: string;
+  corporate_info?: {
+    company_name: string;
+    representative: string;
+    registration_number: string;
+  };
+  social_links?: Array<{ platform: string; url: string }>;
+}
+```
+
+### `global_contents.meta` — section_type별 meta 스키마
+
+| `section_type` | `meta` 구조 |
+|----------------|-------------|
+| `pain_points` | `{ cards: Array<{ icon, title, description, tag, pain }> }` |
+| `finops_automation` | `{ features: Array<{ title, subtitle, description }> }` |
+| `core_engines` | `{ engines: Array<{ name, description, icon }> }` |
+| `role_based_value` | `{ roles: Array<{ role, title, description, metrics: string[] }> }` |
+
+내부 문자열은 파서가 i18n 래퍼/단일 문자열 둘 다 허용 (`src/lib/marketing/parsers.ts`의 `extractI18n`).
+
+### `system_logs.diff`
+
+```ts
+interface AuditDiff {
+  before: Record<string, unknown> | null;  // INSERT 시 null
+  after: Record<string, unknown> | null;   // DELETE 시 null
+}
+```
+
+**action별 기대 diff (Admin 착수 시 실제 값 반영):**
+
+| `action` | diff 내용 | 비고 |
+|---------|----------|------|
+| `partner_update` | 변경 컬럼의 before/after (theme_key, custom_domain 등) | |
+| `content_publish` | `before:{is_published:false}, after:{is_published:true}` | |
+| `impersonate_start` | `before:null, after:{target_partner_id}` | `target_id = partners.id` |
+| `lead_status_change` | 상태 전이만 (`new` → `contacted`) | **PII 절대 포함 금지** |
+
+> ⚠️ **PII 격리 원칙**: `leads` 변경 로그는 `email`·`phone`·`customer_name`·`message` 원본을 diff에 담지 않는다. 상태 전이 및 ID만 기록한다.
+
+### `partners.notification_emails`
+
+```ts
+type NotificationEmails = string[];  // 최대 3개, 앱 레벨 검증
+```
+
+### `domain_requests.verification_record`
+
+```ts
+interface VerificationRecord {
+  type: "CNAME" | "TXT" | "A";
+  target: string;
+  verified: boolean;
+}
+```
+
+> ⚠️ **SSOT 불일치 경고 (§11.2 보고)**: `domain_requests` 테이블은 본 문서 §8 및 WL-62 기록상 존재하나 `supabase/migrations/` 로컬 디렉토리에 DDL이 없다. Cloud SQL Editor로 적용되었을 가능성이 높다. Admin 구현 전 로컬 마이그레이션으로 역구성(reverse-capture)하여 SSOT 일치를 맞출 것. 이 작업은 별도 티켓.
+
+---
+
+## Foreign Key 정책 맵
+
+> **PostgreSQL 기본값**: `ON DELETE`/`ON UPDATE` 미지정 시 `NO ACTION` — 참조 무결성 위반 시 트랜잭션 실패. UUID는 불변이므로 `ON UPDATE`는 전 테이블 `NO ACTION`으로 공백 처리된다.
+> **출처**: `supabase/migrations/20260408000001_create_tables.sql` 및 후속 ALTER 없음.
+
+| Table.Column | References | ON DELETE | 삭제 시 영향 |
+|--------------|-----------|-----------|-------------|
+| `partners.owner_id` | `auth.users(id)` | **NO ACTION** | 오너 계정 삭제 불가(고아 방지) |
+| `profiles.id` | `auth.users(id)` | **CASCADE** | auth 사용자 삭제 시 프로필 자동 삭제 |
+| `profiles.partner_id` | `partners(id)` | **SET NULL** | 파트너 탈퇴 시 프로필은 유지, 소속만 해제 |
+| `contents.partner_id` | `partners(id)` | **CASCADE** | 파트너 삭제 시 콘텐츠 전부 소멸 |
+| `partner_sections.partner_id` | `partners(id)` | **CASCADE** | 동일 |
+| `leads.partner_id` | `partners(id)` | **CASCADE** | ⚠️ 리드(PII) 함께 소멸 — 법적 보관 의무 재검토 대상 |
+| `site_visits.partner_id` | `partners(id)` | **CASCADE** | 통계도 함께 소멸 |
+| `system_logs.actor_id` | `auth.users(id)` | **NO ACTION** | ⚠️ 감사 로그 불변성 — actor 계정 삭제 불가 |
+| `system_logs.on_behalf_of` | `partners(id)` | **NO ACTION** | ⚠️ 감사 로그 대상 파트너 삭제 불가 |
+| `global_contents.updated_by` | `auth.users(id)` | **NO ACTION** | 수정자 계정 삭제 불가 |
+| `domain_requests.partner_id` | `partners(id)` | **CASCADE** | (로컬 마이그레이션 부재 — 위 §경고 참조) |
+
+### Admin "파트너 삭제" 기능 구현 시 사전 점검
+
+1. `system_logs.on_behalf_of` NO ACTION이 파트너 삭제 트랜잭션을 차단한다. 정책 재설계 필요 — 예: `SET NULL`로 변경하고 `diff.before`에 파트너 스냅샷을 저장해 감사 추적성을 유지.
+2. `leads.partner_id` CASCADE로 리드가 함께 소멸한다. 개인정보 보관 의무(예: 세무·통신판매 관련)가 있다면 **soft delete** 전환 필요.
+3. 파트너 삭제는 HIGH 트랙으로 분류하고 Auditor Digest 필수.
+
+---
+
+## Views · Functions · Triggers (현황 + Admin 설계 초안)
+
+### 현재 DB에 존재하는 오브젝트
+
+| 오브젝트 | 종류 | 정의 위치 | 목적 |
+|---------|------|----------|------|
+| `leads_masked_view` | VIEW | `20260408000002_create_views.sql` | `master_admin` 전용 PII 마스킹 조회 (WHERE EXISTS로 역할 검증 내장) |
+| `get_my_role()` | FUNCTION | `20260408000003_rls_policies.sql` | RLS recursion 회피용 역할 조회. `SECURITY DEFINER`, `search_path=public` |
+| `fn_init_partner_defaults()` | FUNCTION | `20260415000002_add_partner_init_trigger.sql` | 파트너 INSERT 시 `partner_sections` 8행 + `contents` 11행(마케팅 8 + 법적 3) 자동 시딩. `SECURITY DEFINER`, `REVOKE EXECUTE FROM PUBLIC` |
+| `trg_init_partner_defaults` | TRIGGER | `20260415000002_add_partner_init_trigger.sql` | `AFTER INSERT ON partners` → `fn_init_partner_defaults()` 호출 |
+
+### Admin 대시보드·운영을 위한 집계 오브젝트 초안 (제안)
+
+Admin 리스트/대시보드를 App 레이어 loop로 구현하면 N+1 쿼리가 발생한다. 각 Admin 기능 티켓 착수 시 아래를 마이그레이션으로 생성한다.
+
+| 이름(제안) | 종류 | 목적 | 접근 제어 |
+|-----------|------|------|----------|
+| `v_partner_overview` | VIEW | 파트너 리스트 + 리드 수 + 최근 7일 방문 + 최종 수정 시각 | RLS: master=전체, partner_admin=자사만 |
+| `v_lead_dashboard` | VIEW | 월별·상태별 리드 집계 (PII 제외, 통계 필드만) | master / partner_admin 각자 자사 기준 |
+| `v_audit_monthly` | VIEW | `system_logs` 월별·action별 집계 | `master_admin` 전용 |
+| `fn_partner_metrics(p_partner_id uuid)` | FUNCTION | 단일 파트너 KPI(리드·방문·발행률) | `SECURITY INVOKER` — RLS 준수 |
+| `fn_log_admin_action(action, target_table, target_id, diff, on_behalf_of)` | FUNCTION | Server Action 7단계 체크체인 중 6단계(감사 로그) 공용 헬퍼. service_role 키 노출 없이 Server Action에서 호출 | `SECURITY DEFINER` + 호출자 역할 재검증 |
+
+> ⚠️ 위 오브젝트는 **설계 초안**이며 실제 생성은 각 Admin 기능 티켓에서 `/migration-safe` 체크 → HIGH 트랙 Human Check 승인 후 마이그레이션 파일로 추가한다.

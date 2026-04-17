@@ -104,9 +104,21 @@ export function parseFaqContent(content: LocalizedGlobalContentRow | null): FaqI
         : '';
     if (!summary) return [];
 
+    // WL-97 DB format: categoryId (English key) → FaqCategory (Korean label) 매핑
+    // 구 format(f.category = Korean string)도 하위호환 유지
+    const CATEGORY_ID_MAP: Record<string, FaqCategory> = {
+      billing: '비용', resources: '리소스', governance: '거버넌스',
+      autosavings: 'AutoSavings', setup: '세팅',
+    };
+    const category = (
+      typeof f.category === 'string' ? f.category
+      : typeof f.categoryId === 'string' ? (CATEGORY_ID_MAP[f.categoryId] ?? '비용')
+      : '비용'
+    ) as FaqCategory;
+
     return [{
       id: f.id,
-      category: (typeof f.category === 'string' ? f.category : '비용') as FaqCategory,
+      category,
       question: f.question,
       summary,
     }];

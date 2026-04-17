@@ -68,12 +68,13 @@ test.describe('WL-101 M-1: 멀티 파트너 격리', () => {
     expect(headerText ?? '').not.toContain('CloudSave');
   });
 
-  test('M-1-3: partner-a DEFAULT Stats 수치(30%·5분·99.9%)가 정상 노출된다', async ({ page }) => {
+  test('M-1-3: partner-a DB Stats 수치(30%·5·99.9%)가 정상 노출된다', async ({ page }) => {
     // partner-b stats is_visible=false (seed) → partner-a 단독 검증
+    // partner-a DB stats: value="5", unit={"ko":"분 이내"} — .tabular-nums에는 "5"만 포함
     const mp = new MarketingPage(page, 'partner-a');
     await mp.goto();
     await expect(mp.statsSection.getByText('30%', { exact: true })).toBeVisible();
-    await expect(mp.statsSection.getByText('5분', { exact: true })).toBeVisible();
+    await expect(mp.statValues.nth(1)).toHaveText('5');
     await expect(mp.statsSection.getByText('99.9%', { exact: true })).toBeVisible();
   });
 

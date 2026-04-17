@@ -7,7 +7,7 @@
 --   트리거를 등록한다.
 --
 --   생성 대상:
---     1. partner_sections — 마케팅 8개 섹션 (is_visible=true)
+--     1. partner_sections — 마케팅 섹션 (is_visible=true, 향후 섹션 추가 시 VALUES 확장)
 --     2. contents (마케팅) — hero/stats/how_it_works/faq/final_cta/about/contact/footer
 --     3. contents (법적 고지) — terms/privacy/cookie_policy (is_published=false)
 --
@@ -20,6 +20,11 @@
 --       트리거 함수는 정의자(postgres) 권한으로 실행 (trg_sync_domain_to_partner 동일 패턴)
 --     - SET search_path = public: Schema Injection 방어
 --     - REVOKE EXECUTE FROM PUBLIC: 직접 함수 호출 차단, 트리거 경로만 허용
+--
+--   JSON 컬럼 주의사항:
+--     - title/subtitle 컬럼은 환경에 따라 TEXT 또는 JSONB일 수 있음.
+--     - ::jsonb 캐스트: JSONB 컬럼에는 직접 저장, TEXT 컬럼에는 JSONB→TEXT 암묵 캐스트로 저장.
+--     - {PartnerName} 토큰은 앱 레이어(interpolateString)에서 치환됨.
 --
 --   실행 방법: Supabase Dashboard → SQL Editor → 붙여넣기 → Run
 --   주의: 문경 님 직접 실행 필수.
@@ -39,7 +44,7 @@ AS $$
 BEGIN
 
   -- -------------------------------------------------------------------
-  -- 1. partner_sections: 마케팅 8개 섹션
+  -- 1. partner_sections: 마케팅 섹션 (향후 섹션 추가 시 VALUES 확장)
   --    CHECK 제약 허용 목록과 정확히 일치. 순서 변경 시 CHECK 제약도 함께 확인할 것.
   -- -------------------------------------------------------------------
   INSERT INTO public.partner_sections (partner_id, section_type, is_visible, display_order)
@@ -56,50 +61,49 @@ BEGIN
 
   -- -------------------------------------------------------------------
   -- 2. contents: 마케팅 섹션 (is_published=true — 즉시 렌더링 가능)
-  --    {PartnerName} 토큰은 앱 레이어(interpolateString)에서 치환됨.
-  --    i18n 형식: {"ko": "...", "en": "..."} — TEXT 컬럼에 JSON 문자열로 저장.
+  --    ::jsonb 캐스트: JSONB 컬럼 환경(cloud)과 TEXT 컬럼 환경(local) 모두 호환.
   -- -------------------------------------------------------------------
   INSERT INTO public.contents (partner_id, section_type, title, subtitle, is_published)
   VALUES
     (
       NEW.id, 'hero',
-      '{"ko": "클라우드 비용, {PartnerName}으로 절감하세요", "en": "Reduce Cloud Costs with {PartnerName}"}',
-      '{"ko": "지금 바로 시작하면 첫 달 무료", "en": "Start today — first month free"}',
+      '{"ko": "클라우드 비용, {PartnerName}으로 절감하세요", "en": "Reduce Cloud Costs with {PartnerName}"}'::jsonb,
+      '{"ko": "지금 바로 시작하면 첫 달 무료", "en": "Start today — first month free"}'::jsonb,
       true
     ),
     (
       NEW.id, 'stats',
-      '{"ko": "데이터가 증명하는 {PartnerName}의 실제 성과", "en": "{PartnerName} Results by Numbers"}',
+      '{"ko": "데이터가 증명하는 {PartnerName}의 실제 성과", "en": "{PartnerName} Results by Numbers"}'::jsonb,
       NULL,
       true
     ),
     (
       NEW.id, 'how_it_works',
-      '{"ko": "{PartnerName} 시작하기", "en": "How {PartnerName} Works"}',
-      '{"ko": "3단계로 클라우드 비용을 최적화하세요", "en": "Optimize cloud costs in 3 steps"}',
+      '{"ko": "{PartnerName} 시작하기", "en": "How {PartnerName} Works"}'::jsonb,
+      '{"ko": "3단계로 클라우드 비용을 최적화하세요", "en": "Optimize cloud costs in 3 steps"}'::jsonb,
       true
     ),
     (
       NEW.id, 'faq',
-      '{"ko": "자주 묻는 질문", "en": "Frequently Asked Questions"}',
+      '{"ko": "자주 묻는 질문", "en": "Frequently Asked Questions"}'::jsonb,
       NULL,
       true
     ),
     (
       NEW.id, 'final_cta',
-      '{"ko": "{PartnerName}와 함께 시작하세요", "en": "Get Started with {PartnerName}"}',
-      '{"ko": "지금 바로 무료로 연동해보세요", "en": "Connect for free today"}',
+      '{"ko": "{PartnerName}와 함께 시작하세요", "en": "Get Started with {PartnerName}"}'::jsonb,
+      '{"ko": "지금 바로 무료로 연동해보세요", "en": "Connect for free today"}'::jsonb,
       true
     ),
     (
       NEW.id, 'about',
-      '{"ko": "{PartnerName} 소개", "en": "About {PartnerName}"}',
+      '{"ko": "{PartnerName} 소개", "en": "About {PartnerName}"}'::jsonb,
       NULL,
       true
     ),
     (
       NEW.id, 'contact',
-      '{"ko": "문의하기", "en": "Contact Us"}',
+      '{"ko": "문의하기", "en": "Contact Us"}'::jsonb,
       NULL,
       true
     ),
@@ -119,17 +123,17 @@ BEGIN
   VALUES
     (
       NEW.id, 'terms',
-      '{"ko": "{PartnerName} 이용약관", "en": "{PartnerName} Terms of Service"}',
+      '{"ko": "{PartnerName} 이용약관", "en": "{PartnerName} Terms of Service"}'::jsonb,
       false
     ),
     (
       NEW.id, 'privacy',
-      '{"ko": "{PartnerName} 개인정보 처리방침", "en": "{PartnerName} Privacy Policy"}',
+      '{"ko": "{PartnerName} 개인정보 처리방침", "en": "{PartnerName} Privacy Policy"}'::jsonb,
       false
     ),
     (
       NEW.id, 'cookie_policy',
-      '{"ko": "{PartnerName} 쿠키 정책", "en": "{PartnerName} Cookie Policy"}',
+      '{"ko": "{PartnerName} 쿠키 정책", "en": "{PartnerName} Cookie Policy"}'::jsonb,
       false
     )
   ON CONFLICT (partner_id, section_type) DO NOTHING;
@@ -168,20 +172,20 @@ CREATE TRIGGER trg_init_partner_defaults
 -- INSERT INTO public.partners (owner_id, business_name, subdomain)
 -- VALUES ('00000000-0000-0000-0000-000000000000', '테스트파트너', 'partner-test');
 
--- [검증 1] partner_sections: 8개 row 존재 확인
+-- [검증 1] partner_sections: 섹션 row 존재 확인 (section_type 목록으로 확인)
 -- SELECT section_type, is_visible, display_order
 -- FROM public.partner_sections
 -- WHERE partner_id = (SELECT id FROM public.partners WHERE subdomain = 'partner-test')
 -- ORDER BY display_order;
--- 기대: 8행, is_visible = true
+-- 기대: pain_points ~ final_cta 각 타입 1행씩, is_visible = true
 
--- [검증 2] contents: 11개 row 존재 확인 (마케팅 8 + 법적 고지 3)
+-- [검증 2] contents: 마케팅 섹션 + 법적 고지 row 존재 확인
 -- SELECT section_type, is_published,
 --        CASE WHEN title IS NULL THEN '⚠ NULL' ELSE '✓' END AS title_status
 -- FROM public.contents
 -- WHERE partner_id = (SELECT id FROM public.partners WHERE subdomain = 'partner-test')
 -- ORDER BY section_type;
--- 기대: 11행, terms/privacy/cookie_policy is_published = false
+-- 기대: terms/privacy/cookie_policy is_published = false, 나머지 true
 
 -- [정리] 테스트 파트너 삭제 (CASCADE로 partner_sections, contents 함께 삭제됨)
 -- DELETE FROM public.partners WHERE subdomain = 'partner-test';

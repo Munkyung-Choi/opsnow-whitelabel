@@ -8,13 +8,20 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
 import GlobalNav from '@/components/marketing/GlobalNav';
 import Footer from '@/components/marketing/Footer';
 
-/** 유효한 법적 문서 타입 (URL slug — DB section_type과 다를 수 있음) */
+/** 유효한 법적 문서 URL slug */
 const VALID_LEGAL_TYPES = ['terms', 'privacy', 'cookie-policy'] as const;
 type LegalType = (typeof VALID_LEGAL_TYPES)[number];
 
 function isValidLegalType(value: string): value is LegalType {
   return (VALID_LEGAL_TYPES as readonly string[]).includes(value);
 }
+
+/** URL slug → DB section_type 명시적 매핑 (WL-111) */
+const SLUG_TO_SECTION = {
+  terms:           'terms',
+  privacy:         'privacy',
+  'cookie-policy': 'cookie_policy',
+} as const satisfies Record<LegalType, 'terms' | 'privacy' | 'cookie_policy'>;
 
 /** 타입별 i18n 키 매핑 (URL slug → dictionary key) */
 const LEGAL_CONFIG: Record<LegalType, (t: Dictionary) => { defaultTitle: string; comingSoon: string }> = {
@@ -38,12 +45,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const t = getDictionary(locale);
   const config = LEGAL_CONFIG[type](t);
 
-  // content 우선순위: type별 named prop (is_published=true 행만 반환됨)
-  const content =
-    type === 'terms' ? data.terms :
-    type === 'privacy' ? data.privacy :
-    data.cookie_policy;
-
+  const sectionKey = SLUG_TO_SECTION[type];
+  const content = data[sectionKey];
   const pageTitle = content?.title ?? config.defaultTitle;
   return { title: `${data.partner.business_name} - ${pageTitle}` };
 }
@@ -62,10 +65,8 @@ export default async function LegalPage({ params }: PageProps) {
   const t = getDictionary(locale);
   const config = LEGAL_CONFIG[type](t);
 
-  const content =
-    type === 'terms' ? data.terms :
-    type === 'privacy' ? data.privacy :
-    data.cookie_policy;
+  const sectionKey = SLUG_TO_SECTION[type];
+  const content = data[sectionKey];
 
   return (
     <>
