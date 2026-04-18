@@ -39,9 +39,29 @@ export default defineConfig({
     actionTimeout: 10_000,
     navigationTimeout: 30_000,
   },
-  // chromium만 사용 — 마케팅 사이트 SSR 렌더링 회귀 검증이 목적 (크로스 브라우저는 별도 트랙)
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // auth-setup: master/partner admin storageState 생성 (admin 프로젝트 의존)
+    {
+      name: 'auth-setup',
+      testMatch: '**/auth.setup.ts',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // marketing: 인증 불필요 — 마케팅 사이트 SSR 렌더링 회귀 검증
+    {
+      name: 'marketing',
+      testMatch: '**/marketing/**/*.spec.ts',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // admin: master_admin storageState 사용, auth-setup 완료 후 실행
+    {
+      name: 'admin',
+      testMatch: '**/admin/**/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/fixtures/.auth/master.json',
+      },
+      dependencies: ['auth-setup'],
+    },
   ],
   webServer: {
     command: 'npm run dev',

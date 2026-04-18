@@ -15,6 +15,9 @@
 - **MED·HIGH 트랙** 작업 시작 시 현재 Jira 티켓(예: WL-8)을 명시한다.
 - **LOW 트랙**(UI·텍스트·CSS 등)은 선언 생략 가능. 필요 시 작업 완료 후 상태만 업데이트한다.
 - 발화 형식: `"WL-XX 티켓 작업을 시작합니다. (MED/HIGH 트랙)"`
+- **모델 추천 고지**: 작업 시작 선언 시 `docs/model-matrix.md` 기준으로 권장 모델을 함께 고지한다.
+  - 형식: `"권장 모델: Opus — [사유]"` 또는 `"권장 모델: Sonnet (기본)"`
+  - Opus 권장 시에만 명시적으로 고지한다. Sonnet은 별도 언급 없이 진행해도 무방하다.
 - 해당 티켓의 목표에만 집중하도록 가이드.
 - 스코프 외 작업이 발생하면 별도 티켓 생성 후 처리.
 
@@ -74,6 +77,18 @@
 - **Claude가 티켓 생성 시**: `editJiraIssue` 호출 시 `customfield_10346` 값을 반드시 포함한다.
 - **하나의 티켓에 복수 라벨 허용**: 예) 풀스택 기능 → `[⚫FE-Dev, ⚪BE-Dev]`
 - **기본값 불허**: 라벨 없는 티켓은 미완성으로 간주. 불명확하면 가장 가까운 라벨을 선택하고 댓글로 사유를 남긴다.
+
+---
+
+## 7. Confluence 문서 생성 규칙
+
+Confluence에 신규 페이지를 생성할 때는 반드시 **Live Doc** 형식으로 생성한다.
+
+- **Space**: `WS` / **cloudId**: `opsnowinc.atlassian.net`
+- `createConfluencePage` 호출 시 `contentFormat: "wiki"` 대신 Live Doc 형식 파라미터를 사용한다.
+- 페이지 위치(parent)는 작업 성격에 따라 결정한다:
+  - Admin 관련 문서 → parent: `305659905`
+  - 그 외 일반 문서 → Space Homepage: `290849306` 하위 적절한 위치
 
 ---
 

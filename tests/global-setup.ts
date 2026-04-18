@@ -1,5 +1,6 @@
 import { loadEnvConfig } from '@next/env';
 import { cleanupTestPartners, seedTestPartners, TEST_PARTNER_SLUGS } from './fixtures/seed-partners';
+import { cleanupAdminTestUsers, seedAdminTestUsers } from './fixtures/seed-admin-users';
 
 /**
  * Playwright globalSetup — 모든 테스트 실행 전 1회 실행
@@ -20,8 +21,10 @@ export default async function globalSetup() {
   console.log('[globalSetup] 테스트 픽스처 파트너 seed 시작...');
 
   // 멱등성: 사전 cleanup 후 seed
+  await cleanupAdminTestUsers();
   await cleanupTestPartners();
   await seedTestPartners();
+  await seedAdminTestUsers();
 
   // 병렬 테스트 실행 전 테스트 파트너 페이지를 사전 워밍한다.
   // Next.js dev 서버는 처음 접근하는 서브도메인 페이지를 SSR 컴파일하는데,

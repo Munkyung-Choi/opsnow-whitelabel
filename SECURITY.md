@@ -181,6 +181,11 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 | `/api/admin/logs` | `system_logs` INSERT | 감사 로그 불변성 보장 | 해당 없음 (자기 자신이 로그) |
 | `/api/auth/provision` | `profiles` INSERT/UPDATE | 역할 변경 클라이언트 금지 | ✅ 필수 |
 | `/api/admin/domain-approval` | `partners.custom_domain_status` | 도메인 승인 관리자 전용 | ✅ 필수 |
+| `/api/admin/impersonate` | `system_logs` INSERT + 서명 쿠키 발급 | master_admin 대리 접속 감사 (WL-51) | ✅ 필수 |
+
+**불변 법칙 (Invariant) — WL-51, 2026-04-18**:
+> `/api/admin/impersonate`는 어떠한 경우에도 `master_admin` 권한 없이는 실행되지 않는다.
+> `getCurrentUser()` 호출로 세션·role·invariant가 검증되며, 실패 시 redirect 또는 403 반환 이전에는 이후 로직에 진입할 수 없다. 이는 코드 변경 시에도 유지해야 하는 불변 조건이다.
 
 ### Traceability 원칙
 
@@ -192,3 +197,116 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 
 > ⚠️ **화이트리스트 확장 절차**: CLAUDE.md Breakpoint #2(Security & Auth 정책 결정)에 해당.
 > 문경 님 명시적 승인 없이 목록 추가 금지.
+
+---
+
+## 9. Auth 플로우 & RBAC (WL-53, 2026-04-18)
+
+### 9.1 역할 모델
+
+| 역할 | `profiles.role` | `profiles.partner_id` | 접근 범위 |
+|------|----------------|---------------------|----------|
+| `master_admin` | `'master_admin'` | **반드시 `null`** | 모든 파트너 데이터 (관리용) |
+| `partner_admin` | `'partner_admin'` | **반드시 non-empty string (UUID)** | 자신 소속 파트너 데이터 한정 |
+
+**Discriminated Union 타입 강제** (`src/lib/auth/get-current-user.ts`):
+
+```ts
+type CurrentUser =
+  | { id: string; role: 'master_admin'; partner_id: null }
+  | { id: string; role: 'partner_admin'; partner_id: string }
+```
+
+→ `withAdminAction({ requiredRole: 'partner_admin' }, ...)` callback에서 `user.partner_id`는 컴파일 타임에 `string`으로 좁혀져 WHERE 절 누락 방지.
+
+### 9.2 역할 invariant 화이트리스트
+
+```ts
+const ROLE_INVARIANTS: Record<UserRole, (p: RawProfile) => string | null> = {
+  master_admin: (p) => p.partner_id !== null ? '...' : null,
+  partner_admin: (p) => !p.partner_id || p.partner_id.trim().length === 0 ? '...' : null,
+}
+```
+
+- `Record<UserRole, ...>` 로 exhaustive 체크 — 새 역할 추가 시 컴파일 에러로 누락 감지
+- 위반 시 **Silent Fail with Auditing**: `redirect('/auth/login?error=invalid_profile')` + `console.error` (향후 `/api/admin/logs` 연동)
+- 500 스택 트레이스 노출 방지 (공격자에 힌트 제공 회피)
+
+### 9.3 이중 SSOT 구조 (격리 키)
+
+현재 파트너 격리는 **두 개의 기준**이 혼재한다. 동기화 유지가 필수 제약.
+
+| 레이어 | 격리 기준 | 사용처 |
+|-------|---------|--------|
+| **앱 레이어** | `profiles.partner_id` (via `user.partner_id` in `getCurrentUser`) | `withAdminAction` callback, Server Action WHERE 절 |
+| **DB RLS** | `partners.owner_id = auth.uid()` (via `partner_id IN (SELECT id FROM partners WHERE owner_id = auth.uid())`) | `contents_partner_admin_write`, `leads_partner_admin_select/update`, `site_visits_partner_admin_select` |
+
+- **동기화 책임**: 파트너 `owner_id` 변경 시 반드시 해당 사용자의 `profiles.partner_id`도 동시에 업데이트할 것 (`/api/auth/provision` 구현 시 반영)
+- **현재 보장**: `seedAdminTestUsers`(seed-admin-users.ts:86, 103-104)가 두 값을 동시에 설정하여 E2E 테스트 수준에서는 정합성 확보
+- **구조 통합 백로그**: WL-30 (향후 `profiles.partner_id` 단일 SSOT로 통합 검토)
+
+### 9.4 `next=` 파라미터 Open Redirect 방어 (R8-01)
+
+`src/lib/auth/validate-next-url.ts`:
+
+```
+Whitelist prefix: ['/admin/', '/partner/']
+Deny list:        ['/auth/', '/api/', '/__proxy_health']
+Fallback:         '/admin/dashboard'
+```
+
+**3단계 방어**:
+1. 재귀 디코딩 (`decodeURIComponent` 최대 3회) — 이중/삼중 인코딩 방지
+2. NFKC 정규화 + 비-ASCII 차단 — Unicode homoglyph 방지
+3. 백슬래시/프로토콜 상대(`//`)/스킴(`scheme:`) 차단 + `URL` 파싱으로 origin 변경 감지
+
+### 9.5 요청 스코프 캐싱 (R9)
+
+`getCurrentUser()`는 React `cache()`로 래핑되어 **동일 request 내 DB 쿼리 1회**로 dedup.
+Server Component ↔ Server Action 간 캐시는 **공유되지 않음** (서로 다른 request 범위).
+
+### 9.6 격리 실패 모드 매트릭스 (F1~F10 — `docs/audits/WL-53.md` 참조)
+
+Auth/RBAC 작업 시 이 매트릭스를 기준으로 회귀 검토. 상세는 별도 Digest 참조.
+
+---
+
+## 10. Admin Impersonation (WL-51, 2026-04-18)
+
+### 10.1 아키텍처 원칙 — 세션 사이드카
+
+Master의 Supabase auth 세션은 **불변**. 별도 서명 쿠키 `opsnow_impersonate`로 대리 접속 컨텍스트만 병기한다.
+
+- `getCurrentUser()` → 항상 master_admin 반환 (감사 무결성 유지)
+- `getImpersonationContext()` → cookie 파싱 + `user.role` 재검증 (단방향 의존)
+- `system_logs.actor_id` = master의 `auth.uid()` (불변), `on_behalf_of` = 대상 partner_id
+
+### 10.2 쿠키 스펙
+
+```
+<partner_id>.<issued_at_ms>.<issued_for_user_id>.<kid>.<hmac_sha256_base64url>
+```
+
+- Secret: `IMPERSONATION_SIGNING_SECRET` (32+ bytes, `openssl rand -base64 32`)
+- HMAC-SHA256 + `crypto.timingSafeEqual` 상수 시간 비교
+- HttpOnly / Secure(prod) / SameSite=Lax / Max-Age=3600s
+- Clock skew ±5초 leeway
+
+### 10.3 Mutation Data Contract (HIGH-3 지연 처리)
+
+> **정책**: Impersonation 상태에서 발생하는 모든 데이터 변경 Server Action은
+> `system_logs` 작성 시 `on_behalf_of` 필드에 `target_partner_id`를 **반드시 명시적으로 전달**해야 한다.
+> 자동 주입(withAdminAction 시그니처 통합)은 `/api/admin/logs` 연동 티켓(WL-53 follow-up #6)에서 수행한다.
+
+### 10.4 방어 매트릭스 (G1~G8 — `docs/audits/WL-51.md` 참조)
+
+| # | 실패 모드 | 방어 |
+|---|-----------|------|
+| G1 | 쿠키 서명 위조 | HMAC-SHA256 + timingSafeEqual |
+| G2 | 만료 쿠키 재사용 | issued_at 서버 검증 (1h + ±5s) |
+| G3 | partner_admin의 impersonate 엔드포인트 호출 | `getCurrentUser()` + role 체크 (10.1 불변 법칙) |
+| G4 | 타인 세션에서 master 쿠키 탈취 | `issued_for_user_id` ↔ 현재 `auth.uid()` 대조 |
+| G5 | CSRF | SameSite=Lax + Origin 검증 |
+| G6 | 로그 기록과 쿠키 세팅 race | log INSERT 성공 후에만 cookie 세팅 |
+| G7 | 비활성 파트너로 impersonation | `partners.is_active=true` 사전 검증 |
+| G8 | 중첩 impersonation | 기존 쿠키 존재 시 409 반환 (명시적 stop 필요) + 최근 5초 dupe log 검사 |

@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Auto-generated files
     "src/types/supabase.ts",
+    // Playwright 테스트 산출물 (bundled/minified — 소스 아님)
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 

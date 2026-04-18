@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 import { type Locale, SUPPORTED_LOCALES, COUNTRY_LOCALE_MAP, validateLocale } from '@/lib/i18n/locales';
 // 기존 소비자(import { Locale/validateLocale } from '@/proxy') 하위 호환 re-export
@@ -298,12 +299,48 @@ export async function proxy(request: NextRequest) {
     });
   }
 
+  // Auth routes: 로그인 페이지 — 항상 통과 (redirect 루프 방지)
+  if (pathname.startsWith('/auth')) {
+    return NextResponse.next();
+  }
+
+  // Admin host: 파트너 라우팅 건너뛰고 세션 검증 (host-first 단일 진입 — AC-INF01a)
+  if (isAdminHost(host)) {
+    const response = NextResponse.next({ request });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => request.cookies.getAll(),
+          setAll: (cookiesToSet) => {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      const loginUrl = new URL('/auth/login', request.url);
+      loginUrl.searchParams.set('next', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    if (IS_DEV) console.log('[Proxy] → Admin host passthrough');
+    return response;
+  }
+
   console.log(`[Proxy] host=${host} pathname=${pathname} vercelEnv=${process.env.VERCEL_ENV ?? 'none'}`);
 
-  // 어드민 사이트: 파트너 라우팅 없이 통과
-  if (isAdminHost(host)) {
-    if (IS_DEV) console.log('[Proxy] → Admin passthrough');
-    return NextResponse.next();
+  // 마케팅 host에서 /admin 경로 차단 (AC-INF01b)
+  if (pathname.startsWith('/admin')) {
+    const notFoundBase = IS_DEV
+      ? `http://localhost:${new URL(request.url).port || 3000}`
+      : `https://${BASE_DOMAIN}`;
+    if (IS_DEV) console.log('[Proxy] → Marketing host blocked /admin path');
+    return NextResponse.redirect(new URL('/not-found', notFoundBase));
   }
 
   // 순수 localhost 또는 Vercel 기본 도메인(*.vercel.app): DEV_PARTNER_SLUG 기반 fallback
