@@ -187,7 +187,7 @@ describe('RLS 격리 — contents (Triangular × Read/WriteInject/UpdateHijack/D
     const { error } = await partnerAClient
       .from('contents')
       .insert({ partner_id: PARTNER_B.partnerId, section_type: 'hero' })
-    // WITH CHECK(USING 자동 복사)로 차단됨 — WL-122: 명시적 WITH CHECK 미기재 (defense-in-depth 공백)
+    // WITH CHECK 명시 선언으로 차단 (WL-122) — role check + partner_id sub-select 이중 검증
     expect(error).not.toBeNull()
   })
 
