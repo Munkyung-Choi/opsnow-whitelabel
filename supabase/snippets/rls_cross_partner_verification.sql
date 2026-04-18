@@ -134,6 +134,49 @@ BEGIN;
 ROLLBACK;
 
 
+-- ── T-11 [WL-53]: partner-b admin → partner-a contents UPDATE 시도 ──────────
+-- 기대: RLS policy violation 또는 0 rows affected
+BEGIN;
+  SELECT set_config(
+    'request.jwt.claims',
+    json_build_object(
+      'sub',  '<partner_b_owner_uid>',   -- ← admin@partner-b.com UID로 교체
+      'role', 'authenticated',
+      'aud',  'authenticated'
+    )::text,
+    true
+  );
+  SET LOCAL ROLE authenticated;
+
+  UPDATE public.contents
+  SET body = '{"tampered": true}'::jsonb
+  WHERE partner_id = '<partner_a_id>'   -- ← partner-a UUID로 교체
+    AND section_type = 'stats';
+  -- EXPECTED: 0 rows affected (contents_partner_admin_write USING 절 차단)
+  -- FAIL 조건: 1 이상 → partner-b admin이 partner-a contents 변조 가능 = 치명적 격리 실패
+ROLLBACK;
+
+-- ── T-12 [WL-53]: partner-b admin → partner-a leads DELETE 시도 ─────────────
+-- 기대: RLS policy violation 또는 0 rows affected
+BEGIN;
+  SELECT set_config(
+    'request.jwt.claims',
+    json_build_object(
+      'sub',  '<partner_b_owner_uid>',
+      'role', 'authenticated',
+      'aud',  'authenticated'
+    )::text,
+    true
+  );
+  SET LOCAL ROLE authenticated;
+
+  DELETE FROM public.leads
+  WHERE partner_id = '<partner_a_id>';
+  -- EXPECTED: 0 rows affected (leads_partner_admin_update / leads_master_admin_all 이외 DELETE 정책 없음)
+  -- FAIL 조건: 1 이상 → partner-b admin이 partner-a 리드 삭제 가능 = 치명적 격리 실패
+ROLLBACK;
+
+
 -- ================================================================
 -- [데이터 격리 가시화] 파트너별 contents 수치 비교
 -- ================================================================

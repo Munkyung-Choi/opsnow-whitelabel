@@ -68,7 +68,7 @@ export type Database = {
           id: string
           partner_id: string
           rejection_reason: string | null
-          request_type: string | null
+          request_type: string
           requested_domain: string
           reviewed_at: string | null
           status: Database["public"]["Enums"]["domain_request_status"]
@@ -81,7 +81,7 @@ export type Database = {
           id?: string
           partner_id: string
           rejection_reason?: string | null
-          request_type?: string | null
+          request_type: string
           requested_domain: string
           reviewed_at?: string | null
           status?: Database["public"]["Enums"]["domain_request_status"]
@@ -94,7 +94,7 @@ export type Database = {
           id?: string
           partner_id?: string
           rejection_reason?: string | null
-          request_type?: string | null
+          request_type?: string
           requested_domain?: string
           reviewed_at?: string | null
           status?: Database["public"]["Enums"]["domain_request_status"]

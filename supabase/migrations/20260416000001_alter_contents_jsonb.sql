@@ -7,7 +7,8 @@
 --   로컬 스키마를 클라우드와 일치시키기 위한 정렬 마이그레이션.
 --
 --   멱등성: 이미 JSONB인 컬럼은 IF 조건 false → 아무것도 실행하지 않음.
---   NULLIF(col, ''): 빈 문자열('')은 유효한 JSON이 아니므로 NULL로 변환 후 캐스트.
+--   캐스트 전략: JSON-shaped 텍스트('{"...' or '[...') → ::jsonb 직접 캐스트.
+--   평문/{{template}} → to_jsonb() → JSON 문자열 스칼라. (22P02 방어)
 -- =============================================================================
 
 DO $$
@@ -20,8 +21,23 @@ BEGIN
       AND data_type    = 'text'
   ) THEN
     ALTER TABLE public.contents
-      ALTER COLUMN title    TYPE jsonb USING NULLIF(title, '')::jsonb,
-      ALTER COLUMN subtitle TYPE jsonb USING NULLIF(subtitle, '')::jsonb,
-      ALTER COLUMN body     TYPE jsonb USING NULLIF(body, '')::jsonb;
+      ALTER COLUMN title    TYPE jsonb USING
+        CASE
+          WHEN title IS NULL OR title = '' THEN NULL::jsonb
+          WHEN title ~ '^\s*\{"' OR title ~ '^\s*\[' THEN title::jsonb
+          ELSE to_jsonb(title)
+        END,
+      ALTER COLUMN subtitle TYPE jsonb USING
+        CASE
+          WHEN subtitle IS NULL OR subtitle = '' THEN NULL::jsonb
+          WHEN subtitle ~ '^\s*\{"' OR subtitle ~ '^\s*\[' THEN subtitle::jsonb
+          ELSE to_jsonb(subtitle)
+        END,
+      ALTER COLUMN body     TYPE jsonb USING
+        CASE
+          WHEN body IS NULL OR body = '' THEN NULL::jsonb
+          WHEN body ~ '^\s*\{"' OR body ~ '^\s*\[' THEN body::jsonb
+          ELSE to_jsonb(body)
+        END;
   END IF;
 END $$;

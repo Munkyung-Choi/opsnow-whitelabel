@@ -44,6 +44,7 @@ describe('domain_requests — 타입 정합성 (WL-108)', () => {
     const insert: DomainRequestInsert = {
       partner_id: 'uuid',
       requested_domain: 'partner-a',
+      request_type: 'custom_tld',
       // status 생략 → DB DEFAULT 'pending' 적용
     };
     expect(insert.partner_id).toBeDefined();
@@ -54,6 +55,7 @@ describe('domain_requests — 타입 정합성 (WL-108)', () => {
     const minimalInsert: DomainRequestInsert = {
       partner_id: 'uuid',
       requested_domain: 'sub.example.com',
+      request_type: 'custom_tld',
     };
     // id, created_at, updated_at 등은 DB DEFAULT → Insert에서 선택적
     expect(minimalInsert.id).toBeUndefined();
