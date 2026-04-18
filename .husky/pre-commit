@@ -1,2 +1,35 @@
+# ─── Drift Precheck ──────────────────────────────────────────────
+# 신규 마이그레이션 파일 스테이징 시 이전 마이그레이션이 모두 로컬 적용됐는지 확인.
+# 로컬 전용 검사 (네트워크 불필요).
+new_migrations=$(git diff --cached --name-only --diff-filter=A | grep '^supabase/migrations/.*\.sql$' || true)
+
+if [ -n "$new_migrations" ]; then
+  echo "🔍 Drift Precheck: 신규 마이그레이션 스테이징 감지"
+
+  if ! command -v npx >/dev/null 2>&1; then
+    echo "⚠️  npx 미발견 — Precheck 생략 (수동 확인 권장)"
+  elif ! migration_output=$(npx supabase migration list 2>&1); then
+    echo "⚠️  supabase CLI 오류 — Precheck 생략 (수동 확인 권장):"
+    echo "$migration_output" | head -5
+  else
+    # 미적용 로컬 마이그레이션 패턴: LOCAL 타임스탬프 뒤에 REMOTE 컬럼이 비어있는 행.
+    # 정상: "20260418000001 | 20260418000001 | ..."  (파이프 사이 숫자 존재)
+    # 드리프트: "20260418000099 |                | ..."  (파이프 사이 공백만)
+    # CLI 버전별 테이블 스타일(│ vs |)을 모두 포괄.
+    if echo "$migration_output" | grep -E '[0-9]{14}[[:space:]]+(│|\|)[[:space:]]+(│|\|)' >/dev/null 2>&1; then
+      echo ""
+      echo "❌ 이전 마이그레이션 중 로컬 미적용 이력이 존재합니다:"
+      echo ""
+      echo "$migration_output"
+      echo ""
+      echo "→ 동기화: npx supabase migration up  또는  npx supabase db reset"
+      echo "→ 의도된 우회: git commit --no-verify (Dead Code 누적 위험)"
+      exit 1
+    fi
+    echo "✅ Drift Precheck 통과"
+  fi
+fi
+
+# ─── Lint & Type-check ───────────────────────────────────────────
 npx lint-staged
 npx tsc --noEmit

@@ -26,6 +26,8 @@
 
 ## 지식 맵 (필요할 때만 열어 읽기)
 
+### 로컬 파일 (Git)
+
 | 문서 | 읽어야 할 때 |
 |------|-------------|
 | `CLAUDE.md` | 세션 시작 시 — 운영 가이드 및 하네스 프로세스 |
@@ -36,6 +38,25 @@
 | `docs/agents/architect.md` | Architect 역할 세부 수행 시 |
 | `docs/agents/auditor.md` | Auditor 역할 세부 수행 시 |
 | `docs/agents/manager.md` | Manager 역할 세부 수행 시 |
+| `docs/jira-conventions.md` | Jira 티켓 생성 시 — DevType·Item 커스텀 필드 ID 확인 |
+| `docs/model-matrix.md` | 작업 시작 시 — Opus/Sonnet 권장 모델 판단 |
+| `docs/tech-debt.md` | 관련 영역 작업 Context 단계 — 이번 작업이 기존 부채 상환 기회인지 확인 |
+| `docs/journal/` | 세션 시작 시 — 최근 일지로 진행 중 서사 복원. 기각 경로·미결 메모·AI와의 합의점이 여기에 있다 |
+
+### Confluence (WS Space, 2026-04-18 재구조화 — ADR-003)
+
+> 전체 Page ID 테이블은 `CLAUDE.md` §0 참조.
+
+| 진입점 | 상황 |
+|------|-----|
+| **[2. 프로젝트 PRD (289636366)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/289636366)** | 전사 요구사항·역할 매트릭스 확인 시 |
+| **[1. 공통 기반 (308609032)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308609032)** | Platform Foundation — Architecture / DB / Security / Proxy / i18n |
+| **[3. Marketing Site (308740188)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308740188)** | 마케팅 티켓 착수 시 (섹션·리드·SEO·i18n) |
+| **[4. Admin Site (305659905)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/305659905)** | Admin 티켓 착수 시 (IA·정책·인프라·기능) |
+| **[5. 운영 (308674657)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308674657)** | 온보딩·운영·QA 프로세스 |
+| **[6.1 ADR (308740232)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308740232)** | 설계 결정 이력 확인 시 |
+
+> ⚠️ 구 `5. 화면 설계서(Admin)`, `4. 화면 설계서(Marketing)`, `[PRD] Admin Core Specs` 페이지는 **Deprecated/Superseded** 처리되어 `6.3 Deprecated Archive` 하위로 이동. 신규 작업에서 참조하지 말 것.
 
 ---
 
@@ -50,6 +71,7 @@
 | **migration-safe** | `/migration-safe [목적]` | 마이그레이션 파일 작성 전 안전 체크 |
 | **database-migration** | `/database-migration` | Supabase 마이그레이션 작성 패턴 참조 |
 | **supabase-audit-rls** | `/supabase-audit-rls` | RLS 정책 bypass 취약점 검증 |
+| **journal** | `/journal` | 세션 종료 전 — 오늘 서사 박제 (`docs/journal/YYYY-MM-DD.md`) + 일/월요일엔 Confluence 주간 롤업 제안 |
 
 ---
 

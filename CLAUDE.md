@@ -11,33 +11,86 @@
 - 작업 전 배경 파악이 필요할 때만 `getConfluencePage`로 관련 문서를 선택적으로 조회하라.
 - 세션이 길어지면 컨텍스트를 스스로 리프레시하라.
 
-### 문서 Page ID 목록
+### 문서 Page ID 목록 (v2.0, 2026-04-18 전사 재구조화)
 
-| 문서                                     | Page ID   |
-| ---------------------------------------- | --------- |
-| 0. 개요 (Overview)                       | 290488344 |
-| 1. PRD (요구사항 정의서)                 | 289636366 |
-| 2. 기술 설계서 (Technical Specification) | 289275929 |
-| 3. DB 스키마                             | 289046572 |
-| 4. 화면 설계서 (Marketing Site)          | 289177685 |
-| 5. 화면 설계서 (Admin Site)              | 289898546 |
-| 6. 테스트 케이스 (Test Cases)            | 289308723 |
-| 7. 파트너 온보딩 가이드                  | 289243271 |
-| 8. 운영 및 유지보수 매뉴얼               | 289177762 |
-| 9. SEO 및 분석 전략 문서                 | 289276134 |
+> **구조 원칙**: Domain-first (Marketing / Admin) + Platform Foundation (공통) + Operations + Appendix. ADR-003.
+> **Space**: WS / **cloudId**: opsnowinc.atlassian.net / **Homepage**: 290849306 / **정책서 루트**: 297075146
 
-## 🛠️ 위험도 기반 3트랙 워크플로우 (Harness Engineering)
+| #      | 문서                                          | Page ID   |
+| ------ | --------------------------------------------- | --------- |
+| 0      | 개요 (Overview)                                | 290488344 |
+| **1**  | **공통 기반 (Platform Foundation) — 랜딩**     | 308609032 |
+| 1.1    | Architecture (Technical Specification)        | 289275929 |
+| 1.2    | DB Schema & ERD                                | 289046572 |
+| 1.3    | Security · Auth · RLS                          | 308576405 |
+| 1.4    | Multi-tenancy & Proxy 라우팅                    | 308609053 |
+| 1.5    | i18n 전략                                      | 308740212 |
+| 2      | 프로젝트 PRD (전사 요구사항)                    | 289636366 |
+| **3**  | **Marketing Site — 랜딩**                      | 308740188 |
+| 3.1    | IA & 라우팅                                    | 308609077 |
+| 3.2    | 디자인 시스템 & 테마                            | 308674677 |
+| 3.3    | 섹션별 상세 (11 섹션)                           | 308576426 |
+| 3.4    | 리드 수집 & Contact Form                        | 308609099 |
+| 3.5    | 콘텐츠 모델 (contents/global_contents/partner_sections) | 308576446 |
+| 3.6    | SEO & Analytics                                 | 289276134 |
+| 3.7    | AI Context Guide (Marketing)                    | 308609119 |
+| **4**  | **Admin Site — 랜딩**                          | 305659905 |
+| 4.1    | IA & 도메인 정책 (SSOT)                         | 308576272 |
+| 4.2    | 공통 정책 (Security · RLS · Storage · Audit)    | 308674574 |
+| 4.3    | 선행 인프라 스펙 (Admin Phase 0)                | 308740115 |
+| 4.4    | 기능별 상세 (6 sub-pages 부모)                   | 308674594 |
+| 4.4.1  | 대시보드                                       | 308576298 |
+| 4.4.2  | 파트너 관리 + Impersonation                     | 308576318 |
+| 4.4.3  | 사이트 빌더                                    | 308674616 |
+| 4.4.4  | 리드 관리 + 상태 전이                           | 308740157 |
+| 4.4.5  | 글로벌 콘텐츠 편집기                            | 308674636 |
+| 4.4.6  | 시스템 로그                                    | 308576339 |
+| 4.5    | AI Context Guide (Admin)                        | 308740135 |
+| **5**  | **운영 (Operations) — 랜딩**                    | 308674657 |
+| 5.1    | 파트너 온보딩 가이드                            | 289243271 |
+| 5.2    | 운영 및 유지보수 매뉴얼 (Ops Playbook)           | 289177762 |
+| 5.3    | QA · 테스트 케이스                              | 289308723 |
+| **6**  | **Appendix — 랜딩**                            | 308576385 |
+| 6.1    | ADR (Architecture Decision Records)             | 308740232 |
+| 6.3    | Deprecated Archive                              | 308740252 |
 
-모든 작업은 **위험 등급**에 따라 3가지 경로 중 하나로 진행한다.  
-등급 판단이 불확실하면 한 단계 높은 트랙을 적용한다 (Fail-safe 원칙).
+**Archive 보관 (신규 작업 참조 금지)**
+
+| 문서                                           | Page ID   | 상태        |
+| ---------------------------------------------- | --------- | ----------- |
+| [Archived] 구 화면 설계서(Marketing Site) v1.4 | 289177685 | Deprecated  |
+| [PRD] Admin Core Specs v1.3                    | 307658769 | Superseded  |
+| 화면 설계서(Admin Site) v1.6                   | 289898546 | Deprecated  |
+
+## 🛠️ 파급력·비가역성 기반 3트랙 워크플로우 (Harness Engineering v2.0)
+
+모든 작업은 **파급력(Blast Radius)** 과 **비가역성(Irreversibility)** 두 축으로 트랙을 결정한다.  
+등급 판단이 불확실하면 한 단계 높은 트랙을 적용한다 (Fail-safe 원칙).  
+상세 판단 기준 및 Opus 업그레이드 조건 → `docs/model-matrix.md`
 
 ### 트랙 분류표
 
-| 트랙 | 대상 작업 예시 | 단계 |
-|------|--------------|------|
-| ✅ **LOW** | UI 컴포넌트, 텍스트·CSS 수정, 문서화 | Impl → Verify → Done |
-| ⚠️ **MED** | 기능 추가, API 연동, 비즈니스 로직 수정 | Context → Design → Audit → Impl → Verify → Report |
-| 🚨 **HIGH** | DB 스키마 변경, RLS·Auth 설계, 멀티테넌시 핵심 로직, 외부 비용 발생 | Context → Design → Audit → ✋Human → Impl → Verify → Report |
+| 트랙 | Jira Tech Risk | 정의 | 프로젝트 특화 예시 | 권장 모델 | 단계 |
+|------|---------------|------|-------------------|-----------|------|
+| ✅ **LOW** | `🟩Low` | 파급력 없음, 즉시 롤백 가능 | UI/CSS 수정, i18n 번역 문구, 문서화 | Sonnet | Impl → Verify → Done |
+| ⚠️ **MED** | `🟫Med` | 단일 도메인 기능 변경, 롤백 가능 | 신규 페이지·CRUD, API 연동, 상태 관리 로직 | Sonnet\* | Context → Design → Audit → Impl → Verify → Report |
+| 🚨 **HIGH** | `🟨High` / `🟥Critical` | 전사 장애·데이터 유출 가능, 비가역적 | DB Migration, RLS 정책, Auth Flow, 보안 헬퍼 신설 | **Opus** | Context → Design → Audit → ✋Human → Impl → Verify → Report |
+
+> HIGH 트랙의 Critical vs Standard 구분 및 Jira Tech Risk 매핑은 아래 "🚨 HIGH 트랙 세부 분류" 참조.
+
+> \* MED이라도 Opus로 자동 승격되는 조건이 있다 — `docs/model-matrix.md` §2 참조.
+
+### 자동 HIGH 승격 규칙
+
+아래 파일·영역은 변경 내용과 무관하게 **무조건 HIGH 트랙**으로 자동 승격한다.
+
+- `src/proxy.ts` / `src/middleware.ts` 변경
+- `src/lib/auth/` 하위 파일 변경
+- Admin 쿠키·세션 격리 로직 수정
+
+### 모델 미표기 시 기본값
+
+작업 선언에 모델이 명시되지 않은 경우 **Opus를 기본값**으로 사용한다.
 
 ---
 
@@ -61,6 +114,7 @@
      - 둘 다 해당하면 둘 다 작성.
    - **기존 테스트 영향 분석**: 이번 변경이 영향을 주는 기존 테스트 파일 목록을 제시한다. 없으면 "영향받는 기존 테스트 없음" 명시.
    - **Stub 생성**: `test.todo('시나리오')` (E2E) / `describe.todo('함수명 — 입출력 명세')` (Unit) 로 stub 파일 생성.
+   - **데이터 변환 검증**: `TYPE ... USING` 또는 대량 `UPDATE ... SET`이 포함된 마이그레이션의 경우, 영향받는 컬럼의 실제 데이터 샘플 5행 이상의 변환 전/후 상태를 Test Contract에 명시한다. 샘플에 NULL, 빈 문자열(`''`), 특수문자, 예상치 못한 JSON 구조(평문 vs JSON-shaped 혼재 등)가 포함된 행을 반드시 포함하여 변환 로직의 무결성을 증명한다.
    - **Test Contract 없이 Impl 단계 진입 불가.**
 5. **Impl**: 아래 3가지를 함께 수행한다.
    - (a) 기능 구현 코드 작성.
@@ -81,7 +135,7 @@
 1. **Context**: Jira 티켓 확인 + Confluence 설계 문서 인덱싱. **트랙 등급·스코프 항목·완료 기준(AC)·영향 파일을 즉시 선언한다 — 사람의 추가 지시를 기다리지 않는다.**
 2. **Design**: 아키텍처 설계안 작성 (데이터 흐름, 파트너 격리 전략 포함).
 3. **Audit**: Security Auditor를 **별도 sub-agent로 분리 스폰**하여 메인 컨텍스트와 독립적인 교차검증을 수행한다.
-   - 스폰 방식: `Agent({ subagent_type: "general-purpose", prompt: "docs/agents/auditor.md 역할로 다음 파일들을 감사하라: [변경 파일 목록]. 실제 발견된 위험 요소만 보고하고, 없으면 '없음'으로 명시하라." })`
+   - 스폰 방식: `Agent({ subagent_type: "general-purpose", prompt: "docs/agents/auditor.md 역할로 다음 파일들을 감사하라: [변경 파일 목록]. **Step 1 — 맥락 수집**: 먼저 grep으로 docs/audits/ 및 docs/tech-debt.md 내에서 이번 변경 대상(테이블명·컬럼명·관련 함수명·마이그레이션 유형)이 언급된 과거 감사 문서와 활성 부채 항목을 찾아 읽고, 해당 영역의 설계 의도와 제약사항을 3~5줄로 요약한다. **Step 2 — 적대적 증명**: '이 코드는 안전하다'는 가설을 기각하기 위해 아래 세 관점에서 실패 시나리오를 기술적으로 증명하라: (1) Data Integrity — 데이터 타입 불일치나 제약 조건(Unique, Not Null, CHECK) 위반 가능성. (2) State Mismatch — 로컬/클라우드 DB 상태 차이로 발생하는 런타임 오류. (3) Logic Flaw — RBAC·RLS 등 비즈니스 규칙을 우회하는 엣지 케이스. 시나리오를 찾지 못할 경우 '논리적으로 반증 불가함'을 이유와 함께 명시하라." })`
    - sub-agent 결과를 메인 컨텍스트로 통합한 뒤 Auditor Digest 초안을 작성한다.
    - Admin 기능 변경이 포함된 경우: `/admin-security-check` 스킬을 추가로 실행한다.
 4. **✋ Human Check**: 문경 님 승인 대기. **승인 없이 다음 단계로 진행 불가.**
@@ -91,6 +145,25 @@
 6. **Impl**: MED 트랙 Step 5와 동일 — 구현 + stub 교체 + 기존 테스트 동기화.
 7. **Verify**: MED 트랙 Step 6과 동일 — lint + tsc + vitest + **playwright** 4단계 전부 실행.
 8. **Report**: Jira 댓글 업데이트 + Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장.
+
+---
+
+### 🚨 HIGH 트랙 세부 분류 (Critical vs Standard)
+
+HIGH 트랙은 **데이터 파괴 가능성**과 **권한 모델(RLS·Auth) 영향도**를 기준으로 두 등급으로 나눈다. 분류에 따라 Human Check 방식이 달라진다.
+
+| 등급 | Jira Tech Risk | 대상 작업 | Human Check 방식 |
+|------|---------------|----------|-----------------|
+| **HIGH-Critical** | `🟥Critical` | RLS 정책 신규·변경, 신규 테이블 + RLS 정책 동반 설계, Column Type 변경, Data Update/Backfill 마이그레이션, Auth·Proxy·Session 로직, Column Drop, Table Drop | **동기식 승인** — 세션 내 설계안 대면 검토 후 명시적 승인. 승인 없이 Impl 진입 불가. |
+| **HIGH-Standard** | `🟨High` | 기존 테이블에 nullable Column 추가, 신규 Index(`CONCURRENTLY` 권장), CHECK 제약 확장(관용 방향), 단순 보조 인덱스 추가, 복구가 명확한 스키마 추가 | **비동기 승인** — Design + Audit 결과를 Jira 댓글로 보고하고 문경 님의 댓글 승인으로 대체 가능. 응답 대기 중에도 Test Contract 작성까지는 진행 가능, Impl은 승인 후. |
+
+**판단 원칙**:
+- **불확실하면 Critical** — Fail-safe. 분류가 모호한 경우 항상 상위 등급 적용.
+- **"Standard"는 "덜 중요"가 아니라 "복구가 쉬움"을 의미** — 잘못 생성된 인덱스 하나가 쿼리 플랜을 꼬을 수 있다. Standard라고 방심하지 않는다.
+- **Critical 자동 승격 조건**: 다음이 하나라도 포함되면 Standard 대상 작업이라도 Critical로 승격.
+  - 기존 행(row)에 대한 UPDATE/변환이 포함된 마이그레이션
+  - 신규 테이블이지만 RLS 정책이 미정인 상태
+  - 여러 테이블을 가로지르는 FK·트리거 신설
 
 ---
 
@@ -153,6 +226,8 @@
 - Claude는 `supabase db push`를 **신규 마이그레이션 파일** 적용 시에만 자율 실행할 수 있다.
 - 기존 파일 수정 결과를 실서버에 반영하는 `supabase db push`는 **효과가 없으므로 사용하지 않는다**.
 - DB/RLS 변경의 실서버 반영은 위 Breakpoint #1·#2에 따라 항상 문경 님이 직접 SQL Editor에서 실행한다.
+- **Drift Precheck (신규 파일 작성 전)**: 신규 마이그레이션 파일을 작성하기 전 `npx supabase migration list`를 실행하여 로컬에 존재하나 클라우드에 미적용된 이전 마이그레이션이 있는지 확인한다. 미적용 이력이 있으면 그것을 먼저 적용(또는 회수)하기 전까지 신규 마이그레이션 작성을 **중단한다**. 미적용 파일 위에 새 마이그레이션을 쌓으면 Dead Code와 드리프트가 누적된다.
+- **Shadow Migration Check (작성 직후)**: 마이그레이션 파일 작성 직후 `npx supabase migration up` (로컬 DB 대상) 실행 결과를 확인한다. 로컬 데이터와 맞지 않아 실행이 불가능한 경우 "일단 스킵"으로 파일만 저장하지 않는다 — 그 마이그레이션은 Dead Code가 되어 향후 환경 초기화 및 복구를 불가능하게 한다. 로컬 실행이 불가능하면 데이터 픽스처를 먼저 정리하거나, 클라우드 전용임을 헤더 주석으로 명시하고 Human Check에서 별도 승인받는다.
 
 ## [1. Core Commands]
 
@@ -213,6 +288,12 @@ Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
 
 하나라도 미준비 시 해당 인프라 구축을 먼저 수행한다.
 
+### 3.3 Content Draft/Publish 규칙 (2026-04-17 확정)
+
+- **Draft 콘텐츠 비노출**: `is_published = false`인 콘텐츠는 마케팅 사이트에 노출하지 않는다. RLS 정책에 `is_published = true` 조건을 반드시 포함한다. 미리보기는 Site Builder의 iframe으로 대체한다.
+- **섹션별 개별 Publish**: 일괄 게시(Batch Publish) 기능은 MVP 스코프 밖이다. 각 섹션은 독립적으로 즉시 반영된다.
+- **즉시 반영**: Publish 클릭 즉시 `is_published = true`로 업데이트하고 `revalidatePath`를 호출한다. 예약 게시는 MVP 이후 검토한다.
+
 ## [4. Security & Privacy Enforcement]
 
 > **⚠️ 보안 상세 규칙은 `SECURITY.md`를 참조하라.** 이 섹션은 핵심 원칙만 요약한다.
@@ -251,6 +332,7 @@ Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
 1. **Ignore Rules**: 프로젝트 루트의 `.claudeignore`에 명시된 파일과 폴더는 분석 대상에서 제외한다.
 2. **Selective Reading**: 모든 파일을 한꺼번에 읽지 말고, 작업 중인 Jira 티켓과 직접 연관된 파일 위주로 `read_file`을 실행하라.
 3. **Session Refresh**: 대화가 길어져 컨텍스트 토큰이 임계치에 도달하면 문경 님에게 보고하고 세션을 새로 시작할 것을 제안하라.
+4. **Session Wrap — 일지 작성 안전망**: 사용자가 "세션 종료", "오늘 마무리", "내일 보자", "정리" 등 세션 종료 신호를 보내면 오늘 날짜의 `docs/journal/YYYY-MM-DD.md` 파일 존재 여부를 확인한다. 없거나 오늘 세션의 주요 결정이 반영되지 않은 경우 **`/journal` 스킬 실행을 자동 제안**한다. 이는 비개발자 오너의 "이해도 부채" 방지 핵심 수단으로, 누락하지 않는다.
 
 ## [8.⚖️ Harness Enforcement Rules (강제 이행 규칙)]
 
@@ -260,10 +342,11 @@ LOW 트랙·단순 질의응답·현황 조회는 생략 가능하다.
 
 **[Status Header Format]**
 
-- **Track**: [LOW / MED / HIGH]
+- **Track**: [LOW / MED / HIGH-Standard / HIGH-Critical]
+- **Jira Tech Risk**: [🟩Low / 🟫Med / 🟨High / 🟥Critical]
 - **Current Phase**: [현재 단계명 — Design / Audit / Impl / Verify / Report]
 - **Audit Status**: [완료 (위험 N건 발견) / 없음 (LOW 트랙) / 대기중]
-- **Human Check**: [불필요 (LOW·MED) / 대기중 / 승인완료 (날짜)]
+- **Human Check**: [불필요 (LOW·MED·HIGH-Standard 비동기 승인 완료) / 대기중 / 승인완료 (날짜)]
 
 **이행 원칙**:
 
