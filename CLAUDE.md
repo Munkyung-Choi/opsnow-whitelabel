@@ -126,6 +126,7 @@
    - `npx tsc --noEmit`
    - `npx vitest run`
    - `npx playwright test` — 기존 테스트 포함 전체 실행. 실패 시 A/B/C 버킷으로 원인 분류 후 보고.
+   - **Verify 전 통과 시 git 커밋을 제안한다.** (`git status`로 untracked·수정 파일 확인 후 적절한 커밋 단위를 제시)
 7. **Report**: Jira 댓글 업데이트 (아래 양식 참조).
 
 ---
@@ -143,7 +144,7 @@
    - 테스트 종류 판단 (Unit vs E2E) + 기존 테스트 영향 분석 + stub 생성.
    - **Test Contract 없이 Impl 단계 진입 불가.**
 6. **Impl**: MED 트랙 Step 5와 동일 — 구현 + stub 교체 + 기존 테스트 동기화.
-7. **Verify**: MED 트랙 Step 6과 동일 — lint + tsc + vitest + **playwright** 4단계 전부 실행.
+7. **Verify**: MED 트랙 Step 6과 동일 — lint + tsc + vitest + **playwright** 4단계 전부 실행. Verify 전 통과 시 git 커밋을 제안한다.
 8. **Report**: Jira 댓글 업데이트 + Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장.
 
 ---

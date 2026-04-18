@@ -49,3 +49,6 @@ supabase/.temp
 
 # rls 검증 픽스처 (실제 UUID 포함 — 커밋 금지)
 docs/exec-plans/rls-fixtures.env
+
+# 일회성 분석 덤프 (수동 생성)
+report.txt
