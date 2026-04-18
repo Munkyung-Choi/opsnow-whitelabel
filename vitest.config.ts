@@ -5,8 +5,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node', // 파서는 순수 함수 — DOM 불필요
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    exclude: ['tests/**', 'node_modules/**'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'tests/security/**/*.test.ts'],
+    exclude: ['node_modules/**'],
   },
   resolve: {
     alias: {
