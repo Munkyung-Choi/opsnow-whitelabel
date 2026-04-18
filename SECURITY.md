@@ -99,7 +99,7 @@
 | `global_contents` | 전체 조회 | 전체 조회 | 전체 CRUD | RLS 우회 |
 | `leads` | 자사에만 INSERT | 자사만 SELECT·UPDATE | **직접 접근 불가** | RLS 우회 |
 | `site_visits` | ❌ | 자사만 조회 | 전체 조회 | RLS 우회 (Upsert) |
-| `system_logs` | ❌ | ❌ | 조회 전용 | RLS 우회 (INSERT) |
+| `system_logs` | ❌ | 자기 파트너 impersonation 로그만 SELECT (WL-121) | 전체 SELECT | RLS 우회 (INSERT) |
 
 ---
 

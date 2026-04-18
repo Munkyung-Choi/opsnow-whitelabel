@@ -39,6 +39,7 @@ let targetLeadId = ''    // seed에 없으면 beforeAll에서 생성
 
 // 테스트 중 생성한 데이터 추적 (afterAll에서 정리)
 let createdLeadId = ''
+let createdSystemLogId = ''
 
 beforeAll(async () => {
   assertLocalSupabaseUrl()
@@ -85,12 +86,29 @@ beforeAll(async () => {
   }
 
   // domain_requests: seed 데이터 없으면 테스트는 0건 반환으로 동작
+
+  // WL-121: system_logs Triangular 데이터 — partner-b impersonation 로그 생성
+  const svc = serviceClient()
+  const { data: sysLog } = await svc
+    .from('system_logs')
+    .insert({
+      actor_id: MASTER.id,
+      on_behalf_of: PARTNER_B.partnerId,
+      action: 'impersonate_start',
+    })
+    .select('id')
+    .single()
+  if (sysLog) createdSystemLogId = sysLog.id
 })
 
 afterAll(async () => {
-  // 테스트 중 생성한 lead 정리
+  // 테스트 중 생성한 데이터 정리
   if (createdLeadId) {
     await masterClient.from('leads').delete().eq('id', createdLeadId)
+  }
+  if (createdSystemLogId) {
+    const svc = serviceClient()
+    await svc.from('system_logs').delete().eq('id', createdSystemLogId)
   }
   await Promise.all([
     signOut(masterClient),
@@ -322,22 +340,42 @@ describe('RLS 격리 — domain_requests (Triangular × Read)', () => {
 
 
 // =============================================================================
-// 7. Policy Absence Baseline — system_logs (WL-121)
+// 7. Triangular — system_logs (WL-121 완료)
 // =============================================================================
-describe('Policy Absence Baseline — system_logs partner_admin SELECT (WL-121 완료 시 Triangular로 전환)', () => {
-  it('[no-policy] partner-b admin은 system_logs를 SELECT할 수 없다 (정책 없음 = 0건)', async () => {
-    // system_logs_master_admin_select만 존재. partner_admin SELECT 정책 부재(WL-121).
-    // 정책 없음 → Postgres default deny → 0건 반환.
-    // WL-121 해결 시: self-related 로그를 볼 수 있도록 정책 추가 + Triangular로 전환.
+describe('Triangular — system_logs partner_admin SELECT (WL-121)', () => {
+  it('[positive-control] partner-b admin은 자기 파트너 impersonation 로그를 SELECT할 수 있다', async () => {
+    // createdSystemLogId: on_behalf_of = PARTNER_B.partnerId 로 beforeAll에서 생성
+    expect(createdSystemLogId).not.toBe('')
     const { data, error } = await partnerBClient
       .from('system_logs')
       .select('id')
+      .eq('on_behalf_of', PARTNER_B.partnerId)
       .limit(5)
     expect(error).toBeNull()
-    expect(data).toHaveLength(0) // no-policy baseline
+    expect(data!.length).toBeGreaterThan(0)
   })
 
-  it('[positive-control] master_admin은 system_logs를 SELECT할 수 있다', async () => {
+  it('[negative-control] partner-a admin은 partner-b의 system_logs를 SELECT할 수 없다', async () => {
+    const { data, error } = await partnerAClient
+      .from('system_logs')
+      .select('id')
+      .eq('on_behalf_of', PARTNER_B.partnerId)
+      .limit(5)
+    expect(error).toBeNull()
+    expect(data).toHaveLength(0) // policy-deny: 타 파트너 로그 격리
+  })
+
+  it('[target-isolation] partner-b admin은 특정 logId를 정확히 반환한다', async () => {
+    const { data, error } = await partnerBClient
+      .from('system_logs')
+      .select('id')
+      .eq('id', createdSystemLogId)
+      .single()
+    expect(error).toBeNull()
+    expect(data!.id).toBe(createdSystemLogId)
+  })
+
+  it('[master-access] master_admin은 system_logs 전체를 SELECT할 수 있다', async () => {
     const { data, error } = await masterClient
       .from('system_logs')
       .select('id')
