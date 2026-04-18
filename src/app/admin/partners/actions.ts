@@ -1,4 +1,6 @@
 'use server'
+// @module-purpose: Admin 파트너 CRUD Server Actions (withAdminAction 7단계 보안 체인).
+// 공개 마케팅 조회는 src/services/partnerService.ts 참조. 두 모듈은 역할이 다르며 통합 금지.
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'

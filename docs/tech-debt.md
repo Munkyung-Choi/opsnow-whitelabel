@@ -30,6 +30,22 @@
 
 ## 활성 부채 (Active)
 
+### DEBT-002 — ContactForm handleSubmit + 폼 필드 로직 중복
+
+- **발생일**: 2026-04-19
+- **영역**: Marketing UI / ContactForm
+- **영향도**: Major (WL-42 Server Action 연동 시 동일 로직을 두 파일에 중복 구현해야 함)
+- **연관 파일**: `src/components/marketing/ContactFormMain.tsx`, `src/components/marketing/ContactFormSimple.tsx`
+- **연관 티켓**: WL-42 (Server Action 연동)
+- **증상**:
+  - `handleSubmit` (허니팟 체크 + `setTimeout` 임시 UX)이 두 파일에 동일하게 복사됨
+  - 5개 폼 필드(name/company/email/phone/cloud_usage_amount) 렌더링 코드 중복
+  - 레이아웃 목적은 다름(2-column vs 1-column)이므로 컴포넌트 자체 통합은 불필요
+- **상환 조건**: WL-42 Server Action 연동 시, `ContactFormFields` 서브컴포넌트를 추출하여 두 폼이 공유하도록 리팩터링. 추출 대상: handleSubmit 로직 + 5개 필드 + 성공/에러 상태 관리.
+- **상환 우선 조건**: WL-42 착수 전 반드시 처리. 연동 후 처리 시 Server Action이 두 곳에 복붙되어 SSOT 위반이 영속화됨.
+
+---
+
 ### DEBT-001 — contents.title/subtitle/body 평문 스칼라와 i18n 객체 혼재
 
 - **발생일**: 2026-04-18

@@ -173,7 +173,7 @@ function extractJSON(raw: string): AuditReport {
 // SMOKE 모드: 개인 계정 (무료 쿼터 20 RPD) — API 파이프라인 동작 확인 전용
 //   목적: "Gemini가 응답하는가?" 만 검증. 감사 결과는 참고용 아님.
 const SMOKE_TARGETS: { label: string; path: string }[] = [
-  { label: 'src/lib/supabase/client.ts', path: 'src/lib/supabase/client.ts' },
+  { label: 'src/lib/supabase/create-server-client.ts', path: 'src/lib/supabase/create-server-client.ts' },
 ];
 
 // FULL 모드: 회사 계정 (유료 쿼터) — 실제 보안 감사
@@ -186,8 +186,8 @@ const FULL_TARGETS: { label: string; path: string }[] = [
   // 인증·라우팅 — middleware matcher의 api 제외 여부 감사 (INV-04)
   { label: 'src/middleware.ts',            path: 'src/middleware.ts' },
   // Supabase 클라이언트 — 키 격리 검증 (INV-02)
-  { label: 'src/lib/supabase/server.ts',   path: 'src/lib/supabase/server.ts' },
-  { label: 'src/lib/supabase/client.ts',   path: 'src/lib/supabase/client.ts' },
+  { label: 'src/lib/supabase/server.ts',              path: 'src/lib/supabase/server.ts' },
+  { label: 'src/lib/supabase/create-server-client.ts', path: 'src/lib/supabase/create-server-client.ts' },
   // DB 마이그레이션 — RLS 정책 원문 (INV-01, INV-03, INV-05 핵심)
   { label: 'migrations/rls_policies.sql',  path: 'supabase/migrations/20260408000003_rls_policies.sql' },
   { label: 'migrations/create_views.sql',  path: 'supabase/migrations/20260408000002_create_views.sql' },

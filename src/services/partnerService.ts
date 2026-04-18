@@ -1,3 +1,5 @@
+// @module-purpose: 마케팅 사이트 파트너 조회 전용 (anon key + RLS, 읽기 전용).
+// Admin 쓰기 연산에 이 모듈을 사용하지 말 것 — src/app/admin/partners/actions.ts 참조.
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';

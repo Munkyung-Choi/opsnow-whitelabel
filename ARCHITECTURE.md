@@ -97,9 +97,9 @@
 
 | 클라이언트 | 파일 | 사용 컨텍스트 | 비고 |
 |-----------|------|------------|------|
-| `supabase` (anon) | `src/lib/supabase/client.ts` | 클라이언트 컴포넌트 | RLS 적용됨 |
-| `supabaseServer` (anon) | `src/lib/supabase/server.ts` | Server Component, Route Handler | RLS 적용됨, 사용자 세션 포함 |
-| `supabaseAdmin` (service_role) | `src/lib/supabase/admin.ts` | Route Handler 서버사이드 전용 | **RLS 우회** — 클라이언트에 절대 노출 금지 |
+| `createSessionClient()` (anon) | `src/lib/supabase/create-server-client.ts` | Server Components (쿠키 읽기 전용) | RLS 적용됨 |
+| `createActionClient()` (anon) | `src/lib/supabase/create-server-client.ts` | Server Actions (쿠키 읽기+쓰기) | RLS 적용됨, 토큰 갱신 가능 |
+| `supabaseAdmin` (service_role) | `src/lib/supabase/server.ts` | Route Handler 서버사이드 전용 | **RLS 우회** — 클라이언트에 절대 노출 금지 |
 
 **`supabaseAdmin` 사용 허가 케이스**:
 - `site_visits` Upsert (방문 카운터)
