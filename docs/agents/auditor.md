@@ -62,3 +62,22 @@
 **공격 시나리오**: [어떻게 악용될 수 있는가]
 **수정 지시**: [Architect에게 전달할 구체적 수정 방향]
 ```
+
+---
+
+## 6. Spawn Template (HIGH 트랙 sub-agent 스폰용)
+
+```
+Agent({
+  subagent_type: "general-purpose",
+  prompt: `docs/agents/auditor.md 역할로 다음 파일들을 감사하라: [변경 파일 목록].
+
+  Step 1 — 맥락 수집: grep으로 docs/audits/ 및 docs/tech-debt.md 내에서 이번 변경 대상(테이블명·컬럼명·관련 함수명·마이그레이션 유형)이 언급된 과거 감사 문서와 활성 부채 항목을 찾아 읽고, 해당 영역의 설계 의도와 제약사항을 3~5줄로 요약한다.
+
+  Step 2 — 적대적 증명: '이 코드는 안전하다'는 가설을 기각하기 위해 아래 세 관점에서 실패 시나리오를 기술적으로 증명하라:
+  (1) Data Integrity — 데이터 타입 불일치나 제약 조건(Unique, Not Null, CHECK) 위반 가능성.
+  (2) State Mismatch — 로컬/클라우드 DB 상태 차이로 발생하는 런타임 오류.
+  (3) Logic Flaw — RBAC·RLS 등 비즈니스 규칙을 우회하는 엣지 케이스.
+  시나리오를 찾지 못할 경우 '논리적으로 반증 불가함'을 이유와 함께 명시하라.`
+})
+```

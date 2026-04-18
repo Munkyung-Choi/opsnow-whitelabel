@@ -41,7 +41,7 @@
 | `docs/jira-conventions.md` | Jira 티켓 생성 시 — DevType·Item 커스텀 필드 ID 확인 |
 | `docs/model-matrix.md` | 작업 시작 시 — Opus/Sonnet 권장 모델 판단 |
 | `docs/tech-debt.md` | 관련 영역 작업 Context 단계 — 이번 작업이 기존 부채 상환 기회인지 확인 |
-| `docs/journal/` | 세션 시작 시 — 최근 일지로 진행 중 서사 복원. 기각 경로·미결 메모·AI와의 합의점이 여기에 있다 |
+| `docs/journal/` | `/start-dev` 스킬이 자동으로 읽는다. 직접 열어야 할 경우: 특정 날짜의 기각 경로·미결 메모·AI 합의점 재확인 시 |
 
 ### Confluence (WS Space, 2026-04-18 재구조화 — ADR-003)
 
@@ -63,9 +63,11 @@
 ## 프로젝트 전용 스킬 (슬래시 명령어)
 
 자주 쓰는 반복 작업은 아래 스킬로 즉시 실행한다. 매번 동일한 지시를 반복하지 않아도 된다.
+전체 스킬 목록 및 사용법 → [`docs/skills-guide.md`](docs/skills-guide.md)
 
 | 스킬 | 명령어 | 사용 시점 |
 |------|--------|----------|
+| **start-dev** | `/start-dev` | 세션 시작 — 어제 일지·git·Jira 교차하여 맥락 복원 및 오늘 진입 지점 제시 |
 | **partner-onboard** | `/partner-onboard [slug]` | 신규 파트너 온보딩 전 과정 (DB → RLS → 서브도메인 → E2E) |
 | **admin-security-check** | `/admin-security-check [파일경로]` | Admin Server Action Impl 완료 후 Verify 전 |
 | **migration-safe** | `/migration-safe [목적]` | 마이그레이션 파일 작성 전 안전 체크 |
