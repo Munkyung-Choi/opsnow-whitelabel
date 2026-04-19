@@ -78,6 +78,36 @@ In Progress 또는 최근 업데이트된 티켓 위주로 수집한다.
 | 일지에 특정 파일 경로 언급 | 해당 파일의 관련 섹션 |
 | In Progress 티켓이 HIGH 트랙 | `docs/audits/{ticket_id}.md` (있으면) |
 
+### STEP 5 — 주간 리포트 자동 생성 (월요일 조건부)
+
+요일 확인: `date +%u` (1=월, 7=일).
+
+**오늘이 월요일(1)인 경우에만 실행**:
+
+1. 이전 주 범위 계산: 직전 월요일~일요일 (ISO 주 기준)
+2. Confluence 주간 페이지 존재 여부 확인:
+   - `getConfluencePageDescendants` (parentId: `309264482`, Weekly 개발일지) 조회
+   - 이전 주 범위를 포함하는 페이지 제목이 있으면: SKIP
+   - 없으면: "이전 주 주간 리포트가 없습니다. 지금 생성할까요?" 제안 → 동의 시 아래 진행
+3. 해당 범위의 `docs/journal/YYYY-MM-DD.md` 파일 전부 Glob으로 수집
+4. 각 파일의 4섹션 + `git log --since --until` (범위 내)를 롤업하여 주간 페이지 초안 작성. 구조:
+   - **주간 요약 (Executive Summary)** — 2~3 문단
+   - **이번 주 핵심 결정 (Top Decisions)** — 주간 통합 관점
+   - **기각한 경로 (Road Not Taken)** — 주간 롤업
+   - **기술부채 신규·상환 (Debt Ledger Diff)** — 신규 DEBT/MISS, 상환된 항목
+   - **이번 주 Jira 이력** — 표 형식
+   - **프로세스 진화 요약** — CLAUDE.md/docs/ 체계 변화
+   - **다음 주 전망 (Next Week Outlook)**
+5. 사용자 확인 후 Confluence에 발행:
+   - cloudId: `opsnowinc.atlassian.net`
+   - spaceId: `290848804` (WS)
+   - parentId: `309264482` (Weekly 개발일지)
+   - title: `YYYY-WNN (MM-DD ~ MM-DD) 주간 개발일지` (예: `2026-W16 (04-13 ~ 04-19) 주간 개발일지`)
+   - contentFormat: `markdown`
+   - **페이지 형식: Atlassian Live Doc** — `subtype: "live"` 로 생성. 일반 페이지가 아닌 Live Doc으로 발행해야 한다.
+
+월요일이 아닌 경우: STEP 5 생략하고 맥락 복원 리포트로 마무리.
+
 ---
 
 ## 공통 실수 방지

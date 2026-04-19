@@ -73,7 +73,7 @@
 | **migration-safe** | `/migration-safe [목적]` | 마이그레이션 파일 작성 전 안전 체크 |
 | **database-migration** | `/database-migration` | Supabase 마이그레이션 작성 패턴 참조 |
 | **supabase-audit-rls** | `/supabase-audit-rls` | RLS 정책 bypass 취약점 검증 |
-| **journal** | `/journal` | 세션 종료 전 — 오늘 서사 박제 (`docs/journal/YYYY-MM-DD.md`) + 일/월요일엔 Confluence 주간 롤업 제안 |
+| **end-dev** | `/end-dev` | 세션 종료 전 — 오늘 서사 박제 (`docs/journal/YYYY-MM-DD.md`) + 일/월요일엔 Confluence 주간 롤업 Live Doc 발행 제안 |
 
 ---
 

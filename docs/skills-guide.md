@@ -11,7 +11,7 @@
 | 명령어 | 사용 시점 |
 |--------|----------|
 | `/start-dev` | 매일 첫 대화 — 어제 일지·git·Jira 교차하여 오늘 진입 지점 제시 |
-| `/journal` | 세션 종료 전 — 오늘 결정·기각 경로·부채를 `docs/journal/YYYY-MM-DD.md`에 박제. 일/월요일엔 Confluence 주간 롤업 제안 |
+| `/end-dev` | 세션 종료 전 — 오늘 결정·기각 경로·부채를 `docs/journal/YYYY-MM-DD.md`에 박제. 일/월요일엔 Confluence 주간 롤업 Live Doc 발행 제안 |
 
 ---
 
