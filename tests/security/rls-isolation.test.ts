@@ -40,6 +40,7 @@ let targetLeadId = ''    // seed에 없으면 beforeAll에서 생성
 // 테스트 중 생성한 데이터 추적 (afterAll에서 정리)
 let createdLeadId = ''
 let createdSystemLogId = ''
+let createdSystemLogIdWL123 = '' // WL-123: partner_id 기반 로그 (master 직편집 시뮬레이션)
 
 beforeAll(async () => {
   assertLocalSupabaseUrl()
@@ -99,6 +100,20 @@ beforeAll(async () => {
     .select('id')
     .single()
   if (sysLog) createdSystemLogId = sysLog.id
+
+  // WL-123: partner_id 기반 로그 — master_admin 직편집 시뮬레이션 (on_behalf_of 없이 partner_id만)
+  const { data: sysLogWL123 } = await svc
+    .from('system_logs')
+    .insert({
+      actor_id: MASTER.id,
+      partner_id: PARTNER_B.partnerId,
+      action: 'partner.update',
+      target_table: 'partners',
+      target_id: PARTNER_B.partnerId,
+    })
+    .select('id')
+    .single()
+  if (sysLogWL123) createdSystemLogIdWL123 = sysLogWL123.id
 })
 
 afterAll(async () => {
@@ -109,6 +124,10 @@ afterAll(async () => {
   if (createdSystemLogId) {
     const svc = serviceClient()
     await svc.from('system_logs').delete().eq('id', createdSystemLogId)
+  }
+  if (createdSystemLogIdWL123) {
+    const svc = serviceClient()
+    await svc.from('system_logs').delete().eq('id', createdSystemLogIdWL123)
   }
   await Promise.all([
     signOut(masterClient),
@@ -382,6 +401,43 @@ describe('Triangular — system_logs partner_admin SELECT (WL-121)', () => {
       .limit(5)
     expect(error).toBeNull()
     expect(Array.isArray(data)).toBe(true)
+  })
+})
+
+
+// =============================================================================
+// 7.1. Triangular — system_logs partner_id 기반 (WL-123)
+// =============================================================================
+describe('Triangular — system_logs partner_id (WL-123)', () => {
+  it('[positive-control] partner-b admin은 master 직편집 로그(partner_id 매칭)를 SELECT할 수 있다', async () => {
+    expect(createdSystemLogIdWL123).not.toBe('')
+    const { data, error } = await partnerBClient
+      .from('system_logs')
+      .select('id')
+      .eq('partner_id', PARTNER_B.partnerId)
+      .limit(5)
+    expect(error).toBeNull()
+    expect(data!.length).toBeGreaterThan(0)
+  })
+
+  it('[negative-control] partner-a admin은 partner-b의 partner_id 로그를 SELECT할 수 없다', async () => {
+    const { data, error } = await partnerAClient
+      .from('system_logs')
+      .select('id')
+      .eq('partner_id', PARTNER_B.partnerId)
+      .limit(5)
+    expect(error).toBeNull()
+    expect(data).toHaveLength(0) // policy-deny: RLS 화이트리스트 격리
+  })
+
+  it('[target-isolation] partner-b admin은 WL-123 logId를 정확히 반환한다', async () => {
+    const { data, error } = await partnerBClient
+      .from('system_logs')
+      .select('id')
+      .eq('id', createdSystemLogIdWL123)
+      .single()
+    expect(error).toBeNull()
+    expect(data!.id).toBe(createdSystemLogIdWL123)
   })
 })
 

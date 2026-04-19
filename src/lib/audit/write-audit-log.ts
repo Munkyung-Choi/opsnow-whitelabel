@@ -7,6 +7,8 @@ export interface AuditLogEntry {
   target_id?: string | null
   diff?: Record<string, unknown> | null
   on_behalf_of?: string | null
+  /** WL-123: 감사 대상 파트너 (NFR §5.3). withAdminAction의 resolvePartnerId가 자동 주입. */
+  partner_id?: string | null
   ip?: string | null
 }
 
@@ -27,6 +29,7 @@ export async function writeAuditLog(entry: AuditLogEntry): Promise<void> {
     target_id: entry.target_id ?? null,
     diff: (entry.diff ?? null) as never,
     on_behalf_of: entry.on_behalf_of ?? null,
+    partner_id: entry.partner_id ?? null,
     ip: entry.ip ?? null,
   })
   if (error) {

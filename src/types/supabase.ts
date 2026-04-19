@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -18,7 +38,7 @@ export type Database = {
         Row: {
           body: Json | null
           contact_info: Json | null
-          cta_text: Json | null
+          cta_text: string | null
           id: string
           is_published: boolean | null
           partner_id: string
@@ -30,7 +50,7 @@ export type Database = {
         Insert: {
           body?: Json | null
           contact_info?: Json | null
-          cta_text?: Json | null
+          cta_text?: string | null
           id?: string
           is_published?: boolean | null
           partner_id: string
@@ -42,7 +62,7 @@ export type Database = {
         Update: {
           body?: Json | null
           contact_info?: Json | null
-          cta_text?: Json | null
+          cta_text?: string | null
           id?: string
           is_published?: boolean | null
           partner_id?: string
@@ -113,32 +133,32 @@ export type Database = {
       }
       global_contents: {
         Row: {
-          body: Json | null
+          body: string | null
           id: string
           meta: Json | null
           section_type: string
-          subtitle: Json | null
-          title: Json | null
+          subtitle: string | null
+          title: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          body?: Json | null
+          body?: string | null
           id?: string
           meta?: Json | null
           section_type: string
-          subtitle?: Json | null
-          title?: Json | null
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          body?: Json | null
+          body?: string | null
           id?: string
           meta?: Json | null
           section_type?: string
-          subtitle?: Json | null
-          title?: Json | null
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -353,6 +373,7 @@ export type Database = {
           id: string
           ip: string | null
           on_behalf_of: string | null
+          partner_id: string | null
           target_id: string | null
           target_table: string | null
         }
@@ -364,6 +385,7 @@ export type Database = {
           id?: string
           ip?: string | null
           on_behalf_of?: string | null
+          partner_id?: string | null
           target_id?: string | null
           target_table?: string | null
         }
@@ -375,6 +397,7 @@ export type Database = {
           id?: string
           ip?: string | null
           on_behalf_of?: string | null
+          partner_id?: string | null
           target_id?: string | null
           target_table?: string | null
         }
@@ -382,6 +405,13 @@ export type Database = {
           {
             foreignKeyName: "system_logs_on_behalf_of_fkey"
             columns: ["on_behalf_of"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_logs_partner_id_fkey"
+            columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
             referencedColumns: ["id"]
@@ -573,6 +603,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       domain_request_status: [
@@ -585,3 +618,4 @@ export const Constants = {
     },
   },
 } as const
+

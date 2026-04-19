@@ -9,6 +9,8 @@ const LogBodySchema = z.object({
   target_id: z.string().uuid().optional(),
   diff: z.record(z.string(), z.unknown()).optional(),
   on_behalf_of: z.string().uuid().optional(),
+  /** WL-123: 명시적 partner_id 주입용. 클라이언트가 감사 대상 파트너를 명시할 때 사용. */
+  partner_id: z.string().uuid().optional(),
 })
 
 /**
@@ -52,6 +54,7 @@ export async function POST(request: NextRequest) {
       target_id: parsed.data.target_id,
       diff: parsed.data.diff,
       on_behalf_of: parsed.data.on_behalf_of,
+      partner_id: parsed.data.partner_id,
       ip: request.headers.get('x-forwarded-for') ?? null,
     })
     return NextResponse.json({ ok: true })

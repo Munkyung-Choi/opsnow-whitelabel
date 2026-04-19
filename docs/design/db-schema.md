@@ -85,6 +85,7 @@ erDiagram
         uuid id PK
         uuid actor_id FK "auth.users(id) — 실제 행위자"
         uuid on_behalf_of FK "partners(id) — Impersonation 대상 (nullable)"
+        uuid partner_id FK "partners(id) — 감사 대상 파트너 (NFR §5.3, nullable, WL-123)"
         text action "impersonate_start|partner_update 등"
         text target_table "영향받은 테이블명"
         uuid target_id "영향받은 row ID"
@@ -135,7 +136,7 @@ erDiagram
     partners ||--o{ partner_sections : "섹션 노출 제어"
     partners ||--o{ leads : "수집된 리드"
     partners ||--o{ site_visits : "방문 통계"
-    partners ||--o{ system_logs : "Impersonation 대상 (on_behalf_of)"
+    partners ||--o{ system_logs : "Impersonation 대상 (on_behalf_of) + 감사 대상 (partner_id, WL-123)"
     partners ||--o{ domain_requests : "커스텀 도메인 신청 이력"
     leads ||--|| leads_masked_view : "마스킹 뷰"
 ```
@@ -255,13 +256,18 @@ OpsNow Master Admin이 관리하는 전 파트너 공통 콘텐츠. `section_typ
 |------|------|
 | `actor_id` | 실제 행위자 (항상 Master Admin의 `auth.uid()`) |
 | `on_behalf_of` | Impersonation 중인 경우 대상 파트너 ID. 일반 작업은 `NULL` |
+| `partner_id` | 감사 대상 파트너 ID (WL-123, NFR §5.3). 파트너-스코프 테이블 작업 시 자동 주입. 글로벌 작업은 `NULL`. `JOIN partners` 없이 파트너별 직접 필터링 가능 |
 | `action` | 수행된 작업 (예: `impersonate_start`, `partner_update`, `global_content_publish`) |
 | `target_table` | 영향받은 테이블명 |
 | `target_id` | 영향받은 row의 UUID |
 | `diff` | 변경 전후 데이터: `{"before": {...}, "after": {...}}` |
 | `ip` | Master Admin 요청 IP — 법적 증거용 |
 
-> ⚠️ INSERT는 **Service Role Key를 사용하는 서버사이드에서만** 수행. partner_admin은 본인 관련 로그도 조회 불가.
+> ⚠️ INSERT는 **Service Role Key를 사용하는 서버사이드에서만** 수행.
+> `partner_admin`은 WL-121 이후 자기 파트너 관련 로그(`on_behalf_of` 매칭) SELECT 가능. WL-123 이후 `partner_id` 매칭도 병행 허용 — 단 `PARTNER_SCOPED_TABLES` 화이트리스트 테이블 작업만 기록됨.
+>
+> **PARTNER_SCOPED_TABLES 화이트리스트 (WL-123, Default Deny)**:
+> `partners`, `contents`, `partner_sections`, `leads`, `site_visits`, `domain_requests`
 
 ---
 
@@ -321,7 +327,7 @@ approved → expired             (DNS 검증 타임아웃)
 | `global_contents` | 전체 조회 | 전체 조회 | 전체 CRUD | |
 | `leads` | 자사 파트너에 INSERT (is_active 검증) | 자사만 SELECT·UPDATE | **직접 접근 불가** | master_admin은 masked_view 경유 |
 | `site_visits` | 없음 | 자사만 조회 | 전체 조회 | Upsert: Service Role Key |
-| `system_logs` | 없음 | **없음** | 조회 전용 | INSERT: Service Role Key |
+| `system_logs` | 없음 | 자기 파트너 관련 로그만 SELECT (`partner_id` OR `on_behalf_of` 매칭 — WL-121+WL-123) | 조회 전용 | INSERT: Service Role Key. `partner_id` 자동 주입은 PARTNER_SCOPED_TABLES 화이트리스트 한정 |
 | `domain_requests` | 없음 | 자사 요청만 SELECT·INSERT | 전체 CRUD | 트리거가 active 전환 시 partners 원자 업데이트 |
 
 ---
@@ -340,6 +346,7 @@ approved → expired             (DNS 검증 타임아웃)
 | `idx_site_visits_partner_date` | site_visits | (partner_id, visit_date DESC) | 날짜별 방문 집계 |
 | `idx_system_logs_actor_id` | system_logs | actor_id | 행위자 기준 감사 |
 | `idx_system_logs_on_behalf_of` | system_logs | on_behalf_of | Impersonation 대상 기준 감사 |
+| `idx_system_logs_partner_id` | system_logs | partner_id (WHERE NOT NULL) | 파트너별 직접 감사 필터링 (WL-123, NFR §5.3) |
 | `idx_system_logs_created_at` | system_logs | created_at DESC | 시간순 감사 로그 |
 | `unique_active_request_per_partner` | domain_requests | partner_id (WHERE status IN 'pending','approved','active') | 진행 중 도메인 신청 중복 방지 |
 
@@ -488,6 +495,7 @@ interface VerificationRecord {
 | `site_visits.partner_id` | `partners(id)` | **CASCADE** | 통계도 함께 소멸 |
 | `system_logs.actor_id` | `auth.users(id)` | **NO ACTION** | ⚠️ 감사 로그 불변성 — actor 계정 삭제 불가 |
 | `system_logs.on_behalf_of` | `partners(id)` | **NO ACTION** | ⚠️ 감사 로그 대상 파트너 삭제 불가 |
+| `system_logs.partner_id` (WL-123) | `partners(id)` | **NO ACTION** | ⚠️ `on_behalf_of`와 동일 불변성. 파트너 hard-delete 요구 시 두 FK 동시 재검토 필요 |
 | `global_contents.updated_by` | `auth.users(id)` | **NO ACTION** | 수정자 계정 삭제 불가 |
 | `domain_requests.partner_id` | `partners(id)` | **CASCADE** | (로컬 마이그레이션 부재 — 위 §경고 참조) |
 

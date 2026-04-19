@@ -4,12 +4,19 @@ import type { Database } from '@/types/supabase'
 import { createActionClient } from '@/lib/supabase/create-server-client'
 import { getCurrentUser, type CurrentUser, type UserRole } from './get-current-user'
 import { writeAuditLog } from '@/lib/audit/write-audit-log'
+import { resolvePartnerId, PARTNER_SCOPED_TABLES } from './resolve-partner-id'
+
+// Re-export for public API continuity (기존 호출자가 with-admin-action에서 import)
+export { resolvePartnerId, PARTNER_SCOPED_TABLES }
+export type { PartnerScopedTable } from './resolve-partner-id'
 
 export interface AdminActionAuditDetails {
   target_table?: string
   target_id?: string
   diff?: Record<string, unknown>
   on_behalf_of?: string
+  /** WL-123: 명시적 주입. 미지정 시 resolvePartnerId가 자동 결정. */
+  partner_id?: string
 }
 
 export interface AdminActionResult<T> {
@@ -112,6 +119,7 @@ export async function withAdminAction<T, R extends UserRole = UserRole>(
       target_id: auditDetails.target_id ?? null,
       diff: auditDetails.diff ?? null,
       on_behalf_of: auditDetails.on_behalf_of ?? null,
+      partner_id: resolvePartnerId(user, auditDetails),
     })
 
     // Step 7: 캐시 무효화 (audit 성공 후에만)

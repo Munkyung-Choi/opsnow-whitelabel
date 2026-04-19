@@ -114,13 +114,16 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // IMP-07: system_logs 기록 (actor_id, action, on_behalf_of, ip)
+  // IMP-07: system_logs 기록 (actor_id, action, on_behalf_of, partner_id, ip)
+  // WL-123: partner_id 명시 주입 — impersonation 대상 파트너에 직접 귀속시켜
+  // partner_admin이 자기 파트너 관련 master 활동을 투명하게 조회할 수 있도록 한다.
   const { error: logError } = await supabaseAdmin.from('system_logs').insert({
     actor_id: auth.user.id,
     action: 'impersonate_start',
     target_table: 'partners',
     target_id: partner.id,
     on_behalf_of: partner.id,
+    partner_id: partner.id,
     diff: { before: null, after: { target_partner_id: partner.id } },
     ip: clientIp(request),
   })
@@ -157,13 +160,14 @@ export async function DELETE(request: NextRequest) {
     return response
   }
 
-  // IMP-07: system_logs 종료 기록
+  // IMP-07: system_logs 종료 기록 (WL-123: partner_id 명시 주입 — start와 대응)
   await supabaseAdmin.from('system_logs').insert({
     actor_id: auth.user.id,
     action: 'impersonate_end',
     target_table: 'partners',
     target_id: ctx.context.target_partner_id,
     on_behalf_of: ctx.context.target_partner_id,
+    partner_id: ctx.context.target_partner_id,
     diff: { before: { target_partner_id: ctx.context.target_partner_id }, after: null },
     ip: clientIp(request),
   })
