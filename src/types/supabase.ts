@@ -257,6 +257,7 @@ export type Database = {
           custom_domain_status: string | null
           default_locale: string
           favicon_url: string | null
+          features: Json
           hero_image_url: string | null
           id: string
           is_active: boolean | null
@@ -275,6 +276,7 @@ export type Database = {
           custom_domain_status?: string | null
           default_locale?: string
           favicon_url?: string | null
+          features?: Json
           hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -293,6 +295,7 @@ export type Database = {
           custom_domain_status?: string | null
           default_locale?: string
           favicon_url?: string | null
+          features?: Json
           hero_image_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -470,6 +473,14 @@ export type Database = {
     }
     Functions: {
       get_my_role: { Args: never; Returns: string }
+      update_partner_feature: {
+        Args: {
+          p_enabled: boolean
+          p_feature_key: string
+          p_partner_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       domain_request_status:

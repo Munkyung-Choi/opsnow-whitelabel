@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import {
   Table,
   TableBody,
@@ -7,6 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import PartnerToggle from './PartnerToggle'
 import ImpersonateButton from './ImpersonateButton'
 
@@ -88,11 +90,16 @@ export default function PartnerTable({ partners }: Props) {
             </TableCell>
             <TableCell className="text-sm text-muted-foreground">{formatDate(p.created_at)}</TableCell>
             <TableCell>
-              <ImpersonateButton
-                partnerId={p.id}
-                partnerName={p.business_name}
-                disabled={!p.is_active}
-              />
+              <div className="flex items-center gap-2">
+                <ImpersonateButton
+                  partnerId={p.id}
+                  partnerName={p.business_name}
+                  disabled={!p.is_active}
+                />
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/admin/partners/${p.id}`}>상세</Link>
+                </Button>
+              </div>
             </TableCell>
           </TableRow>
         ))}
