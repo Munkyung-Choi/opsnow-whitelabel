@@ -310,3 +310,43 @@ Master의 Supabase auth 세션은 **불변**. 별도 서명 쿠키 `opsnow_imper
 | G6 | 로그 기록과 쿠키 세팅 race | log INSERT 성공 후에만 cookie 세팅 |
 | G7 | 비활성 파트너로 impersonation | `partners.is_active=true` 사전 검증 |
 | G8 | 중첩 impersonation | 기존 쿠키 존재 시 409 반환 (명시적 stop 필요) + 최근 5초 dupe log 검사 |
+
+## 11. Storage 정책 (Asset Upload — WL-125, 2026-04-19)
+
+### 11.1 버킷 구조
+
+| 버킷 ID | 용도 | 공개 | 크기 상한 | 허용 MIME |
+|---------|------|------|----------|----------|
+| `partner-logos` | 파트너 로고 | public | 2MB | `image/png`, `image/jpeg`, `image/webp` |
+| `partner-favicons` | 파트너 파비콘 | public | 512KB | `image/x-icon`, `image/vnd.microsoft.icon`, `image/png` |
+
+**버킷 분리 이유 (Defense in Depth)**: 단일 버킷으로는 Supabase가 버킷 단위 `file_size_limit`만 지원하므로 파비콘 512KB 제약을 DB 레벨로 강제할 수 없음. 버킷을 2개로 분리하여 Zod(App 레이어) + bucket limit(DB 레이어) 이중 방어.
+
+**경로 규약**: `{partner_uuid}/{logo|favicon}.{ext}` 단일 레벨.  
+예: `550e8400-e29b-41d4-a716-446655440000/logo.png`
+
+**SVG 미허용 결정**: `image/svg+xml`은 Stored XSS 벡터로 제외. 필요 시 DOMPurify 서버사이드 sanitize를 선행하는 별도 티켓 생성.
+
+### 11.2 Storage RLS 접근 행렬
+
+| 작업 | `anon` | `partner_admin` | `master_admin` |
+|------|--------|-----------------|----------------|
+| SELECT | ✓ (public 읽기) | ✓ | ✓ |
+| INSERT | ✗ | 자사 `{partner_id}/` 경로만 | 규약 준수 시 전체 |
+| UPDATE | ✗ | 자사 경로만 (WITH CHECK) | 규약 준수 시 전체 |
+| DELETE | ✗ | 자사 경로만 | 전체 |
+
+**경로 정규식 강제** (INSERT/UPDATE `WITH CHECK`): `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/(logo|favicon)\.(png|jpg|jpeg|webp|ico)$`  
+→ master_admin도 예외 없음. 루트 업로드·비규약 확장자 원천 차단.
+
+**UPDATE `WITH CHECK` 명시**: 크로스테넌트 rename 공격 차단 (WL-122 선례 준수). `USING`만 있으면 공격자가 `{A_uuid}/logo.png` → `{B_uuid}/logo.png`로 move 가능.
+
+### 11.3 헬퍼 사용 규약
+
+- `src/lib/storage/` 모듈은 **session-based Supabase 클라이언트 전용** (`supabaseAdmin` 사용 금지).
+- RLS가 session으로 자연 적용되므로 `src/lib/storage/`는 §8 service_role 화이트리스트 대상이 아님.
+- Server Action에서 호출 시 반드시 `withAdminAction` 내부에서 `createActionClient()` 클라이언트를 넘길 것.
+
+### 11.4 MIME·확장자 SSOT
+
+`src/lib/storage/partner-asset.schema.ts`가 단일 기준. 변경 시 마이그레이션 `20260419000009_partner_assets_storage.sql`의 `allowed_mime_types`도 동시 갱신 필수.

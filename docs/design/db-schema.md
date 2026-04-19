@@ -317,6 +317,26 @@ approved → expired             (DNS 검증 타임아웃)
 
 ---
 
+## Storage 버킷 (WL-125, 2026-04-19)
+
+파트너별 브랜드 자산(로고·파비콘) 저장소. 마이그레이션: `20260419000009_partner_assets_storage.sql`.
+
+| 버킷 | 공개 | 크기 | 허용 MIME | 경로 규약 |
+|------|------|------|----------|-----------|
+| `partner-logos` | public | 2MB | `image/png`, `image/jpeg`, `image/webp` | `{partner_uuid}/logo.{ext}` |
+| `partner-favicons` | public | 512KB | `image/x-icon`, `image/vnd.microsoft.icon`, `image/png` | `{partner_uuid}/favicon.{ext}` |
+
+**정책 (`storage.objects`)**:
+- SELECT: anon 포함 모두 허용 (public 버킷)
+- INSERT/UPDATE: `partner_admin`은 자사 경로만, `master_admin`은 규약 준수 시 전체. INSERT/UPDATE 모두 `WITH CHECK`로 경로 정규식 강제
+- DELETE: 동일 격리 원칙
+
+**SSOT**: MIME·확장자 목록은 `src/lib/storage/partner-asset.schema.ts`가 단일 기준. 마이그레이션과 동기 유지.
+
+**상세**: `SECURITY.md` §11 참조.
+
+---
+
 ## RLS 정책 요약
 
 | 테이블 | `anon` | `partner_admin` | `master_admin` | 비고 |
