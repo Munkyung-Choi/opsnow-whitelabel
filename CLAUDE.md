@@ -286,6 +286,36 @@ Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
 - **섹션별 개별 Publish**: 일괄 게시(Batch Publish) 기능은 MVP 스코프 밖이다. 각 섹션은 독립적으로 즉시 반영된다.
 - **즉시 반영**: Publish 클릭 즉시 `is_published = true`로 업데이트하고 `revalidatePath`를 호출한다. 예약 게시는 MVP 이후 검토한다.
 
+### 3.4 스케일 설계 원칙 (2026-04-19 확정 — PRD §5 NFR 연동)
+
+> **권위 문서**: `PRD §5 비기능 요구사항(NFR)` (Confluence 289636366).  
+> 이 섹션은 NFR을 개발 실행 규칙으로 변환한 집행 지침이다.  
+> **목표**: 단일 인스턴스에서 100+ 파트너를 수용하면서 격리·성능·감사를 유지한다.
+
+**[규칙 1] Tenant Scoping — 모든 쿼리에 파트너 경계 명시**
+
+- 파트너 스코프 테이블(`partners`, `contents`, `leads`, `partner_sections`, `system_logs` 등)의 모든 SELECT/UPDATE/DELETE에 `partner_id` 조건을 포함한다.
+- `master_admin` 전용 쿼리만 예외 허용. 예외 시 코드 주석으로 이유를 명시한다.
+- **위반 감지**: `partner_id` 없는 파트너 스코프 쿼리는 Audit Gate에서 차단된다.
+
+**[규칙 2] Feature Toggle — DB 플래그 우선 확장**
+
+- 파트너별 기능 차이는 코드 분기(`if partnerId === '...'`)가 아닌 `partners.features JSONB` 또는 전용 feature_flags 테이블로 제어한다.
+- 새 기능 추가 시 먼저 DB 플래그 설계를 선행하고, 코드는 플래그를 읽는 패턴으로 작성한다 (`hasFeature(partner, 'feature_name')`).
+- 코드 배포 없이 파트너별 기능 ON/OFF가 가능해야 한다.
+
+**[규칙 3] Metadata-driven — 설정은 DB, 로직은 코드**
+
+- 파트너별 설정(테마·도메인·언어·알림 이메일 등)은 모두 DB 컬럼으로 관리한다.
+- 특정 파트너의 설정값을 코드에 하드코딩하는 것을 금지한다.
+- 새 설정 항목이 필요하면 `partners` 테이블 컬럼 추가 → Admin UI → DB 저장 패턴을 따른다.
+
+**[규칙 4] Audit Scalability — 파트너별 직접 필터링 가능**
+
+- `system_logs` 신규 이벤트 기록 시 `partner_id`를 함께 저장한다 (WL-Ticket-A 이후 적용).
+- 현재(`partner_id` 컬럼 미존재 시점)는 `on_behalf_of`를 활용한다.
+- 감사 로그 조회가 `JOIN partners` 없이 `WHERE partner_id = ?` 단일 조건으로 가능해야 한다.
+
 ## [4. Security & Privacy Enforcement]
 
 > **⚠️ 보안 상세 규칙은 `SECURITY.md`를 참조하라.** 이 섹션은 핵심 원칙만 요약한다.

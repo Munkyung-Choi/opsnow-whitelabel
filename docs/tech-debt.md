@@ -30,6 +30,30 @@
 
 ## 활성 부채 (Active)
 
+### DEBT-003 — withAdminAction 콜백 반환 타입 Discriminated Union 미도입
+
+- **발생일**: 2026-04-19
+- **영역**: `src/lib/auth/with-admin-action.ts` / Admin Server Actions 전반
+- **영향도**: Minor (현재 callsite 2개 — 트리거 조건 미충족, 구조 변경 불필요)
+- **연관 파일**: `src/lib/auth/with-admin-action.ts`, `src/app/admin/partners/actions.ts`
+- **증상**:
+  - `AdminActionResult<T>` 반환 타입이 `{ result: T; auditDetails?: ... }` 단일 구조
+  - 현재는 "auditDetails 있음 = 성공, 없음 = early-return" 묵시적 약속으로 운영 중
+  - callsite가 늘어날수록 success/failure 의도가 코드에서 명시적으로 드러나지 않음
+- **트리거 조건**: `withAdminAction`을 사용하는 콜백 callsite가 **10개 이상**에 도달하면 Discriminated Union 패턴으로 리팩터링한다.
+  ```typescript
+  // 전환 목표
+  type AdminActionResult<T> =
+    | { ok: true;  result: T; auditDetails: AdminActionAuditDetails }
+    | { ok: false; result: T }
+  ```
+- **상환 조건**: callsite ≥ 10 도달 시, 별도 리팩터링 티켓 생성 후 진행. 현재 강제하지 않음.
+- **상환 시점 설계 노트**: `ok: false` 분기는 단순 `result: T` 재사용보다 `FailureResult = { ok: false; error: string; fieldErrors?: Record<string, string> }` 로 분리하는 것이 더 의미론적으로 명확하다. 상환 티켓 착수 전 인터페이스 설계를 재검토할 것.
+- **자동 감시**: `scripts/ai-audit.ts`에 `grep -c "withAdminAction"` 카운터 추가 시 callsite 수를 자동으로 추적할 수 있다. (추후 과제)
+- **참조**: CLAUDE.md §3.4 (스케일 설계 원칙), WL-119 (withAdminAction v2 설계 배경)
+
+---
+
 ### DEBT-002 — ContactForm handleSubmit + 폼 필드 로직 중복
 
 - **발생일**: 2026-04-19
