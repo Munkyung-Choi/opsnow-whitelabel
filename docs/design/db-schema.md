@@ -404,7 +404,7 @@ type I18nString = { ko: string; en: string; ja?: string; zh?: string }
 
 | `section_type` | `body` 타입 | 설명 |
 |----------------|-------------|------|
-| `hero` | `I18nString \| null` | 메인 카피 |
+| `hero` | `MiniStatItem[] \| I18nString \| null` | mini_stats 배열(WL-94) 또는 텍스트 카피. 배열이면 `body_json`으로 처리, 객체면 `body`로 처리. |
 | `pain_points` | `null` | `global_contents.meta.cards` 사용, partner row는 title/subtitle만 편집 |
 | `stats` | `StatItem[]` | 아래 참조 |
 | `how_it_works` | `StepItem[]` | 아래 참조 |

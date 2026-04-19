@@ -546,6 +546,29 @@ describe('parseMiniStats', () => {
     expect(result).toHaveLength(1);
     expect(result[0].value).toBe('20%');
   });
+
+  // WL-94: deepLocalizeJson 이 {ko,en,ja,zh} → locale string 변환 후 parseMiniStats에 전달되는 상태 검증.
+  // deepLocalizeJson은 private 함수이므로 post-localization 결과를 직접 주입하여 각 로케일 처리를 확인한다.
+  it('ja 로케일 deepLocalizeJson 결과 → 일본어 label 정상 파싱', () => {
+    const input = [
+      { value: '最大40%', label: '月次請求削減' },
+      { value: '5分', label: '初期設定完了' },
+      { value: '無料', label: '無料分析相談' },
+    ];
+    const result = parseMiniStats(input);
+    expect(result).toHaveLength(3);
+    expect(result[0]).toEqual({ value: '最大40%', label: '月次請求削減' });
+  });
+
+  it('zh 로케일 deepLocalizeJson 결과 → 중국어 label 정상 파싱', () => {
+    const input = [
+      { value: '最高40%', label: '月账单自动节省' },
+      { value: '5分钟', label: '初始集成完成' },
+    ];
+    const result = parseMiniStats(input);
+    expect(result).toHaveLength(2);
+    expect(result[1]).toEqual({ value: '5分钟', label: '初始集成完成' });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
