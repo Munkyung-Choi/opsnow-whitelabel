@@ -15,6 +15,10 @@ export type {
 export { getPartnerAssetUrl } from './get-partner-asset-url'
 
 export { uploadPartnerAsset } from './upload-partner-asset'
-export type { UploadPartnerAssetInput, UploadPartnerAssetResult } from './upload-partner-asset'
+export type {
+  UploadPartnerAssetInput,
+  UploadPartnerAssetResult,
+  UploadErrorCode,
+} from './upload-partner-asset'
 
 export { deletePartnerAsset } from './delete-partner-asset'

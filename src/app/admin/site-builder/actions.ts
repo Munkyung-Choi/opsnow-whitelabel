@@ -55,39 +55,38 @@ export async function updatePartnerTheme(
       // Audit R-A-1: partnerId는 user.partner_id에서 직접 주입 — form 입력 신뢰 금지
       let logoUrl: string | undefined
       let faviconUrl: string | undefined
+      // rollback 대상 추적 — DB 실패 시 이미 업로드된 파일 삭제
+      let uploadedLogo: { path: string; bucket: string } | undefined
+      let uploadedFavicon: { path: string; bucket: string } | undefined
 
       if (logoFile instanceof File && logoFile.size > 0) {
-        try {
-          const { publicUrl } = await uploadPartnerAsset(db, {
-            partnerId: user.partner_id,
-            type: 'logo',
-            file: logoFile,
-          })
-          logoUrl = publicUrl
-        } catch (e) {
-          return {
-            result: {
-              fieldErrors: { logo: e instanceof Error ? e.message : '로고 업로드에 실패했습니다.' },
-            } as SiteBuilderFormState,
-          }
+        const r = await uploadPartnerAsset(db, {
+          partnerId: user.partner_id,
+          type: 'logo',
+          file: logoFile,
+        })
+        if (!r.ok) {
+          return { result: { fieldErrors: { logo: r.error } } as SiteBuilderFormState }
         }
+        logoUrl = r.publicUrl
+        uploadedLogo = { path: r.path, bucket: r.bucket }
       }
 
       if (faviconFile instanceof File && faviconFile.size > 0) {
-        try {
-          const { publicUrl } = await uploadPartnerAsset(db, {
-            partnerId: user.partner_id,
-            type: 'favicon',
-            file: faviconFile,
-          })
-          faviconUrl = publicUrl
-        } catch (e) {
-          return {
-            result: {
-              fieldErrors: { favicon: e instanceof Error ? e.message : '파비콘 업로드에 실패했습니다.' },
-            } as SiteBuilderFormState,
+        const r = await uploadPartnerAsset(db, {
+          partnerId: user.partner_id,
+          type: 'favicon',
+          file: faviconFile,
+        })
+        if (!r.ok) {
+          // 로고가 이미 업로드됐다면 고아 파일 rollback
+          if (uploadedLogo) {
+            await db.storage.from(uploadedLogo.bucket).remove([uploadedLogo.path]).catch(() => {})
           }
+          return { result: { fieldErrors: { favicon: r.error } } as SiteBuilderFormState }
         }
+        faviconUrl = r.publicUrl
+        uploadedFavicon = { path: r.path, bucket: r.bucket }
       }
 
       // Step 5 (DB): partners 업데이트
@@ -104,6 +103,9 @@ export async function updatePartnerTheme(
         .eq('id', user.partner_id)
 
       if (dbError) {
+        // DB 실패 시 업로드된 파일 모두 rollback (고아 파일 방지)
+        if (uploadedLogo) await db.storage.from(uploadedLogo.bucket).remove([uploadedLogo.path]).catch(() => {})
+        if (uploadedFavicon) await db.storage.from(uploadedFavicon.bucket).remove([uploadedFavicon.path]).catch(() => {})
         return {
           result: { error: '저장에 실패했습니다. 잠시 후 다시 시도해 주세요.' } as SiteBuilderFormState,
         }
