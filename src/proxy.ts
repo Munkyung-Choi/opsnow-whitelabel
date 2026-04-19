@@ -143,7 +143,7 @@ function extractLocalSubdomain(host: string): string | null {
   return match ? match[1] : null;
 }
 
-// [WL-61] 타입 재생성 전 임시 인터페이스 — type gen 후 Database 타입으로 자동 대체됨
+// Edge Runtime 전용 subset 인터페이스 — full Database 타입 대신 필요한 컬럼만 선언
 interface PartnerLocaleData {
   id: string;
   default_locale: string;
