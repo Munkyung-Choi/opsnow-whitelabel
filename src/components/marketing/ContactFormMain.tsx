@@ -54,7 +54,7 @@ export default function ContactFormMain({ partnerId, locale }: Props) {
   };
 
   return (
-    <section id="contact" className="border-t bg-muted/40 px-4 py-20 sm:px-6">
+    <section id="contact" className="border-t bg-muted/40 px-4 section-py sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="grid items-start gap-12 lg:grid-cols-2">
 

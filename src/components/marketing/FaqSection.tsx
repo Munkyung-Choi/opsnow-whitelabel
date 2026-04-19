@@ -44,7 +44,7 @@ const FaqSection = memo(function FaqSection({ content }: Props) {
   const faqBase = locale ? `/${locale}/faq` : undefined;
 
   return (
-    <section id="faq" className="scroll-mt-16 bg-background px-4 py-20 sm:px-6">
+    <section id="faq" className="scroll-mt-16 bg-background px-4 section-py sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-3">
 

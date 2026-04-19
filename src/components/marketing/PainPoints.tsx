@@ -20,7 +20,7 @@ export default function PainPoints({ content, locale }: Props) {
   return (
     <section
       id="pain-points"
-      className="scroll-mt-16 bg-background px-4 py-20 sm:px-6"
+      className="scroll-mt-16 bg-background px-4 section-py sm:px-6"
     >
       <div className="mx-auto max-w-6xl">
 

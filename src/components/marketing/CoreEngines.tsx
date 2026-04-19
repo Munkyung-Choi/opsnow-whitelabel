@@ -38,7 +38,7 @@ export default function CoreEngines({ content, partnerName, locale }: Props) {
   const dbEngines = parseEngines(content?.meta ?? null);
 
   return (
-    <section id="core-engines" className="scroll-mt-16 bg-background px-4 py-20 sm:px-6">
+    <section id="core-engines" className="scroll-mt-16 bg-background px-4 section-py sm:px-6">
       <div className="mx-auto max-w-6xl">
 
         {/* 섹션 헤더 */}

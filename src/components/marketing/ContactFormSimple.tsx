@@ -62,7 +62,7 @@ export default function ContactFormSimple({
   };
 
   return (
-    <section id="contact" className="bg-muted/40 px-4 py-20 sm:px-6">
+    <section id="contact" className="bg-muted/40 px-4 section-py sm:px-6">
       <div className="mx-auto max-w-2xl">
         {submitted ? (
           /* ── 성공 상태 ── */

@@ -35,6 +35,7 @@ export type ThemeVars = Record<string, string>
 export const themes: Record<ThemeKey, ThemeVars> = {
   // ── Gray / Dark Navy ─────────────────────────────────────────────────────
   gray: {
+    '--section-spacing-y':      '5rem',
     '--primary':                '243 48% 9%',
     '--primary-foreground':     '0 0% 100%',
     '--secondary':              '243 20% 93%',
@@ -58,6 +59,7 @@ export const themes: Record<ThemeKey, ThemeVars> = {
 
   // ── Blue ─────────────────────────────────────────────────────────────────
   blue: {
+    '--section-spacing-y':      '5rem',
     '--primary':                '234 100% 36%',
     '--primary-foreground':     '0 0% 100%',
     '--secondary':              '234 50% 94%',
@@ -81,6 +83,7 @@ export const themes: Record<ThemeKey, ThemeVars> = {
 
   // ── Green ─────────────────────────────────────────────────────────────────
   green: {
+    '--section-spacing-y':      '5rem',
     '--primary':                '146 54% 22%',
     '--primary-foreground':     '0 0% 100%',
     '--secondary':              '146 28% 92%',
@@ -104,6 +107,7 @@ export const themes: Record<ThemeKey, ThemeVars> = {
 
   // ── Orange ────────────────────────────────────────────────────────────────
   orange: {
+    '--section-spacing-y':      '5rem',
     '--primary':                '18 99% 41%',
     '--primary-foreground':     '0 0% 100%',
     '--secondary':              '18 55% 94%',

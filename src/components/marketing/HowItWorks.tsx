@@ -21,7 +21,7 @@ export default function HowItWorks({ content, locale }: Props) {
   const steps = parseSteps(content?.body_json ?? null, locale);
 
   return (
-    <section id="how-it-works" className="scroll-mt-16 bg-background px-4 py-20 sm:px-6">
+    <section id="how-it-works" className="scroll-mt-16 bg-background px-4 section-py sm:px-6">
       <div className="mx-auto max-w-6xl">
 
         {/* 섹션 헤더 */}

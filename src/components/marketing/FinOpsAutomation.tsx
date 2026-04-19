@@ -71,7 +71,7 @@ export default function FinOpsAutomation({ content, locale }: Props) {
   const subtitle = content?.subtitle ?? t.defaultSubtitle;
 
   return (
-    <section id="finops" className="scroll-mt-16 bg-background px-4 py-20 sm:px-6">
+    <section id="finops" className="scroll-mt-16 bg-background px-4 section-py sm:px-6">
       <div className="mx-auto max-w-6xl">
 
         {/* 섹션 헤더 */}
