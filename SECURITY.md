@@ -1,6 +1,6 @@
 # SECURITY.md — OpsNow White-label Site 보안 헌법
 
-> **최종 업데이트**: 2026-04-08 (WL-8 작업 반영)
+> **최종 업데이트**: 2026-04-19 (WL-123 system_logs.partner_id 추가 반영)
 > **참조 문서**: `supabase/migrations/20260408000003_rls_policies.sql`
 > **Auditor 역할**: 세션 시작 시 이 문서를 반드시 참조하라.
 
@@ -99,7 +99,7 @@
 | `global_contents` | 전체 조회 | 전체 조회 | 전체 CRUD | RLS 우회 |
 | `leads` | 자사에만 INSERT | 자사만 SELECT·UPDATE | **직접 접근 불가** | RLS 우회 |
 | `site_visits` | ❌ | 자사만 조회 | 전체 조회 | RLS 우회 (Upsert) |
-| `system_logs` | ❌ | 자기 파트너 impersonation 로그만 SELECT (WL-121) | 전체 SELECT | RLS 우회 (INSERT) |
+| `system_logs` | ❌ | 자기 파트너 `partner_id` 또는 `on_behalf_of` 매칭 로그 SELECT (WL-121 + WL-123) | 전체 SELECT | RLS 우회 (INSERT) |
 
 ---
 
