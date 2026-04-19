@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase/server'
+import { writeAuditLog } from '@/lib/audit/write-audit-log'
 
 const LogBodySchema = z.object({
   action: z.string().min(1),
@@ -12,8 +13,10 @@ const LogBodySchema = z.object({
 
 /**
  * POST /api/admin/logs
- * Admin Server Action에서 system_logs를 기록하는 내부 전용 엔드포인트.
- * service_role을 통해 RLS를 우회하여 INSERT 수행.
+ * 브라우저 fetch 경로 감사 로그용 엔드포인트 (Admin UI → 서버 기록).
+ *
+ * Server Action 내부에서는 withAdminAction이 writeAuditLog를 직접 호출하므로
+ * 이 엔드포인트를 fetch로 돌아갈 필요 없다 — Server Action은 lib 직접 호출.
  *
  * Authorization: Bearer {access_token} 헤더 필수.
  */
@@ -41,19 +44,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
   }
 
-  const { error } = await supabaseAdmin.from('system_logs').insert({
-    actor_id: user.id,
-    action: parsed.data.action,
-    target_table: parsed.data.target_table ?? null,
-    target_id: parsed.data.target_id ?? null,
-    diff: parsed.data.diff ?? null,
-    on_behalf_of: parsed.data.on_behalf_of ?? null,
-    ip: request.headers.get('x-forwarded-for') ?? null,
-  })
-
-  if (error) {
-    return NextResponse.json({ error: 'Log write failed' }, { status: 500 })
+  try {
+    await writeAuditLog({
+      actor_id: user.id,
+      action: parsed.data.action,
+      target_table: parsed.data.target_table,
+      target_id: parsed.data.target_id,
+      diff: parsed.data.diff,
+      on_behalf_of: parsed.data.on_behalf_of,
+      ip: request.headers.get('x-forwarded-for') ?? null,
+    })
+    return NextResponse.json({ ok: true })
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Log write failed' },
+      { status: 500 }
+    )
   }
-
-  return NextResponse.json({ ok: true })
 }

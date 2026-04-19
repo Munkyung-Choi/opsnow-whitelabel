@@ -9,6 +9,18 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
+// revalidatePath mock — next/cache의 serverside cache 갱신 훅.
+const revalidatePathMock = vi.fn()
+vi.mock('next/cache', () => ({
+  revalidatePath: (path: string) => revalidatePathMock(path),
+}))
+
+// writeAuditLog mock — 호출 인자 검증 + 실패 시나리오 주입.
+const writeAuditLogMock = vi.fn()
+vi.mock('@/lib/audit/write-audit-log', () => ({
+  writeAuditLog: (entry: unknown) => writeAuditLogMock(entry),
+}))
+
 // React cache()는 Server Component runtime 의존 — 테스트에서는 identity로 대체.
 vi.mock('react', async () => {
   const actual = await vi.importActual<typeof import('react')>('react')
@@ -53,6 +65,8 @@ let consoleErrorSpy: ReturnType<typeof vi.spyOn>
 beforeEach(() => {
   vi.clearAllMocks()
   consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  writeAuditLogMock.mockResolvedValue(undefined)
+  revalidatePathMock.mockReturnValue(undefined)
 })
 
 afterEach(() => {
@@ -196,12 +210,12 @@ describe('requireRole', () => {
   })
 })
 
-// ── withAdminAction ───────────────────────────────────────────────────────────
-describe('withAdminAction', () => {
+// ── withAdminAction v2 (WL-119) ───────────────────────────────────────────────
+describe('withAdminAction v2', () => {
   it('미인증 → getCurrentUser가 redirect 유발', async () => {
     getUserMock.mockResolvedValue({ data: { user: null } })
     await expect(
-      withAdminAction({}, async () => 'result')
+      withAdminAction({ auditAction: 'test.noop' }, async () => ({ result: 'x' }))
     ).rejects.toThrow('__REDIRECT__:/auth/login')
   })
 
@@ -211,7 +225,10 @@ describe('withAdminAction', () => {
       data: { role: 'partner_admin', partner_id: 'some-partner-id' },
     })
     await expect(
-      withAdminAction({ requiredRole: 'master_admin' }, async () => 'result')
+      withAdminAction(
+        { requiredRole: 'master_admin', auditAction: 'test.noop' },
+        async () => ({ result: 'x' })
+      )
     ).rejects.toThrow('Unauthorized: insufficient role')
   })
 
@@ -220,18 +237,21 @@ describe('withAdminAction', () => {
     profileSingleMock.mockResolvedValue({
       data: { role: 'partner_admin', partner_id: 'some-partner-id' },
     })
-    const result = await withAdminAction({}, async (user) => user.role)
+    const result = await withAdminAction(
+      { auditAction: 'test.noop' },
+      async (user) => ({ result: user.role })
+    )
     expect(result).toBe('partner_admin')
   })
 
-  it('정상 → callback(user, db) 실행 결과 반환', async () => {
+  it('정상 → callback.result 반환 (auditDetails는 stripped)', async () => {
     getUserMock.mockResolvedValue({ data: { user: { id: MASTER_UID } } })
     profileSingleMock.mockResolvedValue({
       data: { role: 'master_admin', partner_id: null },
     })
     const result = await withAdminAction(
-      { requiredRole: 'master_admin' },
-      async (user) => ({ id: user.id, role: user.role })
+      { requiredRole: 'master_admin', auditAction: 'test.noop' },
+      async (user) => ({ result: { id: user.id, role: user.role } })
     )
     expect(result).toEqual({ id: MASTER_UID, role: 'master_admin' })
   })
@@ -242,16 +262,145 @@ describe('withAdminAction', () => {
     profileSingleMock.mockResolvedValue({
       data: { role: 'partner_admin', partner_id: partnerId },
     })
-    // 아래 callback 내부에서 user.partner_id 를 string으로 직접 사용 가능해야 한다 (컴파일 성공).
-    // 런타임 검증도 수행.
     const result = await withAdminAction(
-      { requiredRole: 'partner_admin' },
+      { requiredRole: 'partner_admin', auditAction: 'test.noop' },
       async (user) => {
         const scopedId: string = user.partner_id
-        return scopedId
+        return { result: scopedId }
       }
     )
     expect(result).toBe(partnerId)
+  })
+
+  // ── v2 신규: 자동 audit + revalidate ─────────────────────────────────────
+  it('auditDetails 존재 → writeAuditLog 자동 호출 (action 포함)', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: MASTER_UID } } })
+    profileSingleMock.mockResolvedValue({
+      data: { role: 'master_admin', partner_id: null },
+    })
+    await withAdminAction(
+      { requiredRole: 'master_admin', auditAction: 'partner.create' },
+      async () => ({
+        result: { ok: true },
+        auditDetails: {
+          target_table: 'partners',
+          target_id: 'partner-123',
+          diff: { after: { subdomain: 'demo' } },
+        },
+      })
+    )
+    expect(writeAuditLogMock).toHaveBeenCalledTimes(1)
+    expect(writeAuditLogMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actor_id: MASTER_UID,
+        action: 'partner.create',
+        target_table: 'partners',
+        target_id: 'partner-123',
+      })
+    )
+  })
+
+  it('auditDetails 없음 (early return) → writeAuditLog 미호출 + revalidate 미호출', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: MASTER_UID } } })
+    profileSingleMock.mockResolvedValue({
+      data: { role: 'master_admin', partner_id: null },
+    })
+    await withAdminAction(
+      {
+        requiredRole: 'master_admin',
+        auditAction: 'partner.create',
+        revalidate: '/admin/partners',
+      },
+      async () => ({ result: { fieldErrors: { subdomain: 'duplicate' } } })
+    )
+    expect(writeAuditLogMock).not.toHaveBeenCalled()
+    expect(revalidatePathMock).not.toHaveBeenCalled()
+  })
+
+  it('revalidate 단일 경로 → revalidatePath 1회 호출', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: MASTER_UID } } })
+    profileSingleMock.mockResolvedValue({
+      data: { role: 'master_admin', partner_id: null },
+    })
+    await withAdminAction(
+      {
+        requiredRole: 'master_admin',
+        auditAction: 'partner.create',
+        revalidate: '/admin/partners',
+      },
+      async () => ({
+        result: { ok: true },
+        auditDetails: { target_table: 'partners' },
+      })
+    )
+    expect(revalidatePathMock).toHaveBeenCalledTimes(1)
+    expect(revalidatePathMock).toHaveBeenCalledWith('/admin/partners')
+  })
+
+  it('revalidate 배열 → 각 경로별 호출', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: MASTER_UID } } })
+    profileSingleMock.mockResolvedValue({
+      data: { role: 'master_admin', partner_id: null },
+    })
+    await withAdminAction(
+      {
+        requiredRole: 'master_admin',
+        auditAction: 'partner.create',
+        revalidate: ['/admin/partners', '/admin/dashboard'],
+      },
+      async () => ({
+        result: { ok: true },
+        auditDetails: { target_table: 'partners' },
+      })
+    )
+    expect(revalidatePathMock).toHaveBeenCalledTimes(2)
+    expect(revalidatePathMock).toHaveBeenNthCalledWith(1, '/admin/partners')
+    expect(revalidatePathMock).toHaveBeenNthCalledWith(2, '/admin/dashboard')
+  })
+
+  // R-3 (Partial Failure): audit 실패 시 helper throw + revalidate 미실행
+  it('writeAuditLog 실패 → helper throw, revalidate 미호출 (Audit Integrity)', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: MASTER_UID } } })
+    profileSingleMock.mockResolvedValue({
+      data: { role: 'master_admin', partner_id: null },
+    })
+    writeAuditLogMock.mockRejectedValueOnce(new Error('[audit] system_logs write failed: db down'))
+    await expect(
+      withAdminAction(
+        {
+          requiredRole: 'master_admin',
+          auditAction: 'partner.create',
+          revalidate: '/admin/partners',
+        },
+        async () => ({
+          result: { ok: true },
+          auditDetails: { target_table: 'partners' },
+        })
+      )
+    ).rejects.toThrow('[audit] system_logs write failed')
+    expect(revalidatePathMock).not.toHaveBeenCalled()
+  })
+
+  // Redirect Integrity: audit 호출이 await으로 완료된 뒤 return (fire-and-forget 아님)
+  it('audit 호출 완료 전 return하지 않는다 (await 순서)', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: MASTER_UID } } })
+    profileSingleMock.mockResolvedValue({
+      data: { role: 'master_admin', partner_id: null },
+    })
+    let auditCompleted = false
+    writeAuditLogMock.mockImplementation(async () => {
+      await new Promise((r) => setTimeout(r, 10))
+      auditCompleted = true
+    })
+    const result = await withAdminAction(
+      { requiredRole: 'master_admin', auditAction: 'partner.create' },
+      async () => ({
+        result: 'done',
+        auditDetails: { target_table: 'partners' },
+      })
+    )
+    expect(auditCompleted).toBe(true)
+    expect(result).toBe('done')
   })
 })
 

@@ -292,7 +292,9 @@ Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
 
 - **Masking**: `leads` 관련 API는 `master_admin`에게 반드시 `leads_masked_view`를 통해서만 데이터를 반환하라. 직접 테이블 접근 금지.
 - **RLS Policy**: 테이블 생성 혹은 수정 시 반드시 관련 RLS 정책을 함께 작성하고, `SECURITY.md`의 접근 행렬을 업데이트하라.
-- **service_role 격리**: `supabaseAdmin`(service_role key)은 서버사이드 Route Handler에서만 사용. 클라이언트 컴포넌트에 절대 노출 금지. 허가된 Route Handler: `/api/visits/upsert`, `/api/admin/logs`, `/api/auth/provision`, `/api/admin/domain-approval` (4개 한정).
+- **service_role 격리**: `supabaseAdmin`(service_role key)은 서버사이드에서만 사용. 클라이언트 컴포넌트에 절대 노출 금지.
+  - **허가된 Route Handler**: `/api/visits/upsert`, `/api/admin/logs`, `/api/auth/provision`, `/api/admin/domain-approval` (4개 한정).
+  - **허가된 서버 전용 라이브러리**: `src/lib/audit/`, `src/lib/auth/` 하위 헬퍼. 이 모듈들은 Server Component·Server Action·Route Handler 전용으로 클라이언트 번들에 포함되지 않는다. 직접 `supabaseAdmin`을 import하여 `writeAuditLog`처럼 공유 함수를 호출할 수 있다. 클라이언트 노출 여부는 `'use client'` 디렉티브 부재 + 호출자가 server-only 경로임을 보장.
 - **Server Action 인증 필수**: Admin 영역의 모든 Server Action은 실행 시작 시 반드시 세션 유효성과 역할 권한을 확인한다. 인증 체크 없는 Server Action을 작성하지 않는다.
 - **입력 검증 경계**: 사용자 입력(폼 데이터, URL 파라미터)은 반드시 Server Action 진입 시점에서 Zod 스키마로 검증한다. 클라이언트 검증은 UX 편의이며, 서버 검증을 대체하지 않는다.
 
