@@ -65,7 +65,7 @@
 
 ---
 
-## 6. Spawn Template (HIGH 트랙 sub-agent 스폰용)
+## 6. Spawn Template (High·Critical 트랙 sub-agent 스폰용)
 
 ```
 Agent({

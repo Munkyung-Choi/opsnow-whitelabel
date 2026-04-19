@@ -515,7 +515,7 @@ interface VerificationRecord {
 
 1. `system_logs.on_behalf_of` NO ACTION이 파트너 삭제 트랜잭션을 차단한다. 정책 재설계 필요 — 예: `SET NULL`로 변경하고 `diff.before`에 파트너 스냅샷을 저장해 감사 추적성을 유지.
 2. `leads.partner_id` CASCADE로 리드가 함께 소멸한다. 개인정보 보관 의무(예: 세무·통신판매 관련)가 있다면 **soft delete** 전환 필요.
-3. 파트너 삭제는 HIGH 트랙으로 분류하고 Auditor Digest 필수.
+3. 파트너 삭제는 Critical 트랙으로 분류하고 Auditor Digest 필수.
 
 ---
 
@@ -542,4 +542,4 @@ Admin 리스트/대시보드를 App 레이어 loop로 구현하면 N+1 쿼리가
 | `fn_partner_metrics(p_partner_id uuid)` | FUNCTION | 단일 파트너 KPI(리드·방문·발행률) | `SECURITY INVOKER` — RLS 준수 |
 | `fn_log_admin_action(action, target_table, target_id, diff, on_behalf_of)` | FUNCTION | Server Action 7단계 체크체인 중 6단계(감사 로그) 공용 헬퍼. service_role 키 노출 없이 Server Action에서 호출 | `SECURITY DEFINER` + 호출자 역할 재검증 |
 
-> ⚠️ 위 오브젝트는 **설계 초안**이며 실제 생성은 각 Admin 기능 티켓에서 `/migration-safe` 체크 → HIGH 트랙 Human Check 승인 후 마이그레이션 파일로 추가한다.
+> ⚠️ 위 오브젝트는 **설계 초안**이며 실제 생성은 각 Admin 기능 티켓에서 `/migration-safe` 체크 → High·Critical 트랙 Human Check 승인 후 마이그레이션 파일로 추가한다.

@@ -108,8 +108,8 @@
   - 데이터 변환 마이그레이션은 타겟 컬럼의 실제 샘플 5행 이상 전/후 형태를 **의미론 단위**로 명시 필요
   - 특히 `to_jsonb()`, `::jsonb`, `jsonb_build_object()` 등 JSON 변환 함수는 입력이 **스칼라인지 객체 JSON 문자열인지**를 분류 후 선택
 - **재발 방지 적용**:
-  - CLAUDE.md §MED 트랙 Step 4 "데이터 변환 검증" 항목에 NULL/빈 문자열/특수문자/비정형 JSON 샘플 강제 포함 (2026-04-18)
-  - HIGH 트랙 Auditor 스폰 프롬프트 Step 2 "Data Integrity" 관점에 타입 불일치 증명 의무 포함 (2026-04-18)
+  - CLAUDE.md §Med 트랙 Step 4 "데이터 변환 검증" 항목에 NULL/빈 문자열/특수문자/비정형 JSON 샘플 강제 포함 (2026-04-18)
+  - High·Critical 트랙 Auditor 스폰 프롬프트 Step 2 "Data Integrity" 관점에 타입 불일치 증명 의무 포함 (2026-04-18)
 - **연관**: DEBT-001, WL-83, WL-105
 
 ---

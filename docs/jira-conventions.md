@@ -14,12 +14,12 @@ WL 프로젝트의 모든 신규 티켓에 아래 커스텀 필드를 반드시 
 
 | 값 | Option ID | 해당 Harness 트랙 | 승인 방식 |
 |----|-----------|------------------|----------|
-| `🟥Critical` | 11244 | 🚨 HIGH-Critical — RLS 신규·변경, Column Type 변경, Data Update/Backfill, Auth·Proxy·Session, Column/Table Drop | **동기식 승인** (세션 내 대면 검토) |
-| `🟨High`     | 11245 | 🚨 HIGH-Standard — nullable Column 추가, 신규 Index, CHECK 제약 확장, 복구 용이한 스키마 추가 | **비동기 승인** (Jira 댓글 승인 가능) |
-| `🟫Med`      | 11262 | ⚠️ MED 트랙 — 신규 페이지, CRUD, API 연동 | 불필요 |
-| `🟩Low`      | 11246 | ✅ LOW 트랙 — UI/CSS, i18n 번역, 문서화 | 불필요 |
+| `🟥Critical` | 11244 | Critical 트랙 — RLS 신규·변경, Column Type 변경, Data Update/Backfill, Auth·Proxy·Session, Column/Table Drop | **동기식 승인** (세션 내 대면 검토) |
+| `🟨High`     | 11245 | High 트랙 — nullable Column 추가, 신규 Index, CHECK 제약 확장, 복구 용이한 스키마 추가 | **비동기 승인** (Jira 댓글 승인 가능) |
+| `🟫Med`      | 11262 | Med 트랙 — 신규 페이지, CRUD, API 연동 | 불필요 |
+| `🟩Low`      | 11246 | Low 트랙 — UI/CSS, i18n 번역, 문서화 | 불필요 |
 
-Tech Risk는 `CLAUDE.md §🛠️` 트랙 분류 및 HIGH 트랙 세부 분류 기준으로 설정한다. 판단 불확실 시 상위 등급으로 올린다 (Fail-safe).
+Tech Risk는 `CLAUDE.md` 트랙 분류 기준으로 설정한다. 판단 불확실 시 상위 등급으로 올린다 (Fail-safe).
 
 ## 허용값 조회 절차 (티켓 생성 전 필수)
 
@@ -57,7 +57,7 @@ issueTypeId: <생성할 이슈 타입 ID>
 }
 ```
 
-> Tech Risk는 `CLAUDE.md §🛠️` 트랙 분류 기준으로 결정한다. 허용값: `🟥Critical` / `🟨High` / `🟫Med` / `🟩Low`
+> Tech Risk는 `CLAUDE.md` 트랙 분류 기준으로 결정한다. 허용값: `🟥Critical` / `🟨High` / `🟫Med` / `🟩Low`
 
 > **주의**: 허용값 목록을 문서에 하드코딩하지 않는다. Jira에서 언제든 변경될 수 있다.
 
