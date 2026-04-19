@@ -52,3 +52,6 @@ docs/exec-plans/rls-fixtures.env
 
 # 일회성 분석 덤프 (수동 생성)
 report.txt
+
+# Confluence ADF 임시 출력 (MCP 도구 부산물)
+adf_output.json

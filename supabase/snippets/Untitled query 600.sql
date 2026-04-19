@@ -1,5 +1,4 @@
-  CREATE POLICY "leads_public_insert" ON leads
-    FOR INSERT TO anon
-    WITH CHECK (
-      partner_id IN (SELECT id FROM partners WHERE is_active = true)
-    );
+  SELECT subdomain, business_name, is_active, owner_id, created_at
+  FROM public.partners
+  WHERE subdomain IN ('partner-a', 'partner-b', 'partner-c', 'partner-d')
+  ORDER BY subdomain;
