@@ -5,8 +5,6 @@ import { withAdminAction } from '@/lib/auth/with-admin-action'
 import { updatePartnerThemeSchema, type SiteBuilderFormState } from '@/lib/schemas/site-builder'
 import { uploadPartnerAsset, validatePartnerAssetFile } from '@/lib/storage'
 
-export type { SiteBuilderFormState }
-
 export async function updatePartnerTheme(
   _prevState: SiteBuilderFormState,
   formData: FormData

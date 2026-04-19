@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // 파트너 로고 최대 2MB + form 필드 오버헤드 허용
+      bodySizeLimit: '3mb',
+    },
+  },
   images: {
     remotePatterns: [
       // 파트너 로고 플레이스홀더 (개발/테스트 전용)

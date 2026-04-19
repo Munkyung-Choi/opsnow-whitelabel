@@ -6,7 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { THEME_META, type ThemeKey } from '@/lib/theme-presets'
-import { updatePartnerTheme, type SiteBuilderFormState } from './actions'
+import { validatePartnerAssetFile, type PartnerAssetType } from '@/lib/storage'
+import { updatePartnerTheme } from './actions'
+import type { SiteBuilderFormState } from '@/lib/schemas/site-builder'
 
 interface Props {
   currentThemeKey: ThemeKey | null
@@ -20,14 +22,26 @@ export default function SiteBuilderForm({ currentThemeKey, currentLogoUrl, curre
   const [state, formAction, isPending] = useActionState(updatePartnerTheme, initialState)
   const [logoPreview, setLogoPreview] = useState<string | null>(currentLogoUrl)
   const [faviconPreview, setFaviconPreview] = useState<string | null>(currentFaviconUrl)
+  const [clientFileErrors, setClientFileErrors] = useState<{ logo?: string; favicon?: string }>({})
+  const hasClientErrors = !!(clientFileErrors.logo || clientFileErrors.favicon)
 
   function handleFileChange(
     e: React.ChangeEvent<HTMLInputElement>,
-    setter: (url: string | null) => void
+    type: PartnerAssetType,
+    setPreview: (url: string | null) => void
   ) {
     const file = e.target.files?.[0]
-    if (!file) return
-    setter(URL.createObjectURL(file))
+    if (!file) {
+      setClientFileErrors(prev => ({ ...prev, [type]: undefined }))
+      return
+    }
+    const v = validatePartnerAssetFile(type, file)
+    if (!v.ok) {
+      setClientFileErrors(prev => ({ ...prev, [type]: v.error }))
+      return
+    }
+    setClientFileErrors(prev => ({ ...prev, [type]: undefined }))
+    setPreview(URL.createObjectURL(file))
   }
 
   return (
@@ -86,13 +100,15 @@ export default function SiteBuilderForm({ currentThemeKey, currentLogoUrl, curre
             type="file"
             accept="image/png,image/jpeg,image/webp"
             className="text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-secondary file:text-secondary-foreground hover:file:bg-accent"
-            onChange={(e) => handleFileChange(e, setLogoPreview)}
+            onChange={(e) => handleFileChange(e, 'logo', setLogoPreview)}
             data-testid="logo-input"
           />
         </div>
         <p className="text-xs text-muted-foreground">PNG, JPG, WebP · 최대 2MB</p>
-        {state.fieldErrors?.logo && (
-          <p className="text-xs text-destructive" role="alert">{state.fieldErrors.logo}</p>
+        {(clientFileErrors.logo ?? state.fieldErrors?.logo) && (
+          <p className="text-xs text-destructive" role="alert">
+            {clientFileErrors.logo ?? state.fieldErrors?.logo}
+          </p>
         )}
       </div>
 
@@ -116,17 +132,19 @@ export default function SiteBuilderForm({ currentThemeKey, currentLogoUrl, curre
             type="file"
             accept="image/x-icon,image/vnd.microsoft.icon,image/png"
             className="text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-secondary file:text-secondary-foreground hover:file:bg-accent"
-            onChange={(e) => handleFileChange(e, setFaviconPreview)}
+            onChange={(e) => handleFileChange(e, 'favicon', setFaviconPreview)}
             data-testid="favicon-input"
           />
         </div>
         <p className="text-xs text-muted-foreground">ICO, PNG · 최대 512KB</p>
-        {state.fieldErrors?.favicon && (
-          <p className="text-xs text-destructive" role="alert">{state.fieldErrors.favicon}</p>
+        {(clientFileErrors.favicon ?? state.fieldErrors?.favicon) && (
+          <p className="text-xs text-destructive" role="alert">
+            {clientFileErrors.favicon ?? state.fieldErrors?.favicon}
+          </p>
         )}
       </div>
 
-      <Button type="submit" disabled={isPending} className="min-w-24">
+      <Button type="submit" disabled={isPending || hasClientErrors} className="min-w-24">
         {isPending ? '저장 중...' : '저장'}
       </Button>
     </form>
