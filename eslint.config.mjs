@@ -18,6 +18,31 @@ const eslintConfig = defineConfig([
     "playwright-report/**",
     "test-results/**",
   ]),
+  // § 9.3 컴포넌트 도메인 경계 강제 (CLAUDE.md)
+  // admin 영역(컴포넌트 + 페이지) → marketing 컴포넌트 참조 금지
+  {
+    files: ["src/components/admin/**", "src/app/admin/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["**/components/marketing/**"],
+          message: "Admin 영역에서 Marketing 컴포넌트를 import할 수 없습니다. 두 도메인에서 모두 쓰인다면 src/components/shared/로 이동하세요.",
+        }],
+      }],
+    },
+  },
+  // marketing 영역(컴포넌트 + 페이지) → admin 컴포넌트 참조 금지
+  {
+    files: ["src/components/marketing/**", "src/app/[...slug]/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["**/components/admin/**"],
+          message: "Marketing 영역에서 Admin 컴포넌트를 import할 수 없습니다.",
+        }],
+      }],
+    },
+  },
 ]);
 
 export default eslintConfig;
