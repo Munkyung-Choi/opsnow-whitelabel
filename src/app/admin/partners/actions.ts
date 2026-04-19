@@ -35,6 +35,8 @@ export async function createPartner(
         business_name: formData.get('business_name'),
         subdomain: formData.get('subdomain'),
         theme_key: formData.get('theme_key'),
+        default_locale: formData.get('default_locale') ?? 'ko',
+        published_locales: formData.getAll('published_locales'),
       })
 
       if (!parsed.success) {
@@ -45,6 +47,8 @@ export async function createPartner(
               business_name: flat.business_name?.[0],
               subdomain: flat.subdomain?.[0],
               theme_key: flat.theme_key?.[0],
+              default_locale: flat.default_locale?.[0],
+              published_locales: flat.published_locales?.[0],
             },
           } as PartnerFormState,
           // auditDetails 없음 → audit skip (변경 없음)
@@ -61,8 +65,8 @@ export async function createPartner(
           // TODO: /api/auth/provision 구현 후 partner_admin user ID로 교체 (WL-53 follow-up #1)
           owner_id: user.id,
           is_active: true,
-          default_locale: 'ko',
-          published_locales: ['ko'],
+          default_locale: parsed.data.default_locale,
+          published_locales: parsed.data.published_locales,
           notification_emails: [],
         })
         .select('id')
