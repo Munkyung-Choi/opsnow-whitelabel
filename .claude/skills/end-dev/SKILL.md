@@ -22,10 +22,17 @@ description: 세션 종료 전 오늘의 작업 서사를 docs/journal/YYYY-MM-D
 ### STEP 1 — Preflight
 
 1. 오늘 날짜 확인: `date +%Y-%m-%d` (예: 2026-04-19)
-2. `docs/journal/YYYY-MM-DD.md` 존재 여부:
+2. **Test Integrity Gate** (soft check — 아래 두 가지를 사용자에게 확인한다):
+   - "오늘 세션의 변경사항이 `npx playwright test` 결과에 반영되었으며 0 regression 상태임을 확인했는가?"
+   - "Flaky 결과가 있다면 그 사유를 인지하고 있는가?"
+   - 미확인 시: `npx playwright test` 실행을 권고한다. 단, 사용자가 "확인 생략"을 명시하면 진행한다.
+3. **Context Preservation Gate** (soft check):
+   - "오늘 기각한 선택지의 이유가 일지에 기록될 준비가 되어 있는가?"
+   - 이 단계는 차단 조건이 아니라 STEP 4 Rejected Paths 보완의 사전 준비다.
+4. `docs/journal/YYYY-MM-DD.md` 존재 여부:
    - **없음** → 신규 생성 경로 (STEP 2로)
    - **있음** → 갱신 모드 공지 + 기존 내용 읽어서 사용자에게 보여주고 "추가 갱신" vs "처음부터 재작성" 선택 질문
-3. `docs/journal/_template.md` 템플릿 구조를 메모리에 로드
+5. `docs/journal/_template.md` 템플릿 구조를 메모리에 로드
 
 ### STEP 2 — 작업 맥락 수집 (3개 소스 병렬)
 
