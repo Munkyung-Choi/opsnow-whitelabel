@@ -1,12 +1,12 @@
 ---
 ticket: WL-XXX
-risk: HIGH | MEDIUM
+risk: Critical | High
 date: YYYY-MM-DD
 architect: Claude Sonnet 4.6
 external_reviewer: Gemini (optional)
 ---
 
-## 📝 Auditor Digest
+## Auditor Digest
 
 ### Core Logic
 <!-- 구현된 로직의 핵심 요약 — 3줄 이내 -->

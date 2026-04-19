@@ -10,6 +10,8 @@
 - **Space Homepage ID**: `290849306`
 - 작업 전 배경 파악이 필요할 때만 `getConfluencePage`로 관련 문서를 선택적으로 조회하라.
 - 세션이 길어지면 컨텍스트를 스스로 리프레시하라.
+- **Confluence 이미지 보존**: `updateConfluencePage` 전 반드시 `getConfluencePage(contentFormat: "adf")`로 읽는다. ADF에 `mediaSingle` / `mediaGroup` 노드가 있으면 **ADF 형식으로 업데이트**하여 media 노드를 원문 그대로 유지한다. markdown 덮어쓰기 금지.
+- **Confluence 작성 원칙**: 기술 스펙(컬럼명·타입·구현 상세)은 코드·`db-schema.md`가 SSOT. Confluence에는 AC(완료 기준)·설계 배경·동작 설명만 기록한다.
 
 ### 문서 Page ID 목록 (v2.0, 2026-04-18 전사 재구조화)
 

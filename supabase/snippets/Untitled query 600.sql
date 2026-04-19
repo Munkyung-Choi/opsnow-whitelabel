@@ -1,2 +1,5 @@
-  SELECT tgname AS trigger_name FROM pg_trigger WHERE tgrelid = 'public.domain_requests'::regclass;
-  SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'domain_requests';
+  CREATE POLICY "leads_public_insert" ON leads
+    FOR INSERT TO anon
+    WITH CHECK (
+      partner_id IN (SELECT id FROM partners WHERE is_active = true)
+    );

@@ -67,6 +67,7 @@
 
 | 명령어 | 사용 시점 |
 |--------|----------|
+| `/mermaid [설명]` | Mermaid 다이어그램 생성 시 — `<br/>` 줄바꿈·육각형 판정 노드·`padding: 0` 렌더링 표준 적용 |
 | `/jira-syntax` | Jira 설명·댓글 작성 시 — Markdown → Jira 위키 마크업 변환, 템플릿 제공 |
 | `/changelog-generator` | 릴리스 체인지로그 생성 |
 

@@ -74,6 +74,7 @@
 | **database-migration** | `/database-migration` | Supabase 마이그레이션 작성 패턴 참조 |
 | **supabase-audit-rls** | `/supabase-audit-rls` | RLS 정책 bypass 취약점 검증 |
 | **end-dev** | `/end-dev` | 세션 종료 전 — 오늘 서사 박제 (`docs/journal/YYYY-MM-DD.md`) + 일/월요일엔 Confluence 주간 롤업 Live Doc 발행 제안 |
+| **mermaid** | `/mermaid [설명]` | Mermaid 다이어그램 생성 시 — `<br/>` 줄바꿈·육각형 판정 노드·`padding: 0` 렌더링 표준 적용 |
 
 ---
 
