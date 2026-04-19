@@ -316,6 +316,16 @@ Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
 - 현재(`partner_id` 컬럼 미존재 시점)는 `on_behalf_of`를 활용한다.
 - 감사 로그 조회가 `JOIN partners` 없이 `WHERE partner_id = ?` 단일 조건으로 가능해야 한다.
 
+**[규칙 5] DB 커넥션 격리 — Transaction Pooler 전용**
+
+- 모든 서버사이드 Supabase 클라이언트는 **Transaction Pooler 엔드포인트**를 사용한다. Session Mode 사용 금지.
+- 파트너 수 증가 시 DB 커넥션 수가 선형적으로 증가하지 않아야 한다 (Noisy Neighbor 방지).
+
+**[규칙 6] 파트너 자산 외부 URL 전용**
+
+- 로고·파비콘·이미지 등 파트너 자산은 반드시 **Supabase Storage URL 또는 CDN URL**로 참조한다.
+- 로컬 파일시스템 경로(`/public/`, `./assets/` 등) 참조 금지 — 빌드 번들 비대화 및 파트너 간 혼용 방지.
+
 ## [4. Security & Privacy Enforcement]
 
 > **⚠️ 보안 상세 규칙은 `SECURITY.md`를 참조하라.** 이 섹션은 핵심 원칙만 요약한다.
