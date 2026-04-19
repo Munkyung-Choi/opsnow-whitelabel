@@ -86,9 +86,13 @@ test.describe('WL-100 H-1: HeroSection — WL-67', () => {
     expect(text ?? '').not.toContain('{PartnerName}');
   });
 
-  // WL-94: hero mini_stats DB 시딩 검증 — SQL 실행 후 skip 해제 및 assertions 작성
-  test.skip('H-1-94: hero 섹션 mini_stats가 DB 시딩값(최대 40%)을 우선 렌더링한다 (partner-a)', async () => {});
-  test.skip('H-1-94b: partner-b hero 섹션이 partner-a와 다른 stats(최대 47%)를 렌더링한다 (파트너 차별화 확인)', async () => {});
+  // WL-94: hero mini_stats DB 시딩 검증 — seed_hero_mini_stats.sql 실행 후 assertions 작성
+  test('H-1-94: hero 섹션 mini_stats가 DB 시딩값(최대 40%)을 우선 렌더링한다 (partner-a)', async () => {
+    test.fixme(true, 'WL-94: seed_hero_mini_stats.sql 실행 후 assertions 작성');
+  });
+  test('H-1-94b: partner-b hero 섹션이 partner-a와 다른 stats(최대 47%)를 렌더링한다 (파트너 차별화 확인)', async () => {
+    test.fixme(true, 'WL-94: seed_hero_mini_stats.sql 실행 후 assertions 작성');
+  });
 });
 
 // ── P-1: PainPoints ───────────────────────────────────────────────────────────
