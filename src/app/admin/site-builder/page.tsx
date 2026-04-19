@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth/get-current-user'
 import { createSessionClient } from '@/lib/supabase/create-server-client'
 import type { ThemeKey } from '@/lib/theme-presets'
+import { Button } from '@/components/ui/button'
 import SiteBuilderForm from './SiteBuilderForm'
 
 export default async function SiteBuilderPage() {
@@ -21,7 +23,12 @@ export default async function SiteBuilderPage() {
 
   return (
     <div className="p-6 max-w-xl">
-      <h1 className="text-2xl font-semibold text-foreground mb-1">사이트 빌더</h1>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-2xl font-semibold text-foreground">사이트 빌더</h1>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/site-builder/content">콘텐츠 편집 →</Link>
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground mb-8">테마, 로고, 파비콘을 설정합니다.</p>
       <SiteBuilderForm
         currentThemeKey={(partner?.theme_key as ThemeKey | null) ?? null}

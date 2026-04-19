@@ -53,13 +53,19 @@ export default function HeroSection({ content, locale, heroImageUrl }: HeroSecti
             {/* 메인 타이틀 — {PartnerName} 인터폴레이션 + 조사 처리는 get-partner-page-data.ts에서 수행
                 whitespace-pre-line: DB title의 \n 문자를 시각적 줄바꿈으로 렌더링 */}
             {title && (
-              <h1 className="whitespace-pre-line text-4xl/[1.25] font-bold text-foreground sm:text-5xl/[1.25] lg:text-[3.5rem]/[1.25]">
+              <h1
+                className="whitespace-pre-line text-4xl/[1.25] font-bold text-foreground sm:text-5xl/[1.25] lg:text-[3.5rem]/[1.25]"
+                data-wl-preview="hero.title"
+              >
                 {title}
               </h1>
             )}
 
             {/* 서브타이틀 */}
-            <p className="text-lg/[1.5] text-muted-foreground sm:text-xl/[1.5]">
+            <p
+              className="text-lg/[1.5] text-muted-foreground sm:text-xl/[1.5]"
+              data-wl-preview="hero.subtitle"
+            >
               {subtitle}
             </p>
 

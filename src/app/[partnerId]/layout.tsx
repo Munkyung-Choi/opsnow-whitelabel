@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { validatePartner } from '@/services/partnerService';
 import { themes, DEFAULT_THEME_KEY, type ThemeKey } from '@/lib/theme-presets';
+import PreviewMessageReceiver from '@/components/marketing/PreviewMessageReceiver';
 
 // [WL-68] ISR 300초 갱신 — 어드민 즉시 반영은 WL-42(revalidatePath) 완료 후 대응
 // Zombie Partner 리스크(최대 5분 노출) 수용 결정 (2026-04-14 문경 님 승인)
@@ -46,6 +47,7 @@ export default async function PartnerLayout({ children, params }: PartnerLayoutP
 
   return (
     <div style={themeVars as React.CSSProperties}>
+      <PreviewMessageReceiver />
       {children}
     </div>
   );

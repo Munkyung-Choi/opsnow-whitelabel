@@ -16,12 +16,18 @@ export default function AboutSection({ content }: AboutSectionProps) {
           </p>
         )}
         {content.title && (
-          <h2 className="mb-6 text-3xl/[1.4] font-bold text-foreground sm:text-4xl/[1.4]">
+          <h2
+            className="mb-6 text-3xl/[1.4] font-bold text-foreground sm:text-4xl/[1.4]"
+            data-wl-preview="about.title"
+          >
             {content.title}
           </h2>
         )}
         {content.body && (
-          <p className="sm:text-lg/[1.5] text-muted-foreground">
+          <p
+            className="sm:text-lg/[1.5] text-muted-foreground"
+            data-wl-preview="about.body"
+          >
             {content.body}
           </p>
         )}
