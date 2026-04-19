@@ -45,7 +45,7 @@ test.describe('(1) Happy Path — 파트너 생성', () => {
     // published_locales 체크박스 — ko 기본 체크됨 (hidden input)
     await expect(page.locator('input[name=published_locales][value=ko]')).toHaveCount(1)
 
-    await page.locator('[type=submit]').click()
+    await page.getByRole('button', { name: '파트너 등록' }).click()
 
     // 성공 → /admin/partners 리다이렉트 (Server Action redirect)
     await page.waitForURL(`${ADMIN_ORIGIN}/admin/partners`, { timeout: 15000 })
@@ -98,20 +98,20 @@ test.describe('(3) 입력 검증 — 잘못된 입력 에러 표시', () => {
 
   test('법인명 빈값 → 에러 표시', async ({ page }) => {
     await page.fill('[name=subdomain]', 'valid-subdomain')
-    await page.locator('[type=submit]').click()
+    await page.getByRole('button', { name: '파트너 등록' }).click()
     await expect(page.locator('#business_name-error')).toBeVisible()
   })
 
   test('서브도메인 빈값 → 에러 표시', async ({ page }) => {
     await page.fill('[name=business_name]', '테스트 기업')
-    await page.locator('[type=submit]').click()
+    await page.getByRole('button', { name: '파트너 등록' }).click()
     await expect(page.locator('#subdomain-error')).toBeVisible()
   })
 
   test('서브도메인 대문자/특수문자 → 에러 표시', async ({ page }) => {
     await page.fill('[name=business_name]', '테스트 기업')
     await page.fill('[name=subdomain]', 'Invalid_Sub!')
-    await page.locator('[type=submit]').click()
+    await page.getByRole('button', { name: '파트너 등록' }).click()
     await expect(page.locator('#subdomain-error')).toBeVisible()
   })
 
@@ -119,7 +119,7 @@ test.describe('(3) 입력 검증 — 잘못된 입력 에러 표시', () => {
     // partner-a는 seed로 존재함
     await page.fill('[name=business_name]', '중복 테스트')
     await page.fill('[name=subdomain]', 'partner-a')
-    await page.locator('[type=submit]').click()
+    await page.getByRole('button', { name: '파트너 등록' }).click()
     await expect(page.locator('#subdomain-error')).toContainText('이미 사용 중인')
   })
 })

@@ -1,13 +1,18 @@
 import Link from 'next/link'
 import RoleGuard from '@/components/shared/RoleGuard'
+import LogoutButton from './LogoutButton'
+import { getCurrentUser } from '@/lib/auth/get-current-user'
 
-export default function AdminNav() {
+export default async function AdminNav() {
+  const user = await getCurrentUser()
+  const roleLabel = user.role === 'master_admin' ? 'Master Admin' : 'Partner Admin'
+
   return (
-    <nav className="w-56 shrink-0 border-r border-border bg-card min-h-screen p-4">
+    <nav className="w-56 shrink-0 border-r border-border bg-card min-h-screen p-4 flex flex-col">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
         OpsNow Admin
       </p>
-      <ul className="space-y-1">
+      <ul className="space-y-1 flex-1">
         <li>
           <Link
             href="/admin/dashboard"
@@ -57,6 +62,11 @@ export default function AdminNav() {
           </li>
         </RoleGuard>
       </ul>
+
+      <div className="mt-auto pt-4 border-t border-border">
+        <p className="px-3 py-1 text-xs text-muted-foreground">{roleLabel}</p>
+        <LogoutButton />
+      </div>
     </nav>
   )
 }
