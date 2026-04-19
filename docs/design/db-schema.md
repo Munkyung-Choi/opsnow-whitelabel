@@ -349,6 +349,18 @@ approved → expired             (DNS 검증 타임아웃)
 | `idx_system_logs_partner_id` | system_logs | partner_id (WHERE NOT NULL) | 파트너별 직접 감사 필터링 (WL-123, NFR §5.3) |
 | `idx_system_logs_created_at` | system_logs | created_at DESC | 시간순 감사 로그 |
 | `unique_active_request_per_partner` | domain_requests | partner_id (WHERE status IN 'pending','approved','active') | 진행 중 도메인 신청 중복 방지 |
+| `idx_leads_partner_status_created` | leads | (partner_id, status, created_at DESC) | Admin 파트너별 리드 목록 + 상태 필터 + 최신순 (WL-120) |
+| `idx_contents_partner_section_published` | contents | (partner_id, section_type, is_published) | Admin 파트너별 섹션 목록 + 타입/발행 필터 (WL-120) |
+| `idx_system_logs_partner_created` | system_logs | (partner_id, created_at DESC) WHERE NOT NULL | Admin 파트너별 감사 로그 + 최신순 정렬 (WL-120) |
+| `idx_domain_requests_partner_status_created` | domain_requests | (partner_id, status, created_at DESC) | Admin 파트너별 도메인 신청 + 상태 필터 + 최신순 (WL-120) |
+
+### Index Notes (WL-120, 2026-04-19)
+
+> **쿼리 플래너 동작**: 복합 인덱스는 데이터 행 수가 수백 행 이상일 때 플래너가 자동으로 Index Scan을 선택한다. 소량 데이터(수십 행 이하)에서는 Seq Scan이 비용상 우세할 수 있으며 이는 정상 동작이다.
+>
+> **쓰기 부하 모니터링**: `system_logs`는 모든 Admin 작업마다 INSERT가 발생하므로 파트너 수 급증 및 이벤트 빈도 증가 시 인덱스 유지비용을 모니터링할 것. 필요 시 `idx_system_logs_partner_created` 삭제 후 기존 `idx_system_logs_partner_id` 단독으로 복귀 가능.
+>
+> **CONCURRENTLY 적용**: `supabase migration up`은 pipeline 모드로 CONCURRENTLY 불가. 프로덕션 무중단 인덱스 생성이 필요한 경우 SQL Editor에서 `CREATE INDEX CONCURRENTLY` 수동 실행.
 
 ---
 
