@@ -109,7 +109,6 @@ const SECTION_REGISTRY: Readonly<Record<MarketingSectionType, SectionRenderFn>> 
   final_cta: (data) => (
     <DynamicFinalCTASection
       content={data.contents.get('final_cta') ?? null}
-      partnerId={data.partner.id}
       locale={data.locale}
     />
   ),

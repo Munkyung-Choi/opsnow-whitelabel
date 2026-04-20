@@ -1,57 +1,107 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useState } from 'react';
 import {
   ShieldCheck, Lock, Zap, TrendingDown,
   CheckCircle2, Loader2, ArrowRight,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import ContactFormFields from '@/components/marketing/ContactFormFields';
 import { getDictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/locales';
+import { submitLead } from '@/app/[partnerId]/actions/leads';
+import type { LeadFormState } from '@/lib/schemas/lead';
 
 // 신뢰 포인트 아이콘 — i18n trustPoints 배열 순서와 1:1 매핑
 const TRUST_ICONS = [ShieldCheck, Lock, Zap, TrendingDown] as const;
 
 interface Props {
-  partnerId: string;
   locale: Locale;
 }
 
-/**
- * WL-80: 메인 페이지 하단 2-column 문의 폼.
- * 좌측: 마케팅 카피 + 신뢰 포인트 + 소셜 프루프
- * 우측: 리드 캡처 폼 (5개 필드)
- * 서버 액션 연동은 WL-42에서 처리 — 현재 UI 전용
- */
-export default function ContactFormMain({ partnerId, locale }: Props) {
-  const t = getDictionary(locale).contactForm;
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [cloudSpend, setCloudSpend] = useState('');
+const INITIAL_STATE: LeadFormState = { status: 'idle' };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // 허니팟 체크 — 봇 감지 시 조용히 무시
-    const honeypot = (e.currentTarget.elements.namedItem('company_website') as HTMLInputElement)?.value;
-    if (honeypot) return;
-    setLoading(true);
-    // WL-42 Server Action 연동 전 임시 UX
-    setTimeout(() => {
-      setLoading(false);
-      setSubmitted(true);
-    }, 1200);
-  };
+interface CardProps {
+  locale: Locale;
+  onReset: () => void;
+}
+
+function FormCard({ locale, onReset }: CardProps) {
+  const t = getDictionary(locale).contactForm;
+  const [state, submitAction, isPending] = useActionState(submitLead, INITIAL_STATE);
+  const submitted = state.status === 'success';
+
+  return (
+    <div className="rounded-2xl border border-border bg-background p-8 shadow-sm">
+      {submitted ? (
+        /* ── 성공 상태 ── */
+        <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
+          <span className="flex size-14 items-center justify-center rounded-full bg-primary/10">
+            <CheckCircle2 size={28} strokeWidth={1.6} className="text-primary" />
+          </span>
+          <h3 className="text-lg font-bold tracking-[-0.01em] text-foreground">
+            {t.successTitle}
+          </h3>
+          <p className="max-w-xs text-sm leading-[1.7] text-muted-foreground">
+            {t.successDescription}
+          </p>
+          <Button variant="outline" size="sm" className="mt-2" onClick={onReset}>
+            {t.resetCta}
+          </Button>
+        </div>
+      ) : (
+        /* ── 폼 ── */
+        <form action={submitAction} noValidate className="flex flex-col gap-5">
+          <div>
+            <p className="text-base font-bold tracking-[-0.01em] text-foreground">
+              {t.formTitle}
+            </p>
+            <p className="text-[0.8125rem] text-muted-foreground">{t.formSubtitle}</p>
+          </div>
+
+          <ContactFormFields locale={locale} fieldErrors={state.fieldErrors} />
+
+          {state.status === 'error' && !state.fieldErrors && (
+            <p className="text-sm text-destructive">{state.message}</p>
+          )}
+
+          <Button type="submit" size="lg" disabled={isPending} className="mt-1 w-full gap-2">
+            {isPending ? (
+              <>
+                <Loader2 size={16} strokeWidth={2} className="animate-spin" />
+                {t.submitting}
+              </>
+            ) : (
+              <>
+                {t.submitCta}
+                <ArrowRight size={16} strokeWidth={2} />
+              </>
+            )}
+          </Button>
+
+          <p className="text-center text-xs leading-[1.6] text-muted-foreground">
+            {t.legalPrefix}
+            <a href="terms" className="underline underline-offset-2 hover:text-foreground transition-colors">
+              {t.terms}
+            </a>
+            {t.legalSeparator}
+            <a href="privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
+              {t.privacy}
+            </a>
+            {t.legalSuffix}
+          </p>
+        </form>
+      )}
+    </div>
+  );
+}
+
+/** WL-80: 메인 페이지 하단 2-column 문의 폼. WL-42: Server Action 연동 완료. */
+export default function ContactFormMain({ locale }: Props) {
+  const t = getDictionary(locale).contactForm;
+  const [formKey, setFormKey] = useState(0);
 
   return (
     <section id="contact" className="border-t bg-muted/40 px-4 section-py sm:px-6">
@@ -105,145 +155,8 @@ export default function ContactFormMain({ partnerId, locale }: Props) {
             </div>
           </div>
 
-          {/* ── Right: 폼 카드 ───────────────────────────────── */}
-          <div className="rounded-2xl border border-border bg-background p-8 shadow-sm">
-            {submitted ? (
-              /* ── 성공 상태 ── */
-              <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
-                <span className="flex size-14 items-center justify-center rounded-full bg-primary/10">
-                  <CheckCircle2 size={28} strokeWidth={1.6} className="text-primary" />
-                </span>
-                <h3 className="text-lg font-bold tracking-[-0.01em] text-foreground">
-                  {t.successTitle}
-                </h3>
-                <p className="max-w-xs text-sm leading-[1.7] text-muted-foreground">
-                  {t.successDescription}
-                </p>
-                <Button variant="outline" size="sm" className="mt-2" onClick={() => setSubmitted(false)}>
-                  {t.resetCta}
-                </Button>
-              </div>
-            ) : (
-              /* ── 폼 ── */
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                {/* 허니팟 — 스팸봇 탐지용 (사용자에게 절대 노출 금지) */}
-                <div
-                  style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}
-                  aria-hidden="true"
-                  tabIndex={-1}
-                >
-                  <label htmlFor="company_website">Website (Leave this empty)</label>
-                  <input
-                    type="text"
-                    id="company_website"
-                    name="company_website"
-                    tabIndex={-1}
-                    autoComplete="off"
-                  />
-                </div>
-                <input type="hidden" name="partner_id" value={partnerId} />
-
-                <div>
-                  <p className="text-base font-bold tracking-[-0.01em] text-foreground">
-                    {t.formTitle}
-                  </p>
-                  <p className="text-[0.8125rem] text-muted-foreground">{t.formSubtitle}</p>
-                </div>
-
-                <Separator />
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="customer_name">
-                    {t.fields.name} <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="customer_name"
-                    name="customer_name"
-                    placeholder={t.placeholders.name}
-                    required
-                    autoComplete="name"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="company_name">{t.fields.company}</Label>
-                  <Input
-                    id="company_name"
-                    name="company_name"
-                    placeholder={t.placeholders.company}
-                    autoComplete="organization"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="email">
-                    {t.fields.email} <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder={t.placeholders.email}
-                    required
-                    autoComplete="email"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="phone">{t.fields.phone}</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder={t.placeholders.phone}
-                    autoComplete="tel"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="cloud_usage_amount">{t.fields.usage}</Label>
-                  <Select name="cloud_usage_amount" value={cloudSpend} onValueChange={setCloudSpend}>
-                    <SelectTrigger id="cloud_usage_amount">
-                      <SelectValue placeholder={t.placeholders.usage} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {t.usageOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button type="submit" size="lg" disabled={loading} className="mt-1 w-full gap-2">
-                  {loading ? (
-                    <>
-                      <Loader2 size={16} strokeWidth={2} className="animate-spin" />
-                      {t.submitting}
-                    </>
-                  ) : (
-                    <>
-                      {t.submitCta}
-                      <ArrowRight size={16} strokeWidth={2} />
-                    </>
-                  )}
-                </Button>
-
-                <p className="text-center text-xs leading-[1.6] text-muted-foreground">
-                  {t.legalPrefix}
-                  <a href="terms" className="underline underline-offset-2 hover:text-foreground transition-colors">
-                    {t.terms}
-                  </a>
-                  {t.legalSeparator}
-                  <a href="privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
-                    {t.privacy}
-                  </a>
-                  {t.legalSuffix}
-                </p>
-              </form>
-            )}
-          </div>
+          {/* ── Right: 폼 카드 — key 변경 시 remount → useActionState 초기화 ── */}
+          <FormCard key={formKey} locale={locale} onReset={() => setFormKey((k) => k + 1)} />
 
         </div>
       </div>
