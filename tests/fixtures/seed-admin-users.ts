@@ -119,6 +119,8 @@ async function purgeTestUsers(admin: AdminClient): Promise<void> {
   if (testUserIds.length === 0) return
 
   // FK 참조를 역순으로 정리
+  // global_contents.updated_by → auth.users(id) ON DELETE RESTRICT: null 처리
+  await admin.from('global_contents').update({ updated_by: null }).in('updated_by', testUserIds)
   await admin.from('system_logs').delete().in('actor_id', testUserIds)
   await admin.from('partners').delete().in('owner_id', testUserIds)
   await admin.from('profiles').delete().in('id', testUserIds)
