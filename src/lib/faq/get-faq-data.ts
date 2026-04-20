@@ -35,6 +35,8 @@ export interface FaqListItem {
   slug: string;
   categoryId: string;
   question: string;
+  /** answer 첫 ~200자, markdown stripped — hub 카드 미리보기용 */
+  summary: string;
   isFeatured: boolean;
   tags: string[];
   updatedAt: string;
@@ -109,12 +111,23 @@ function parseDetailItems(meta: Record<string, Json>, locale: Locale): FaqDetail
     if (typeof i.id !== 'string' || typeof i.slug !== 'string') return [];
     const question = extractI18n(i.question, locale);
     if (!question) return [];
+    const answer = extractI18n(i.answer, locale) ?? '';
+    const summary = answer
+      .replace(/#{1,6}\s+/g, '')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+      .replace(/`(.+?)`/g, '$1')
+      .replace(/\n+/g, ' ')
+      .trim()
+      .slice(0, 200);
     return [{
       id: i.id,
       slug: i.slug,
       categoryId: typeof i.categoryId === 'string' ? i.categoryId : '',
       question,
-      answer: extractI18n(i.answer, locale) ?? '',
+      summary,
+      answer,
       isFeatured: i.isFeatured === true,
       tags: Array.isArray(i.tags)
         ? i.tags.flatMap((t) => (typeof t === 'string' ? [t] : []))

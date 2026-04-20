@@ -63,7 +63,16 @@
     "backToFaq": "返回FAQ列表",
     "updatedAt": "最后更新",
     "sectionTitle": "常见问题",
-    "sectionSubtitle": "我们整理了部署前最常收到的问题。如有更多疑问，请随时联系我们。"
+    "sectionSubtitle": "我们整理了部署前最常收到的问题。如有更多疑问，请随时联系我们。",
+    "clearSearch": "清除搜索",
+    "searchResults": "搜索结果",
+    "searchResultsUnit": "条",
+    "noSearchResults": "未找到匹配的问题。",
+    "noSearchResultsHint": "请尝试其他关键词或浏览分类。",
+    "itemsPerPage": "每页",
+    "pageLabel": "页",
+    "paginationPrev": "上一页",
+    "paginationNext": "下一页"
   },
   "contactForm": {
     "title": "立即联系我们",

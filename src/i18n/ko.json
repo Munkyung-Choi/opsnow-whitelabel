@@ -63,7 +63,16 @@
     "backToFaq": "FAQ 목록으로",
     "updatedAt": "마지막 업데이트",
     "sectionTitle": "자주 묻는 질문",
-    "sectionSubtitle": "도입 전 가장 많이 받는 질문들을 정리했습니다. 더 궁금한 점이 있으면 언제든 문의하세요."
+    "sectionSubtitle": "도입 전 가장 많이 받는 질문들을 정리했습니다. 더 궁금한 점이 있으면 언제든 문의하세요.",
+    "clearSearch": "검색 지우기",
+    "searchResults": "검색 결과",
+    "searchResultsUnit": "건",
+    "noSearchResults": "일치하는 질문이 없습니다.",
+    "noSearchResultsHint": "다른 키워드로 검색하거나 카테고리를 탐색해 보세요.",
+    "itemsPerPage": "페이지당",
+    "pageLabel": "페이지",
+    "paginationPrev": "이전",
+    "paginationNext": "다음"
   },
   "contactForm": {
     "title": "지금 바로 문의하세요",

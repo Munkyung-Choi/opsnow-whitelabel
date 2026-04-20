@@ -63,7 +63,16 @@
     "backToFaq": "Back to FAQ",
     "updatedAt": "Last updated",
     "sectionTitle": "Frequently Asked Questions",
-    "sectionSubtitle": "We've compiled the questions we receive most before deployment. Feel free to contact us anytime with further questions."
+    "sectionSubtitle": "We've compiled the questions we receive most before deployment. Feel free to contact us anytime with further questions.",
+    "clearSearch": "Clear search",
+    "searchResults": "search results",
+    "searchResultsUnit": " items",
+    "noSearchResults": "No matching questions found.",
+    "noSearchResultsHint": "Try different keywords or browse the categories.",
+    "itemsPerPage": "Per page",
+    "pageLabel": "page",
+    "paginationPrev": "Previous",
+    "paginationNext": "Next"
   },
   "contactForm": {
     "title": "Get in touch today",

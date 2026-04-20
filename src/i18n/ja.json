@@ -63,7 +63,16 @@
     "backToFaq": "FAQリストへ戻る",
     "updatedAt": "最終更新",
     "sectionTitle": "よくある質問",
-    "sectionSubtitle": "導入前に最もよくいただくご質問をまとめました。ご不明な点がございましたら、いつでもお気軽にお問い合わせください。"
+    "sectionSubtitle": "導入前に最もよくいただくご質問をまとめました。ご不明な点がございましたら、いつでもお気軽にお問い合わせください。",
+    "clearSearch": "検索をクリア",
+    "searchResults": "検索結果",
+    "searchResultsUnit": "件",
+    "noSearchResults": "一致する質問が見つかりません。",
+    "noSearchResultsHint": "別のキーワードで検索するか、カテゴリを閲覧してください。",
+    "itemsPerPage": "件/ページ",
+    "pageLabel": "ページ",
+    "paginationPrev": "前へ",
+    "paginationNext": "次へ"
   },
   "contactForm": {
     "title": "今すぐお問い合わせ",
