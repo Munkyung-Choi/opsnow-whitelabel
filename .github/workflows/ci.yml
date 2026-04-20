@@ -69,6 +69,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           # supabaseAdmin(service_role)이 모듈 레벨에서 초기화되므로 빌드 시 필요
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # WL-51 Impersonation 쿠키 HMAC 서명용 — CI 격리 환경 전용 고정 값
+          IMPERSONATION_SIGNING_SECRET: 'ci-only-not-a-real-secret-do-not-use-in-production'
 
   # ── Job 3: Supabase Type Drift ───────────────────────────────────────────────
   # DB 스키마 변경 후 gen:types 누락 감지 — quality와 병렬 실행
@@ -139,6 +141,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           # WL-102: service_role — globalSetup/globalTeardown에서 테스트 파트너 seed/cleanup 용
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # WL-51 Impersonation 쿠키 HMAC 서명용 — 빌드와 동일 값(CI 격리)
+          IMPERSONATION_SIGNING_SECRET: 'ci-only-not-a-real-secret-do-not-use-in-production'
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
