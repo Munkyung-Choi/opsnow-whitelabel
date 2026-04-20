@@ -50,12 +50,14 @@ issueTypeId: <생성할 이슈 타입 ID>
 ```json
 {
   "additional_fields": {
-    "customfield_10412": { "value": "<조회된 DevType 값>" },
-    "customfield_10346": { "value": "<조회된 Item 값>" },
-    "customfield_10445": { "value": "🟥Critical" }
+    "customfield_10412": [{"id": "<조회된 DevType option id>"}],
+    "customfield_10346": [{"id": "<조회된 Item option id>"}],
+    "customfield_10445": {"id": "<Tech Risk option id>"}
   }
 }
 ```
+
+> **주의**: DevType·Item은 multicheckboxes → 배열(`[{"id": "..."}]`). Tech Risk는 single select → 객체(`{"id": "..."}`). `{"value": "..."}` 형식은 일부 값에서 동작하지 않으므로 반드시 id 방식을 사용한다.
 
 > Tech Risk는 `CLAUDE.md` 트랙 분류 기준으로 결정한다. 허용값: `🟥Critical` / `🟨High` / `🟫Med` / `🟩Low`
 

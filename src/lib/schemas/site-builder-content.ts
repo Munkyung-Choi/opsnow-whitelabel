@@ -3,15 +3,38 @@ import { z } from 'zod'
 export const EDITABLE_SECTION_TYPES = ['hero', 'about', 'contact'] as const
 export type EditableSectionType = (typeof EDITABLE_SECTION_TYPES)[number]
 
-export const updateSectionContentSchema = z.object({
-  section_type: z.enum(EDITABLE_SECTION_TYPES),
+const HeroContentSchema = z.object({
+  section_type: z.literal('hero'),
   title_ko: z.string().min(1, '한국어 제목을 입력하세요.'),
   title_en: z.string(),
-  subtitle_ko: z.string().optional(),
-  subtitle_en: z.string().optional(),
-  body_ko: z.string().optional(),
-  body_en: z.string().optional(),
+  subtitle_ko: z.string(),
+  subtitle_en: z.string(),
 })
+
+const AboutContentSchema = z.object({
+  section_type: z.literal('about'),
+  title_ko: z.string().min(1, '한국어 제목을 입력하세요.'),
+  title_en: z.string(),
+  body_ko: z.string(),
+  body_en: z.string(),
+})
+
+const ContactContentSchema = z.object({
+  section_type: z.literal('contact'),
+  title_ko: z.string().min(1, '한국어 제목을 입력하세요.'),
+  title_en: z.string(),
+  contact_email: z.string().optional(),
+  contact_phone: z.string().optional(),
+  contact_address: z.string().optional(),
+})
+
+export const updateSectionContentSchema = z.discriminatedUnion('section_type', [
+  HeroContentSchema,
+  AboutContentSchema,
+  ContactContentSchema,
+])
+
+export type UpdateSectionContentInput = z.infer<typeof updateSectionContentSchema>
 
 export const togglePublishSchema = z.object({
   section_type: z.enum(EDITABLE_SECTION_TYPES),

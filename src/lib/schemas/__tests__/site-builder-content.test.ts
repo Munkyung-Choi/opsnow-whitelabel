@@ -59,6 +59,8 @@ describe('updateSectionContentSchema', () => {
       section_type: 'hero',
       title_ko: '',
       title_en: '',
+      subtitle_ko: '부제목',
+      subtitle_en: '',
     })
     expect(result.success).toBe(false)
     if (!result.success) {
@@ -75,14 +77,67 @@ describe('updateSectionContentSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('about, contact section_type 허용', () => {
-    for (const type of ['about', 'contact']) {
-      const result = updateSectionContentSchema.safeParse({
-        section_type: type,
-        title_ko: '제목',
-        title_en: '',
-      })
-      expect(result.success).toBe(true)
+  it('about section_type — body_ko/en 포함 시 통과', () => {
+    const result = updateSectionContentSchema.safeParse({
+      section_type: 'about',
+      title_ko: '회사 소개',
+      title_en: 'About',
+      body_ko: '본문',
+      body_en: 'Body',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('contact section_type — contact 필드 포함 시 통과', () => {
+    const result = updateSectionContentSchema.safeParse({
+      section_type: 'contact',
+      title_ko: '문의',
+      title_en: 'Contact',
+      contact_email: 'hello@example.com',
+      contact_phone: '02-1234-5678',
+      contact_address: '서울시',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('contact section_type — contact 필드 없어도 통과 (optional)', () => {
+    const result = updateSectionContentSchema.safeParse({
+      section_type: 'contact',
+      title_ko: '문의',
+      title_en: '',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('hero 파싱 결과에 subtitle_ko/en 존재, body_ko 미존재', () => {
+    const result = updateSectionContentSchema.safeParse({
+      section_type: 'hero',
+      title_ko: '제목',
+      title_en: '',
+      subtitle_ko: '부제목',
+      subtitle_en: '',
+      body_ko: '무시되어야 함',
+    })
+    expect(result.success).toBe(true)
+    if (result.success && result.data.section_type === 'hero') {
+      expect(result.data.subtitle_ko).toBe('부제목')
+      expect('body_ko' in result.data).toBe(false)
+    }
+  })
+
+  it('about 파싱 결과에 body_ko/en 존재, subtitle_ko 미존재', () => {
+    const result = updateSectionContentSchema.safeParse({
+      section_type: 'about',
+      title_ko: '제목',
+      title_en: '',
+      body_ko: '본문',
+      body_en: '',
+      subtitle_ko: '무시되어야 함',
+    })
+    expect(result.success).toBe(true)
+    if (result.success && result.data.section_type === 'about') {
+      expect(result.data.body_ko).toBe('본문')
+      expect('subtitle_ko' in result.data).toBe(false)
     }
   })
 })

@@ -31,6 +31,9 @@ export async function updatePartnerContent(
         subtitle_en: formData.get('subtitle_en') ?? '',
         body_ko: formData.get('body_ko') ?? '',
         body_en: formData.get('body_en') ?? '',
+        contact_email: formData.get('contact_email') ?? '',
+        contact_phone: formData.get('contact_phone') ?? '',
+        contact_address: formData.get('contact_address') ?? '',
       })
 
       if (!parsed.success) {
@@ -45,9 +48,6 @@ export async function updatePartnerContent(
         }
       }
 
-      const { section_type, title_ko, title_en, subtitle_ko, subtitle_en, body_ko, body_en } =
-        parsed.data
-
       // partner_id는 세션에서 직접 주입 — form 입력 신뢰 금지
       const { data: partner } = await db
         .from('partners')
@@ -59,33 +59,35 @@ export async function updatePartnerContent(
         .from('contents')
         .select('title, subtitle, body')
         .eq('partner_id', user.partner_id)
-        .eq('section_type', section_type)
+        .eq('section_type', parsed.data.section_type)
         .single()
 
       const updatePayload: ContentsUpdate = {
-        title: { ko: title_ko, en: title_en },
+        title: { ko: parsed.data.title_ko, en: parsed.data.title_en },
         updated_at: new Date().toISOString(),
       }
 
-      if (section_type === 'hero') {
-        updatePayload.subtitle = { ko: subtitle_ko ?? '', en: subtitle_en ?? '' }
-      }
-      if (section_type === 'about') {
-        updatePayload.body = { ko: body_ko ?? '', en: body_en ?? '' }
-      }
-      if (section_type === 'contact') {
-        updatePayload.contact_info = {
-          email: String(formData.get('contact_email') ?? ''),
-          phone: String(formData.get('contact_phone') ?? ''),
-          address: String(formData.get('contact_address') ?? ''),
-        }
+      switch (parsed.data.section_type) {
+        case 'hero':
+          updatePayload.subtitle = { ko: parsed.data.subtitle_ko, en: parsed.data.subtitle_en }
+          break
+        case 'about':
+          updatePayload.body = { ko: parsed.data.body_ko, en: parsed.data.body_en }
+          break
+        case 'contact':
+          updatePayload.contact_info = {
+            email: parsed.data.contact_email ?? '',
+            phone: parsed.data.contact_phone ?? '',
+            address: parsed.data.contact_address ?? '',
+          }
+          break
       }
 
       const { error: dbError } = await db
         .from('contents')
         .update(updatePayload)
         .eq('partner_id', user.partner_id)
-        .eq('section_type', section_type)
+        .eq('section_type', parsed.data.section_type)
 
       if (dbError) {
         return {
@@ -102,7 +104,7 @@ export async function updatePartnerContent(
         auditDetails: {
           target_table: 'contents',
           target_id: user.partner_id,
-          diff: { section_type, before, after: updatePayload },
+          diff: { section_type: parsed.data.section_type, before, after: updatePayload },
         },
       }
     }
