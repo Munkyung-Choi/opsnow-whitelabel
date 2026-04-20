@@ -118,19 +118,27 @@ async function purgeTestUsers(admin: AdminClient): Promise<void> {
 
   if (testUserIds.length === 0) return
 
-  // FK 참조를 역순으로 정리
+  // FK 참조를 역순으로 정리 — 각 단계 에러를 명시적으로 검증한다
   // global_contents.updated_by → auth.users(id) ON DELETE RESTRICT: null 처리
-  await admin.from('global_contents').update({ updated_by: null }).in('updated_by', testUserIds)
-  await admin.from('system_logs').delete().in('actor_id', testUserIds)
-  await admin.from('partners').delete().in('owner_id', testUserIds)
-  await admin.from('profiles').delete().in('id', testUserIds)
+  const { error: gcErr } = await admin
+    .from('global_contents')
+    .update({ updated_by: null })
+    .in('updated_by', testUserIds)
+  if (gcErr) throw new Error(`[purgeTestUsers] global_contents.updated_by 정리 실패: ${gcErr.message}`)
+
+  const { error: logErr } = await admin.from('system_logs').delete().in('actor_id', testUserIds)
+  if (logErr) throw new Error(`[purgeTestUsers] system_logs 정리 실패: ${logErr.message}`)
+
+  const { error: partnerErr } = await admin.from('partners').delete().in('owner_id', testUserIds)
+  if (partnerErr) throw new Error(`[purgeTestUsers] partners 정리 실패: ${partnerErr.message}`)
+
+  const { error: profileErr } = await admin.from('profiles').delete().in('id', testUserIds)
+  if (profileErr) throw new Error(`[purgeTestUsers] profiles 정리 실패: ${profileErr.message}`)
 
   for (const id of testUserIds) {
     const { error } = await admin.auth.admin.deleteUser(id)
     if (error) {
-      throw new Error(
-        `[purgeTestUsers] auth 유저 삭제 실패 (id=${id}): ${error.message}`
-      )
+      throw new Error(`[purgeTestUsers] auth 유저 삭제 실패 (id=${id}): ${error.message}`)
     }
   }
 }
