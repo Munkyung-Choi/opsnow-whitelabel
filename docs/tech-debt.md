@@ -167,6 +167,23 @@
 
 ---
 
+### DEBT-007 — leads_masked_view 접근 경로 미완성 + anon INSERT 크로스 테넌트 갭
+
+- **발생일**: 2026-04-20
+- **영역**: `supabase/migrations/20260408000002_create_views.sql`, `supabase/migrations/20260408000003_rls_policies.sql`
+- **영향도**: Major (master_admin의 PII 마스킹 조회 경로 미작동, 익명 API 직접 호출 시 cross-tenant INSERT 가능)
+- **연관 파일**: `supabase/migrations/20260408000002_create_views.sql`, `supabase/migrations/20260408000003_rls_policies.sql`
+- **연관 티켓**: WL-138 (보안 E2E 검증)
+- **증상**:
+  1. **`leads_masked_view` 미작동**: `security_invoker=true` + `leads` 테이블의 master_admin SELECT 정책 부재로, master_admin이 `leads_masked_view`를 조회해도 0건 반환. 방어 의도(WHERE EXISTS로 master_admin만 접근)가 RLS 단계에서 이미 차단되어 무력화됨.
+  2. **anon cross-tenant INSERT 갭**: `leads_public_insert` RLS는 `is_active=true` 파트너 UUID를 모두 허용. Server Action 경유 없이 Supabase REST API를 직접 호출하면 타 파트너 UUID로 INSERT 가능. 방어선이 Server Action(host 헤더 교정)에만 의존.
+- **상환 조건**:
+  - Issue 1: `leads_masked_view`를 `SECURITY DEFINER`로 전환하거나, `leads` 테이블에 master_admin 전용 SELECT 정책 추가 (Critical 트랙).
+  - Issue 2: Supabase custom JWT claim 또는 `set_config`를 이용해 host 컨텍스트를 DB 레이어에 전달, RLS가 도메인-partner_id 매칭을 검증하도록 강화 (High 트랙).
+- **임시 대응**: `rls-isolation.test.ts` describe §10·§11에 갭을 코드로 문서화. Admin UI에서 leads 조회 시 `leads_masked_view` 대신 service_role 클라이언트(RLS 우회)를 사용하여 운영 지장 없음.
+
+---
+
 ## 상환된 부채 (Resolved)
 
 ### DEBT-002 — ContactForm handleSubmit + 폼 필드 로직 중복
