@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useRef, useCallback } from 'react'
+import { useActionState, useRef, useCallback, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -52,6 +52,7 @@ function buildPreviewUrl(subdomain: string, locale: string): string {
 
 export default function ContentEditorForm({ sections, subdomain, defaultLocale }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [heroState, heroAction, heroIsPending] = useActionState(updatePartnerContent, initialState)
   const [aboutState, aboutAction, aboutIsPending] = useActionState(updatePartnerContent, initialState)
   const [contactState, contactAction, contactIsPending] = useActionState(updatePartnerContent, initialState)
@@ -60,13 +61,19 @@ export default function ContentEditorForm({ sections, subdomain, defaultLocale }
   const about = sections.find((s) => s.section_type === 'about')
   const contact = sections.find((s) => s.section_type === 'contact')
 
+  // 언마운트 시 pending timer 정리
+  useEffect(() => () => { if (debounceTimer.current) clearTimeout(debounceTimer.current) }, [])
+
   const sendPreview = useCallback((section: string, fields: Record<string, string>) => {
-    const iframe = iframeRef.current
-    if (!iframe?.contentWindow) return
-    iframe.contentWindow.postMessage(
-      { type: 'WL_PREVIEW_UPDATE', section, fields },
-      '*'  // 마케팅 사이트는 origin 검증을 수행; 어드민은 자체 iframe이므로 * 허용
-    )
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => {
+      const iframe = iframeRef.current
+      if (!iframe?.contentWindow) return
+      iframe.contentWindow.postMessage(
+        { type: 'WL_PREVIEW_UPDATE', section, fields },
+        '*'  // 마케팅 사이트는 origin 검증을 수행; 어드민은 자체 iframe이므로 * 허용
+      )
+    }, 150)
   }, [])
 
   const previewUrl = buildPreviewUrl(subdomain, defaultLocale)
