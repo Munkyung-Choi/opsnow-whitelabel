@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { MarketingPage } from '../../pages/MarketingPage';
+import { createAdminClient } from '../../fixtures/supabase-admin';
 
 /**
  * WL-101: ContactForm / FinalCTASection 검증
@@ -108,24 +109,18 @@ test.describe('WL-101 F-2: ContactForm 인터랙션', () => {
     // 성공 상태: "신청이 완료되었습니다!" h3 표시
     await expect(mp.contactSection.getByRole('heading', { name: '신청이 완료되었습니다!' })).toBeVisible({ timeout: 8000 });
 
-    // Supabase REST API로 생성된 레코드 확인 후 삭제 (테스트 데이터 정리)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (supabaseUrl && serviceRoleKey) {
-      // 레코드 존재 확인
-      const checkRes = await page.request.get(
-        `${supabaseUrl}/rest/v1/leads?email=eq.${encodeURIComponent(testEmail)}&select=id,email`,
-        { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
-      );
-      const records = await checkRes.json() as Array<{ id: string; email: string }>;
-      expect(records).toHaveLength(1);
-      expect(records[0].email).toBe(testEmail);
+    // Node 컨텍스트 클라이언트로 생성된 레코드 확인 후 삭제 (service_role은 브라우저 컨텍스트 불가)
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const admin = createAdminClient();
 
-      // 테스트 레코드 삭제
-      await page.request.delete(
-        `${supabaseUrl}/rest/v1/leads?email=eq.${encodeURIComponent(testEmail)}`,
-        { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
-      );
+      const { data: records } = await admin
+        .from('leads')
+        .select('id, email')
+        .eq('email', testEmail);
+      expect(records).toHaveLength(1);
+      expect(records![0].email).toBe(testEmail);
+
+      await admin.from('leads').delete().eq('email', testEmail);
     }
   });
 });
