@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -38,7 +18,7 @@ export type Database = {
         Row: {
           body: Json | null
           contact_info: Json | null
-          cta_text: string | null
+          cta_text: Json | null
           id: string
           is_published: boolean | null
           partner_id: string
@@ -50,7 +30,7 @@ export type Database = {
         Insert: {
           body?: Json | null
           contact_info?: Json | null
-          cta_text?: string | null
+          cta_text?: Json | null
           id?: string
           is_published?: boolean | null
           partner_id: string
@@ -62,7 +42,7 @@ export type Database = {
         Update: {
           body?: Json | null
           contact_info?: Json | null
-          cta_text?: string | null
+          cta_text?: Json | null
           id?: string
           is_published?: boolean | null
           partner_id?: string
@@ -133,32 +113,32 @@ export type Database = {
       }
       global_contents: {
         Row: {
-          body: string | null
+          body: Json | null
           id: string
           meta: Json | null
           section_type: string
-          subtitle: string | null
-          title: string | null
+          subtitle: Json | null
+          title: Json | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          body?: string | null
+          body?: Json | null
           id?: string
           meta?: Json | null
           section_type: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          body?: string | null
+          body?: Json | null
           id?: string
           meta?: Json | null
           section_type?: string
-          subtitle?: string | null
-          title?: string | null
+          subtitle?: Json | null
+          title?: Json | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -614,9 +594,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       domain_request_status: [
@@ -629,4 +606,3 @@ export const Constants = {
     },
   },
 } as const
-
