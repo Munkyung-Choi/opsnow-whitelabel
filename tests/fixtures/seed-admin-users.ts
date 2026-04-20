@@ -25,18 +25,24 @@ type AdminClient = ReturnType<typeof createAdminClient>
  * deleteUser 결과를 검증하여 실패 시 즉시 throw (silently failing 방지).
  */
 async function purgeTestUsers(admin: AdminClient): Promise<void> {
-  const {
-    data: { users },
-  } = await admin.auth.admin.listUsers({ perPage: 1000 })
-
   const testEmails = [
     TEST_ADMIN_CREDENTIALS.master.email,
     TEST_ADMIN_CREDENTIALS.partner.email,
   ]
 
-  const testUserIds = users
-    .filter((u) => u.email && testEmails.includes(u.email))
-    .map((u) => u.id)
+  // listUsers is paginated (default 50/page). Paginate until all users are scanned.
+  const testUserIds: string[] = []
+  let page = 1
+  while (true) {
+    const {
+      data: { users },
+    } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    for (const u of users) {
+      if (u.email && testEmails.includes(u.email)) testUserIds.push(u.id)
+    }
+    if (users.length < 1000) break
+    page++
+  }
 
   // 소속 파트너를 subdomain 기준으로도 정리 (owner_id가 이미 사라진 고아 파트너 대응)
   await admin.from('partners').delete().eq('subdomain', TEST_ADMIN_PARTNER_SLUG)
