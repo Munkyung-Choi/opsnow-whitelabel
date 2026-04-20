@@ -85,19 +85,28 @@ async function ensureUser(
 }
 
 /**
- * auth.users에 걸린 모든 FK 참조를 먼저 정리한 뒤 auth 유저를 삭제한다.
- * 참조 체인:
- *   - profiles.id          → auth.users.id
- *   - system_logs.actor_id → auth.users.id  (impersonation 테스트가 로그 기록)
- *   - partners.owner_id    → auth.users.id
+ * 테스트 auth 유저의 연관 데이터(FK 참조)를 정리한다.
+ * auth.users 자체는 삭제하지 않는다.
  *
- * deleteUser 결과를 검증하여 실패 시 즉시 throw (silently failing 방지).
+ * 이유: GoTrue auth.admin.deleteUser()는 소프트 삭제를 수행한다.
+ * 소프트 삭제된 유저는 listUsers에서 보이지 않지만 이메일은 계속 "점유"
+ * 상태로 남아 다음 createUser 시 "already registered" 오류를 유발한다.
+ * auth 유저는 CI 사이에 재사용(ensureUser)하고 연관 데이터만 초기화한다.
+ *
+ * 정리 대상:
+ *   - global_contents.updated_by → SET NULL (ON DELETE RESTRICT)
+ *   - system_logs.actor_id       → DELETE
+ *   - partners.owner_id          → DELETE
+ *   - profiles.id                → DELETE (ON DELETE CASCADE이나 명시 정리)
  */
 async function purgeTestUsers(admin: AdminClient): Promise<void> {
   const testEmails = [
     TEST_ADMIN_CREDENTIALS.master.email,
     TEST_ADMIN_CREDENTIALS.partner.email,
   ]
+
+  // 소속 파트너를 subdomain 기준으로도 정리 (owner_id가 이미 사라진 고아 파트너 대응)
+  await admin.from('partners').delete().eq('subdomain', TEST_ADMIN_PARTNER_SLUG)
 
   // listUsers는 페이지네이션 API. 전 페이지를 순회해 테스트 유저 ID를 수집한다.
   const testUserIds: string[] = []
@@ -113,18 +122,14 @@ async function purgeTestUsers(admin: AdminClient): Promise<void> {
     page++
   }
 
-  // 소속 파트너를 subdomain 기준으로도 정리 (owner_id가 이미 사라진 고아 파트너 대응)
-  await admin.from('partners').delete().eq('subdomain', TEST_ADMIN_PARTNER_SLUG)
-
   if (testUserIds.length === 0) return
 
   // FK 참조를 역순으로 정리 — 각 단계 에러를 명시적으로 검증한다
-  // global_contents.updated_by → auth.users(id) ON DELETE RESTRICT: null 처리
   const { error: gcErr } = await admin
     .from('global_contents')
     .update({ updated_by: null })
     .in('updated_by', testUserIds)
-  if (gcErr) throw new Error(`[purgeTestUsers] global_contents.updated_by 정리 실패: ${gcErr.message}`)
+  if (gcErr) throw new Error(`[purgeTestUsers] global_contents 정리 실패: ${gcErr.message}`)
 
   const { error: logErr } = await admin.from('system_logs').delete().in('actor_id', testUserIds)
   if (logErr) throw new Error(`[purgeTestUsers] system_logs 정리 실패: ${logErr.message}`)
@@ -135,12 +140,7 @@ async function purgeTestUsers(admin: AdminClient): Promise<void> {
   const { error: profileErr } = await admin.from('profiles').delete().in('id', testUserIds)
   if (profileErr) throw new Error(`[purgeTestUsers] profiles 정리 실패: ${profileErr.message}`)
 
-  for (const id of testUserIds) {
-    const { error } = await admin.auth.admin.deleteUser(id)
-    if (error) {
-      throw new Error(`[purgeTestUsers] auth 유저 삭제 실패 (id=${id}): ${error.message}`)
-    }
-  }
+  // auth.users 삭제 생략 — GoTrue 소프트 삭제 회피. ensureUser가 재사용 처리.
 }
 
 /**
