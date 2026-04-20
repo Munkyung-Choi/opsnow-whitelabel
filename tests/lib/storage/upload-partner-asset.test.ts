@@ -40,20 +40,24 @@ function createFile(size: number, mimeType: string): File {
 }
 
 describe('uploadPartnerAsset — 검증 실패', () => {
-  it('파일 크기 초과 시 throw', async () => {
+  it('파일 크기 초과 시 FILE_TOO_LARGE 반환', async () => {
     const { client } = createStorageMock()
     const file = createFile(3_000_000, 'image/png')
-    await expect(
-      uploadPartnerAsset(client, { partnerId: 'abc-123', type: 'logo', file })
-    ).rejects.toThrow(/크기/)
+    const result = await uploadPartnerAsset(client, { partnerId: 'abc-123', type: 'logo', file })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.code).toBe('FILE_TOO_LARGE')
+    }
   })
 
-  it('허용되지 않는 MIME → throw', async () => {
+  it('허용되지 않는 MIME → INVALID_TYPE 반환', async () => {
     const { client } = createStorageMock()
     const file = createFile(1000, 'image/svg+xml')
-    await expect(
-      uploadPartnerAsset(client, { partnerId: 'abc-123', type: 'logo', file })
-    ).rejects.toThrow(/파일 형식/)
+    const result = await uploadPartnerAsset(client, { partnerId: 'abc-123', type: 'logo', file })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.code).toBe('INVALID_TYPE')
+    }
   })
 })
 
@@ -74,6 +78,7 @@ describe('uploadPartnerAsset — 정상 업로드', () => {
       contentType: 'image/png',
     })
     expect(result).toEqual({
+      ok: true,
       publicUrl: 'https://cdn/logo.png',
       path: 'abc-123/logo.png',
       bucket: 'partner-logos',
@@ -118,14 +123,17 @@ describe('uploadPartnerAsset — 정상 업로드', () => {
 })
 
 describe('uploadPartnerAsset — 업로드 실패', () => {
-  it('Supabase 업로드 에러 전파', async () => {
+  it('Supabase 업로드 에러 → UPLOAD_FAILED 반환', async () => {
     const { client } = createStorageMock({
       uploadResult: { data: null, error: { message: 'RLS 위반' } },
     })
     const file = createFile(500_000, 'image/png')
 
-    await expect(
-      uploadPartnerAsset(client, { partnerId: 'abc-123', type: 'logo', file })
-    ).rejects.toThrow(/Storage 업로드 실패.*RLS 위반/)
+    const result = await uploadPartnerAsset(client, { partnerId: 'abc-123', type: 'logo', file })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.code).toBe('UPLOAD_FAILED')
+      expect(result.error).toMatch(/RLS 위반/)
+    }
   })
 })
