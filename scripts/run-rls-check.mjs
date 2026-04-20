@@ -142,7 +142,6 @@ const SERVICE_KEY   = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 const PARTNER_A_ID  = process.env.RLS_TEST_PARTNER_A_ID            ?? '';
 const PA_EMAIL      = process.env.RLS_TEST_PARTNER_A_ADMIN_EMAIL    ?? '';
 const PA_PASSWORD   = process.env.RLS_TEST_PARTNER_A_ADMIN_PASSWORD ?? '';
-const PARTNER_B_ID  = process.env.RLS_TEST_PARTNER_B_ID            ?? '';
 const PB_EMAIL      = process.env.RLS_TEST_PARTNER_B_ADMIN_EMAIL    ?? '';
 const PB_PASSWORD   = process.env.RLS_TEST_PARTNER_B_ADMIN_PASSWORD ?? '';
 const MA_EMAIL      = process.env.RLS_TEST_MASTER_ADMIN_EMAIL       ?? '';
@@ -207,17 +206,6 @@ async function testExpectCount(testId, desc, sb, queryFn, expectedCount) {
     record(testId, desc, 'PASS');
   } else {
     record(testId, desc, 'FAIL', `expected ${expectedCount}행, got ${(data ?? []).length}행`);
-  }
-}
-
-async function testExpectError(testId, desc, sb, queryFn, errorPattern) {
-  const { error } = await queryFn(sb);
-  if (error && new RegExp(errorPattern, 'i').test(error.message)) {
-    record(testId, desc, 'PASS');
-  } else if (error) {
-    record(testId, desc, 'FAIL', `에러 패턴 불일치: ${error.message}`);
-  } else {
-    record(testId, desc, 'FAIL', '에러 미발생 (RLS/FK 차단 실패)');
   }
 }
 
