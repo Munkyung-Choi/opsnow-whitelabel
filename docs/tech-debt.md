@@ -104,20 +104,6 @@
 
 ---
 
-### DEBT-002 — ContactForm handleSubmit + 폼 필드 로직 중복
-
-- **발생일**: 2026-04-19
-- **영역**: Marketing UI / ContactForm
-- **영향도**: Major (WL-42 Server Action 연동 시 동일 로직을 두 파일에 중복 구현해야 함)
-- **연관 파일**: `src/components/marketing/ContactFormMain.tsx`, `src/components/marketing/ContactFormSimple.tsx`
-- **연관 티켓**: WL-42 (Server Action 연동)
-- **증상**:
-  - `handleSubmit` (허니팟 체크 + `setTimeout` 임시 UX)이 두 파일에 동일하게 복사됨
-  - 5개 폼 필드(name/company/email/phone/cloud_usage_amount) 렌더링 코드 중복
-  - 레이아웃 목적은 다름(2-column vs 1-column)이므로 컴포넌트 자체 통합은 불필요
-- **상환 조건**: WL-42 Server Action 연동 시, `ContactFormFields` 서브컴포넌트를 추출하여 두 폼이 공유하도록 리팩터링. 추출 대상: handleSubmit 로직 + 5개 필드 + 성공/에러 상태 관리.
-- **상환 우선 조건**: WL-42 착수 전 반드시 처리. 연동 후 처리 시 Server Action이 두 곳에 복붙되어 SSOT 위반이 영속화됨.
-
 ---
 
 ### DEBT-001 — contents.title/subtitle/body 평문 스칼라와 i18n 객체 혼재
@@ -164,6 +150,29 @@
 
 ---
 
+---
+
+### DEBT-006 — proxy.ts(Edge) ↔ resolve-partner-from-host.ts(Node.js) 서브도메인 파싱 로직 중복
+
+- **발생일**: 2026-04-20
+- **영역**: `src/proxy.ts` (Edge Runtime) / `src/lib/marketing/resolve-partner-from-host.ts` (Node.js)
+- **영향도**: Major (서브도메인 파싱 규칙 변경 시 두 파일을 동기 수정해야 함)
+- **연관 파일**: `src/proxy.ts`, `src/lib/marketing/resolve-partner-from-host.ts`
+- **연관 티켓**: WL-42 (Server Action partner_id 해결)
+- **증상**:
+  - Edge Runtime(`proxy.ts`)과 Node.js Runtime(`resolve-partner-from-host.ts`)이 모듈 경계를 공유할 수 없어 동일한 `LOCAL_TLD_RE` 정규식·`DEV_PARTNER_SLUG` 폴백 로직이 중복됨
+  - 현재 수용 가능한 구조적 이중화 — 런타임 격리가 근본 원인
+- **상환 조건**: 인프라 레이어가 단일 런타임으로 통합되거나, Edge-compatible shared 유틸 레이어 설계 시 통합.
+- **임시 대응**: 두 파일 주석에 서로를 상호 참조(`// DEBT-006: proxy.ts와 동기화 필요`) 명시.
+
+---
+
 ## 상환된 부채 (Resolved)
 
-_(없음)_
+### DEBT-002 — ContactForm handleSubmit + 폼 필드 로직 중복
+
+- **발생일**: 2026-04-19
+- **상환일**: 2026-04-20
+- **상환 커밋**: `refactor(DEBT-002): ContactFormFields 추출 — WL-42 Server Action 공유 기반`
+- **상환 내용**: `ContactFormFields` 서브컴포넌트 신설. `ContactFormMain`, `ContactFormSimple`이 동일 컴포넌트 공유. `FinalCTASection` Props에서 `partnerId` 제거. `section-registry.tsx` 연동 정리.
+- **연관**: WL-42
