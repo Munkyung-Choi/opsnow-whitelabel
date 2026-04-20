@@ -30,6 +30,34 @@
 
 ## 활성 부채 (Active)
 
+### DEBT-005 — 파트너별 Rate Limiting 미구현 (Noisy Neighbor 방어)
+
+- **발생일**: 2026-04-20
+- **영역**: `src/middleware.ts` / `/api/*` Route Handlers / Next.js Edge
+- **영향도**: Major (파트너 10+ 시 단일 파트너 과부하가 전체 서비스에 영향 가능)
+- **연관 티켓**: WL-124 (Feature Flag 인프라), CLAUDE.md §3.4 규칙 5 (Transaction Pooler)
+- **현황**:
+  - DB 커넥션은 Transaction Pooler로 선형 증가 방지 (규칙 5 준수)
+  - `/api/leads` 마이그레이션 주석에 `"앱 레벨 Rate Limiting 필수"` 경고 이미 기재
+  - 파트너별 API 호출 빈도 제한 로직은 미구현
+- **권장 해결책**: Upstash Redis + `@upstash/ratelimit`
+  - Next.js Edge Middleware에서 실행 → 지연 시간 최소화
+  - 서버리스 환경 최적화 (Redis 커넥션 풀 불필요)
+  - 파트너 ID 기반 per-tenant 슬라이딩 윈도우 제한
+  ```typescript
+  // 구현 예시
+  const ratelimit = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(100, '1m') })
+  const { success } = await ratelimit.limit(partnerId)
+  if (!success) return new Response('Too Many Requests', { status: 429 })
+  ```
+- **상환 트리거 조건** (둘 중 먼저 도달하는 조건):
+  1. 운영 파트너 수 **N > 10** 도달
+  2. 특정 파트너의 API 호출이 전체 트래픽의 **70% 이상** 지속
+- **상환 범위**: `/api/leads` Route Handler 우선 적용 → 이후 `/api/visits/upsert` → 전체 Admin API 확장
+- **참조**: CLAUDE.md §3.4 규칙 5, supabase/migrations/20260408000003_rls_policies.sql §leads 정책 주석
+
+---
+
 ### DEBT-004 — 파트너 마케팅 자산 Storage 공개 URL (허용된 위험)
 
 - **발생일**: 2026-04-20
