@@ -475,9 +475,9 @@ INSERT INTO public.global_contents (id, section_type, title, subtitle, body, met
     NULL,
     '{
       "engines": [
-        {"name": "Cost Intelligence", "description": "멀티클라우드 비용 데이터를 통합 수집·분석하여 실시간 현황판을 제공합니다."},
-        {"name": "AI Optimizer", "description": "머신러닝 기반 사용 패턴 분석으로 과잉 프로비저닝을 자동 감지하고 최적화 권고안을 생성합니다."},
-        {"name": "FinOps Governance", "description": "예산 정책, 태깅 규칙, 알림 임계값을 코드로 관리하여 거버넌스를 자동화합니다."}
+        {"name": "Cost Intelligence", "description": "멀티클라우드 비용 데이터를 통합 수집·분석하여 실시간 현황판을 제공합니다.", "icon": "BrainCircuit"},
+        {"name": "AI Optimizer", "description": "머신러닝 기반 사용 패턴 분석으로 과잉 프로비저닝을 자동 감지하고 최적화 권고안을 생성합니다.", "icon": "Zap"},
+        {"name": "FinOps Governance", "description": "예산 정책, 태깅 규칙, 알림 임계값을 코드로 관리하여 거버넌스를 자동화합니다.", "icon": "Cloud"}
       ]
     }'
   ),
