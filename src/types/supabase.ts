@@ -452,6 +452,7 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_e2e_test_users: { Args: never; Returns: number }
       get_my_role: { Args: never; Returns: string }
       update_partner_feature: {
         Args: {

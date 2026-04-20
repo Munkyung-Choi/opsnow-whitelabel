@@ -85,62 +85,23 @@ async function ensureUser(
 }
 
 /**
- * 테스트 auth 유저의 연관 데이터(FK 참조)를 정리한다.
- * auth.users 자체는 삭제하지 않는다.
+ * 테스트 auth 유저와 연관 데이터를 초기화한다.
  *
- * 이유: GoTrue auth.admin.deleteUser()는 소프트 삭제를 수행한다.
- * 소프트 삭제된 유저는 listUsers에서 보이지 않지만 이메일은 계속 "점유"
- * 상태로 남아 다음 createUser 시 "already registered" 오류를 유발한다.
- * auth 유저는 CI 사이에 재사용(ensureUser)하고 연관 데이터만 초기화한다.
+ * WL-141: `cleanup_e2e_test_users` RPC로 단일 호출 교체.
+ *   - FK 체인(global_contents, system_logs, partners, profiles) 정리 + auth.users hard-delete를 원자적으로 수행.
+ *   - GoTrue Admin API 우회 → 소프트 삭제/이메일 점유 문제 해소.
+ *   - 이메일 상수는 RPC 내부에 하드코딩(서비스 롤 전용 화이트리스트).
+ *     → TEST_ADMIN_CREDENTIALS 변경 시 migration도 함께 수정해야 함.
  *
- * 정리 대상:
- *   - global_contents.updated_by → SET NULL (ON DELETE RESTRICT)
- *   - system_logs.actor_id       → DELETE
- *   - partners.owner_id          → DELETE
- *   - profiles.id                → DELETE (ON DELETE CASCADE이나 명시 정리)
+ * 서브도메인 기준 고아 파트너 선정리는 유지: auth.users 없이 떠도는 파트너 대응.
  */
 async function purgeTestUsers(admin: AdminClient): Promise<void> {
-  const testEmails = [
-    TEST_ADMIN_CREDENTIALS.master.email,
-    TEST_ADMIN_CREDENTIALS.partner.email,
-  ]
-
-  // 소속 파트너를 subdomain 기준으로도 정리 (owner_id가 이미 사라진 고아 파트너 대응)
   await admin.from('partners').delete().eq('subdomain', TEST_ADMIN_PARTNER_SLUG)
 
-  // listUsers는 페이지네이션 API. 전 페이지를 순회해 테스트 유저 ID를 수집한다.
-  const testUserIds: string[] = []
-  let page = 1
-  while (true) {
-    const {
-      data: { users },
-    } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
-    for (const u of users) {
-      if (u.email && testEmails.includes(u.email)) testUserIds.push(u.id)
-    }
-    if (users.length < 1000) break
-    page++
+  const { error } = await admin.rpc('cleanup_e2e_test_users')
+  if (error) {
+    throw new Error(`[purgeTestUsers] cleanup_e2e_test_users RPC 실패: ${error.message}`)
   }
-
-  if (testUserIds.length === 0) return
-
-  // FK 참조를 역순으로 정리 — 각 단계 에러를 명시적으로 검증한다
-  const { error: gcErr } = await admin
-    .from('global_contents')
-    .update({ updated_by: null })
-    .in('updated_by', testUserIds)
-  if (gcErr) throw new Error(`[purgeTestUsers] global_contents 정리 실패: ${gcErr.message}`)
-
-  const { error: logErr } = await admin.from('system_logs').delete().in('actor_id', testUserIds)
-  if (logErr) throw new Error(`[purgeTestUsers] system_logs 정리 실패: ${logErr.message}`)
-
-  const { error: partnerErr } = await admin.from('partners').delete().in('owner_id', testUserIds)
-  if (partnerErr) throw new Error(`[purgeTestUsers] partners 정리 실패: ${partnerErr.message}`)
-
-  const { error: profileErr } = await admin.from('profiles').delete().in('id', testUserIds)
-  if (profileErr) throw new Error(`[purgeTestUsers] profiles 정리 실패: ${profileErr.message}`)
-
-  // auth.users 삭제 생략 — GoTrue 소프트 삭제 회피. ensureUser가 재사용 처리.
 }
 
 /**
