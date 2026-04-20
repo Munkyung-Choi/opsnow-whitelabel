@@ -2,16 +2,15 @@
 
 import { useEffect } from 'react'
 
-// admin origin 목록 — postMessage origin 검증에 사용
-const ADMIN_ORIGIN_PATTERNS = [
-  'admin-whitelabel.localhost',
-  'admin.opsnow-whitelabel.vercel.app',
-]
-
 function isAllowedAdminOrigin(origin: string): boolean {
   try {
     const { hostname } = new URL(origin)
-    return ADMIN_ORIGIN_PATTERNS.some((pattern) => hostname.includes(pattern))
+    return (
+      hostname === 'admin-whitelabel.opsnow.com' ||
+      hostname === 'dev-admin-whitelabel.opsnow.com' ||
+      hostname.endsWith('.opsnow-whitelabel.vercel.app') ||
+      hostname.endsWith('.localhost')
+    )
   } catch {
     return false
   }
