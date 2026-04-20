@@ -24,14 +24,17 @@ export async function findUserIdByEmail(
   admin: AdminClient,
   email: string
 ): Promise<string | null> {
+  // perPage: 100 — GoTrue가 상위 값을 내부적으로 캡할 경우 종료 조건이 틀어지므로
+  // 보수적 값을 사용한다. 100은 어떤 GoTrue 버전에서도 캡 없이 반환이 보장된다.
+  const PER_PAGE = 100
   let page = 1
   while (true) {
     const {
       data: { users },
-    } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    } = await admin.auth.admin.listUsers({ page, perPage: PER_PAGE })
     const found = users.find((u) => u.email === email)
     if (found) return found.id
-    if (users.length < 1000) break
+    if (users.length < PER_PAGE) break
     page++
   }
   return null
