@@ -155,9 +155,11 @@ test.describe('S3: contents.title=null — h2 미렌더링 검증 [WL-102]', () 
     await expect(page.locator('#stats')).toBeVisible();
   });
 
-  test('S3-2: stats 섹션의 h2 타이틀이 없다 (title=null → {sectionTitle && <h2>} 미렌더링)', async ({ page }) => {
+  test('S3-2: stats 섹션의 h2 타이틀이 i18n 기본값("성과 지표")으로 렌더링된다 (title=null → ?? fallback)', async ({ page }) => {
     await page.goto(`${BASE}/`, { waitUntil: 'load' });
-    await expect(page.locator('#stats h2')).toHaveCount(0);
+    // WL-139: title=null → t.sectionTitle(i18n) 폴백. h2는 렌더링되어야 한다.
+    await expect(page.locator('#stats h2')).toBeVisible();
+    await expect(page.locator('#stats h2')).toContainText('성과 지표');
   });
 
   test('S3-3: stats 섹션 본문(수치 카드)은 DEFAULT_STATS로 렌더링된다 (body=null → 폴백)', async ({ page }) => {
