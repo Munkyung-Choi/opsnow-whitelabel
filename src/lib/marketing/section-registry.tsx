@@ -104,11 +104,13 @@ const SECTION_REGISTRY: Readonly<Record<MarketingSectionType, SectionRenderFn>> 
     />
   ),
   faq: (data) => (
-    <DynamicFaqSection content={data.globalContents.get('faq') ?? null} />
+    <DynamicFaqSection
+      content={data.globalContents.get('faq') ?? null}
+      locale={data.locale}
+    />
   ),
   final_cta: (data) => (
     <DynamicFinalCTASection
-      content={data.contents.get('final_cta') ?? null}
       locale={data.locale}
     />
   ),

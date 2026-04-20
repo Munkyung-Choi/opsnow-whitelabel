@@ -61,7 +61,9 @@
     "ctaTitle": "원하는 답변을 찾지 못하셨나요?",
     "ctaSubtitle": "전담 FinOps 엔지니어에게 직접 문의하세요.",
     "backToFaq": "FAQ 목록으로",
-    "updatedAt": "마지막 업데이트"
+    "updatedAt": "마지막 업데이트",
+    "sectionTitle": "자주 묻는 질문",
+    "sectionSubtitle": "도입 전 가장 많이 받는 질문들을 정리했습니다. 더 궁금한 점이 있으면 언제든 문의하세요."
   },
   "contactForm": {
     "title": "지금 바로 문의하세요",
@@ -123,7 +125,8 @@
     "subtitle": "대부분의 팀이 겪는 세 가지 구조적 문제를 진단합니다. 인지하지 못하는 낭비가 가장 비싼 낭비입니다."
   },
   "stats": {
-    "badge": "숫자로 보는 성과"
+    "badge": "숫자로 보는 성과",
+    "sectionTitle": "성과 지표"
   },
   "howItWorks": {
     "defaultTitle": "비용을 줄이는 3단계",

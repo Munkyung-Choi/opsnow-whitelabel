@@ -61,7 +61,9 @@
     "ctaTitle": "Couldn't find your answer?",
     "ctaSubtitle": "Contact our dedicated FinOps engineer directly.",
     "backToFaq": "Back to FAQ",
-    "updatedAt": "Last updated"
+    "updatedAt": "Last updated",
+    "sectionTitle": "Frequently Asked Questions",
+    "sectionSubtitle": "We've compiled the questions we receive most before deployment. Feel free to contact us anytime with further questions."
   },
   "contactForm": {
     "title": "Get in touch today",
@@ -123,7 +125,8 @@
     "subtitle": "Diagnose the three structural problems most teams face. The waste you don't notice is the most expensive waste."
   },
   "stats": {
-    "badge": "Proven by Numbers"
+    "badge": "Proven by Numbers",
+    "sectionTitle": "Performance Metrics"
   },
   "howItWorks": {
     "defaultTitle": "3 Steps to Real Savings",

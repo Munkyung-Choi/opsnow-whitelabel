@@ -2,7 +2,6 @@
 
 import { useState, memo } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,25 +13,24 @@ import {
 } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 import { parseFaqContent, FAQ_CATEGORIES, type FaqCategory } from '@/lib/faq/faq-data';
+import { getDictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/lib/i18n/locales';
 import type { LocalizedGlobalContentRow } from '@/lib/marketing/get-partner-page-data';
 
 interface Props {
   content: LocalizedGlobalContentRow | null;
+  locale: Locale;
 }
 
 const MAX_VISIBLE = 5;
 
 // React.memo: 'use client' Client Component이므로 memo가 유효합니다.
-const FaqSection = memo(function FaqSection({ content }: Props) {
-  const params = useParams();
-  const locale = params?.locale as string | undefined;
-
+const FaqSection = memo(function FaqSection({ content, locale }: Props) {
+  const t = getDictionary(locale).faq;
   const [activeCategory, setActiveCategory] = useState<FaqCategory | '전체'>('전체');
 
-  const title = content?.title ?? '자주 묻는 질문';
-  const subtitle =
-    content?.subtitle ??
-    '도입 전 가장 많이 받는 질문들을 정리했습니다. 더 궁금한 점이 있으면 언제든 문의하세요.';
+  const title = content?.title ?? t.sectionTitle;
+  const subtitle = content?.subtitle ?? t.sectionSubtitle;
   const allItems = parseFaqContent(content);
 
   const filtered =
@@ -41,7 +39,7 @@ const FaqSection = memo(function FaqSection({ content }: Props) {
       : allItems.filter((f) => f.category === activeCategory).slice(0, MAX_VISIBLE);
 
   // /{locale}/faq — 전체 FAQ 페이지 (WL-96 완료 후 활성화)
-  const faqBase = locale ? `/${locale}/faq` : undefined;
+  const faqBase = `/${locale}/faq`;
 
   return (
     <section id="faq" className="scroll-mt-16 bg-background px-4 section-py sm:px-6">

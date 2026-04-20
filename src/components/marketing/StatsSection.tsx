@@ -13,7 +13,7 @@ interface Props {
 
 export default function StatsSection({ content, locale }: Props) {
   const t = getDictionary(locale).stats;
-  const sectionTitle = content?.title ?? null;
+  const sectionTitle = content?.title ?? t.sectionTitle;
   const stats = parseStats(content?.body_json ?? null, locale);
 
   return (

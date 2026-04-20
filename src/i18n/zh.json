@@ -61,7 +61,9 @@
     "ctaTitle": "没有找到您想要的答案？",
     "ctaSubtitle": "请直接联系我们的专属FinOps工程师。",
     "backToFaq": "返回FAQ列表",
-    "updatedAt": "最后更新"
+    "updatedAt": "最后更新",
+    "sectionTitle": "常见问题",
+    "sectionSubtitle": "我们整理了部署前最常收到的问题。如有更多疑问，请随时联系我们。"
   },
   "contactForm": {
     "title": "立即联系我们",
@@ -123,7 +125,8 @@
     "subtitle": "诊断大多数团队面临的三个结构性问题。您没有注意到的浪费是最昂贵的浪费。"
   },
   "stats": {
-    "badge": "数字见证成果"
+    "badge": "数字见证成果",
+    "sectionTitle": "绩效指标"
   },
   "howItWorks": {
     "defaultTitle": "三步实现真正的节省",

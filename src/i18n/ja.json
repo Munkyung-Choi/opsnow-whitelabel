@@ -61,7 +61,9 @@
     "ctaTitle": "お探しの回答が見つかりませんでしたか？",
     "ctaSubtitle": "専任FinOpsエンジニアに直接お問い合わせください。",
     "backToFaq": "FAQリストへ戻る",
-    "updatedAt": "最終更新"
+    "updatedAt": "最終更新",
+    "sectionTitle": "よくある質問",
+    "sectionSubtitle": "導入前に最もよくいただくご質問をまとめました。ご不明な点がございましたら、いつでもお気軽にお問い合わせください。"
   },
   "contactForm": {
     "title": "今すぐお問い合わせ",
@@ -123,7 +125,8 @@
     "subtitle": "ほとんどのチームが抱える3つの構造的問題を診断します。気づいていない無駄が最も高くつきます。"
   },
   "stats": {
-    "badge": "数字で見る実績"
+    "badge": "数字で見る実績",
+    "sectionTitle": "パフォーマンス指標"
   },
   "howItWorks": {
     "defaultTitle": "コスト削減への3ステップ",
