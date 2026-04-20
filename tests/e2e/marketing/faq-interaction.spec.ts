@@ -58,19 +58,14 @@ test.describe('WL-79 FaqSection — 필터·아코디언 인터랙션', () => {
   });
 
   test('T-79-10: "자세히 보기" 링크 href가 /{locale}/faq/{id} 형식', async () => {
-    // "자세히 보기"는 아코디언이 열린 상태에서만 DOM에 가시화된다.
-    // 첫 번째 항목은 기본 열림이므로 그 안의 링크를 검증한다.
+    // 첫 번째 아코디언 항목은 기본 열림 → 내부 링크 가시화 상태
     const detailLink = mp.faqAccordionItems
       .first()
       .getByRole('link', { name: /자세히 보기/ })
       .first();
 
-    // WL-96 구현 전에는 faqBase 자체가 undefined여서 링크가 렌더되지 않을 수 있다.
-    // 존재 여부를 선제 확인 후 href 패턴 검증.
-    const exists = await detailLink.count();
-    test.skip(exists === 0, 'WL-96 미구현 상태 — 자세히 보기 링크 미렌더');
-
-    // 서브도메인 기반 라우팅: /{locale}/faq/{faqId} (2 세그먼트)
+    await expect(detailLink).toBeVisible();
+    // 서브도메인 기반 라우팅: /{locale}/faq/{slug} (2 세그먼트)
     await expect(detailLink).toHaveAttribute(
       'href',
       /^\/[^/]+\/faq\/[^/]+$/,
@@ -78,12 +73,9 @@ test.describe('WL-79 FaqSection — 필터·아코디언 인터랙션', () => {
   });
 
   test('T-79-11: "모든 FAQ 보기" 버튼 href가 /{locale}/faq 형식', async () => {
-    // 서브도메인 기반 라우팅: 파트너 구분은 subdomain이 담당하므로
-    // href는 /{locale}/faq (2 세그먼트) 형식이 정상
+    // 서브도메인 기반 라우팅: 파트너 구분은 subdomain이 담당
     const cta = mp.faqAllCta;
-    const exists = await cta.count();
-    test.skip(exists === 0, 'WL-96 미구현 상태 — 모든 FAQ 보기 CTA 미렌더');
-
+    await expect(cta).toBeVisible();
     await expect(cta).toHaveAttribute('href', /^\/[^/]+\/faq$/);
   });
 
