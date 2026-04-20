@@ -25,10 +25,10 @@
 
 | 트랙 | Jira Tech Risk | 정의 | 프로젝트 특화 예시 | 권장 모델 | 단계 |
 |------|---------------|------|-------------------|-----------|------|
-| **Low** | `🟩Low` | 파급력 없음, 즉시 롤백 가능 | UI/CSS 수정, i18n 번역 문구, 문서화 | Sonnet | Impl → Verify → Done |
-| **Med** | `🟫Med` | 단일 도메인 기능 변경, 롤백 가능 | 신규 페이지·CRUD, API 연동, 상태 관리 로직 | Sonnet\* | Context → Design → Audit → Impl → Verify → Report |
-| **High** | `🟨High` | 전사 장애·데이터 유출 가능, 비가역적. 복구 경로 명확 | 기존 테이블 nullable 컬럼 추가, 신규 인덱스, CHECK 제약 확장 | **Opus** | Context → Design → Audit → Human(비동기) → Impl → Verify → Report |
-| **Critical** | `🟥Critical` | 권한 모델·데이터 파괴 가능, 비가역적 | DB Migration, RLS 정책, Auth Flow, 보안 헬퍼 신설 | **Opus** | Context → Design → Audit → Human(동기) → Impl → Verify → Report |
+| **Low** | `🟩Low` | 파급력 없음, 즉시 롤백 가능 | UI/CSS 수정, i18n 번역 문구, 문서화 | Sonnet | Impl → Verify → Deploy → Done |
+| **Med** | `🟫Med` | 단일 도메인 기능 변경, 롤백 가능 | 신규 페이지·CRUD, API 연동, 상태 관리 로직 | Sonnet\* | Context → Design → Audit → Impl → Verify → Deploy → Report |
+| **High** | `🟨High` | 전사 장애·데이터 유출 가능, 비가역적. 복구 경로 명확 | 기존 테이블 nullable 컬럼 추가, 신규 인덱스, CHECK 제약 확장 | **Opus** | Context → Design → Audit → Human(비동기) → Impl → Verify → Deploy → Report |
+| **Critical** | `🟥Critical` | 권한 모델·데이터 파괴 가능, 비가역적 | DB Migration, RLS 정책, Auth Flow, 보안 헬퍼 신설 | **Opus** | Context → Design → Audit → Human(동기) → Impl → Verify → Deploy → Report |
 
 > \* Med이라도 Opus로 자동 승격되는 조건이 있다 — `docs/model-matrix.md` §2 참조.
 
@@ -50,7 +50,8 @@
 
 1. **Impl**: 구현. 테스트 코드를 함께 작성한다 (아래 테스트 원칙 참조).
 2. **Verify**: `npm run lint` + `npx tsc --noEmit` 실행.
-3. **Done**: 필요 시 Jira 상태 업데이트.
+3. **Deploy**: `git push origin main` → CI 통과 → Vercel 자동 배포 완료 확인. Vercel 대시보드에서 배포 상태 green 확인.
+4. **Done**: 필요 시 Jira 상태 업데이트.
 
 ---
 
@@ -79,7 +80,8 @@
    - `npx vitest run`
    - `npx playwright test` — 기존 테스트 포함 전체 실행. 실패 시 A/B/C 버킷으로 원인 분류 후 보고.
    - **Verify 전 통과 시 git 커밋 + push를 한 세트로 제안한다.** (`git status`로 untracked·수정 파일 확인 후 적절한 커밋 단위 제시 → 커밋 후 `git log origin/main..HEAD --oneline` 확인 후 push 제안)
-7. **Report**: Jira 댓글 업데이트 (아래 양식 참조).
+7. **Deploy**: CI 통과 + Vercel 자동 배포 완료 확인. 변경된 기능을 브라우저에서 smoke check. 이상 시 Vercel Instant Rollback.
+8. **Report**: Jira 댓글 업데이트 (아래 양식 참조).
 
 ---
 
@@ -96,7 +98,8 @@
    - **Test Contract 없이 Impl 단계 진입 불가.**
 6. **Impl**: MED 트랙 Step 5와 동일 — 구현 + stub 교체 + 기존 테스트 동기화.
 7. **Verify**: MED 트랙 Step 6과 동일 — lint + tsc + vitest + **playwright** 4단계 전부 실행. Verify 전 통과 시 git 커밋 + push를 한 세트로 제안한다.
-8. **Report**: Jira 댓글 업데이트 + Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장.
+8. **Deploy**: CI 통과 + Vercel 배포 완료 확인. Admin·마케팅 사이트 양측 smoke check. DB 마이그레이션 포함 시 데이터 무결성 확인 쿼리 실행. 이상 시 Vercel Instant Rollback + DB 롤백 절차 실행.
+9. **Report**: Jira 댓글 업데이트 + Auditor Digest를 `docs/audits/{ticket_id}.md`에 저장.
 
 ---
 

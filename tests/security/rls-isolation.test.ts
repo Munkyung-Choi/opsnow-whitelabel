@@ -28,6 +28,12 @@ import {
  * - with-check-fail: WITH CHECK 절로 INSERT/UPDATE 차단
  */
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const isLocalSupabase =
+  !!SUPABASE_URL &&
+  (SUPABASE_URL.includes('localhost') || SUPABASE_URL.includes('127.0.0.1'))
+
+describe.skipIf(!isLocalSupabase)('WL-118 — RLS 격리 자동 검증 스위트', () => {
 let masterClient: RlsClient
 let partnerAClient: RlsClient
 let partnerBClient: RlsClient
@@ -606,3 +612,4 @@ describe('anon 크로스 테넌트 INSERT — RLS 갭 문서화 (DEBT-007)', () 
     }
   })
 })
+}) // describe.skipIf(!isLocalSupabase)
