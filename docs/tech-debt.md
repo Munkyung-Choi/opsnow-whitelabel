@@ -30,6 +30,28 @@
 
 ## 활성 부채 (Active)
 
+### DEBT-004 — 파트너 마케팅 자산 Storage 공개 URL (허용된 위험)
+
+- **발생일**: 2026-04-20
+- **영역**: Supabase Storage / `supabase/migrations/20260419000009_partner_assets_storage.sql`
+- **영향도**: Minor (현재 자산 특성상 실질 리스크 낮음)
+- **연관 티켓**: WL-125 (Storage RLS 구축)
+- **현황**:
+  - `partner-logos` / `partner-favicons` 버킷은 `public: true` — 인증 없이 URL로 직접 접근 가능
+  - 경로 패턴: `{partner_uuid}/{logo|favicon}.{ext}`
+  - 마케팅 사이트에 노출되는 자산이므로 공개가 **설계 의도**
+- **허용 근거**:
+  - 파일명이 `logo.png` / `favicon.ico` 고정 — 열거해도 얻을 수 있는 건 마케팅 공개 정보
+  - UUID(128-bit) 경로로 브루트포스 열거 비현실적 (P ≈ 1/2¹²⁸)
+  - Signed URL 도입 시 CDN 캐싱 무효화로 성능 저하 발생 (과잉 보안)
+- **허용 범위 경계 (이 조건 중 하나라도 변경되면 DEBT 즉시 재검토)**:
+  1. 버킷에 저장되는 파일이 마케팅 자산(로고·파비콘)에 한정될 것
+  2. 파트너 계약서·내부 문서·PII 포함 파일을 이 버킷에 저장하지 않을 것
+- **상환 조건**: 비공개 파트너 자산(계약서, 내부 문서 등) 요구사항 발생 시, 전용 private bucket 신설 + Signed URL 의무화로 별도 티켓 처리.
+- **참조**: CLAUDE.md §3.4 규칙 6 (파트너 자산 외부 URL 전용)
+
+---
+
 ### DEBT-003 — withAdminAction 콜백 반환 타입 Discriminated Union 미도입
 
 - **발생일**: 2026-04-19

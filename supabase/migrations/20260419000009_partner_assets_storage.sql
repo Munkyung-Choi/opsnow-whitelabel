@@ -18,19 +18,25 @@ BEGIN;
 -- [1] 버킷 2개 생성 (멱등성 보장)
 -- ============================================================
 
+-- [Public Intent — DEBT-004 허용된 위험]
+-- 이 두 버킷은 의도적으로 public = true.
+-- 마케팅 사이트에 렌더링되는 자산(로고·파비콘)은 본질적으로 공개 대상이며,
+-- 경로가 UUID(128-bit) 기반이므로 열거 공격 비현실적.
+-- ⚠️ 파트너 계약서·내부 문서·PII 포함 파일은 이 버킷에 저장 금지.
+--    비공개 자산이 필요한 경우 전용 private bucket + Signed URL 의무화 (DEBT-004 참조).
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES
   (
     'partner-logos',
     'partner-logos',
-    true,  -- public: 마케팅 사이트 인증 없이 SELECT
+    true,  -- public: 마케팅 사이트 인증 없이 SELECT (DEBT-004 — 허용된 위험)
     2097152,  -- 2MB
     ARRAY['image/png', 'image/jpeg', 'image/webp']
   ),
   (
     'partner-favicons',
     'partner-favicons',
-    true,
+    true,  -- public: 마케팅 사이트 인증 없이 SELECT (DEBT-004 — 허용된 위험)
     524288,  -- 512KB
     ARRAY['image/x-icon', 'image/vnd.microsoft.icon', 'image/png']
   )
