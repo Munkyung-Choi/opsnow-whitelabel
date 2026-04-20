@@ -4,6 +4,7 @@ import { createAdminClient } from '../../fixtures/supabase-admin'
 import {
   TEST_ADMIN_PARTNER_SLUG,
   TEST_ADMIN_CREDENTIALS,
+  findUserIdByEmail,
 } from '../../fixtures/seed-admin-users'
 
 // WL-51 — Impersonation E2E
@@ -32,10 +33,9 @@ test.beforeAll(async () => {
   }
   E2E_PARTNER_ID = partner.id
 
-  const { data: users } = await admin.auth.admin.listUsers({ perPage: 1000 })
-  const master = users.users.find((u) => u.email === TEST_ADMIN_CREDENTIALS.master.email)
-  if (!master) throw new Error('[impersonation.spec] master 사용자 조회 실패')
-  MASTER_UID = master.id
+  const masterId = await findUserIdByEmail(admin, TEST_ADMIN_CREDENTIALS.master.email)
+  if (!masterId) throw new Error('[impersonation.spec] master 사용자 조회 실패')
+  MASTER_UID = masterId
 })
 
 // 각 테스트 시작 전에 남아있는 impersonation 쿠키·로그 잔존 방지 (IMP-06 등 독립성 보장)

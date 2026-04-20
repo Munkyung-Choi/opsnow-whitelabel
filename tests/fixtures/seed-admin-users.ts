@@ -20,7 +20,7 @@ type AdminClient = ReturnType<typeof createAdminClient>
  * deleteUser가 소프트 삭제 또는 FK 제약으로 실패하는 경우에 대비해
  * "삭제 후 재생성" 대신 "생성 또는 패스워드 리셋"으로 ID를 확보한다.
  */
-async function findUserIdByEmail(
+export async function findUserIdByEmail(
   admin: AdminClient,
   email: string
 ): Promise<string | null> {
