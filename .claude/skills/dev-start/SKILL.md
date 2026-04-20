@@ -1,16 +1,16 @@
 ---
-name: start-dev
+name: dev-start
 description: 세션 시작 시 어제 일지·git 활동·열린 Jira 티켓을 교차하여 어제 맥락을 복원한다. 매일 첫 대화에서 실행한다.
 ---
 
-# Start Dev — 세션 맥락 복원
+# Dev Start — 세션 맥락 복원
 
 이 스킬은 "어제 어디까지 했는가"를 5분 안에 복원한다. 일지·git·Jira 세 소스를 교차하여 오늘 작업의 진입 지점을 제시한다.
 
 ## 사용법
 
 ```
-/start-dev
+/dev-start
 ```
 
 인수 없음. 오늘 날짜를 기준으로 자동 실행된다.

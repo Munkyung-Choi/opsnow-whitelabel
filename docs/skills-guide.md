@@ -10,8 +10,8 @@
 
 | 명령어 | 사용 시점 |
 |--------|----------|
-| `/start-dev` | 매일 첫 대화 — 어제 일지·git·Jira 교차하여 오늘 진입 지점 제시 |
-| `/end-dev` | 세션 종료 전 — 오늘 결정·기각 경로·부채를 `docs/journal/YYYY-MM-DD.md`에 박제. 일/월요일엔 Confluence 주간 롤업 Live Doc 발행 제안 |
+| `/dev-start` | 매일 첫 대화 — 어제 일지·git·Jira 교차하여 오늘 진입 지점 제시 |
+| `/dev-end` | 세션 종료 전 — 오늘 결정·기각 경로·부채를 `docs/journal/YYYY-MM-DD.md`에 박제. 일/월요일엔 Confluence 주간 롤업 Live Doc 발행 제안 |
 
 ---
 
@@ -68,6 +68,15 @@
 | 명령어 | 사용 시점 |
 |--------|----------|
 | `/aisend [분석 텍스트]` | 외부 AI(ChatGPT 등) 분석을 실제 코드베이스와 대조하여 ✅/❌/⚠️ 판정 — `--ticket WL-XXX` 옵션으로 Jira 기록 |
+
+---
+
+## 평가
+
+| 명령어 | 사용 시점 |
+|--------|----------|
+| `/arch-eval [날짜]` | 특정 시점 아키텍처 건강도 평가 — 커밋 시점 실증 기반 10개 항목 냉엄 판정, Confluence Live Doc 자식 페이지 생성 |
+| `/perf-eval [기간]` | 특정 기간 프로젝트 Perf 평가 — 티켓·커밋·테스트 수치 기반 배달 성과 판정, Confluence Live Doc 자식 페이지 생성 |
 
 ---
 
