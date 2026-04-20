@@ -67,6 +67,8 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # supabaseAdmin(service_role)이 모듈 레벨에서 초기화되므로 빌드 시 필요
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   # ── Job 3: Supabase Type Drift ───────────────────────────────────────────────
   # DB 스키마 변경 후 gen:types 누락 감지 — quality와 병렬 실행
