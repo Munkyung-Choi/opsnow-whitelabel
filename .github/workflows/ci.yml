@@ -30,6 +30,9 @@ jobs:
       - name: Type check
         run: npm run type-check
 
+      - name: Unit tests (Vitest)
+        run: npx vitest run
+
   # ── Job 2: Build ────────────────────────────────────────────────────────────
   # quality 통과 후 실행 — Next.js 빌드 성공 여부 검증
   # 필요한 GitHub Secrets:
