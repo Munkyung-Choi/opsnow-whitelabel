@@ -26,13 +26,16 @@ description: 세션 종료 전 오늘의 작업 서사를 docs/journal/YYYY-MM-D
    - "오늘 세션의 변경사항이 `npx playwright test` 결과에 반영되었으며 0 regression 상태임을 확인했는가?"
    - "Flaky 결과가 있다면 그 사유를 인지하고 있는가?"
    - 미확인 시: `npx playwright test` 실행을 권고한다. 단, 사용자가 "확인 생략"을 명시하면 진행한다.
-3. **Context Preservation Gate** (soft check):
+3. **Origin Sync + CI Health Gate** (soft check):
+   - `git log origin/main..HEAD --oneline` — unpushed 커밋 확인. **1개 이상 존재 시** "오늘 커밋을 push하시겠습니까? (push 누락 시 CI가 과거 코드를 검증하여 로컬과 괴리 누적)" 질의.
+   - `gh run list --repo <repo> --limit 3 --json conclusion,createdAt,headSha,status` — 최근 3개 CI run 요약. 실패·대기·성공 상태를 **CI Health Index**로 표기. 예: `✅✅❌` (최신이 왼쪽). 실패가 있으면 원인 확인이 일지 기록 우선순위임을 명시.
+4. **Context Preservation Gate** (soft check):
    - "오늘 기각한 선택지의 이유가 일지에 기록될 준비가 되어 있는가?"
    - 이 단계는 차단 조건이 아니라 STEP 4 Rejected Paths 보완의 사전 준비다.
-4. `docs/journal/YYYY-MM-DD.md` 존재 여부:
+5. `docs/journal/YYYY-MM-DD.md` 존재 여부:
    - **없음** → 신규 생성 경로 (STEP 2로)
    - **있음** → 갱신 모드 공지 + 기존 내용 읽어서 사용자에게 보여주고 "추가 갱신" vs "처음부터 재작성" 선택 질문
-5. `docs/journal/_template.md` 템플릿 구조를 메모리에 로드
+6. `docs/journal/_template.md` 템플릿 구조를 메모리에 로드
 
 ### STEP 2 — 작업 맥락 수집 (3개 소스 병렬)
 

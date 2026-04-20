@@ -34,11 +34,17 @@ date +%Y-%m-%d
 - 없으면 그 이전 날짜 파일을 가장 최근 것부터 탐색한다 (`docs/journal/` Glob).
 - "Message to Tomorrow" 섹션을 최우선 확인한다.
 
-**소스 2 — git 활동**:
+**소스 2 — git 활동 + origin sync 상태**:
 ```bash
 git log --since="2 days ago" --pretty=format:"%h %ad %s" --date=short
 git status --short
+git log origin/main..HEAD --oneline    # unpushed 커밋 — 핵심 가드
 ```
+
+**unpushed 가드 규칙** (누락 시 CI-코드 괴리 누적):
+- unpushed = 0 → OK, 통과
+- unpushed 1~9 → 정상 범위. 복원 리포트에 개수만 명시
+- unpushed ≥ 10 또는 가장 오래된 미push 커밋이 24시간 초과 → **`[SYNC_REQUIRED]` 플래그** 발동. 복원 리포트 최상단에 경고 표시 + "오늘 작업 시작 전 `git push origin main` 권장" 문구 출력. 사용자가 "나중에 push" 명시하지 않는 한 기능 작업 진입 전 재확인.
 
 **소스 3 — 열린 Jira 티켓** (MCP 도구):
 ```
@@ -63,6 +69,9 @@ In Progress 또는 최근 업데이트된 티켓 위주로 수집한다.
 
 ### git 미커밋 파일
 [git status --short 결과. 없으면 "없음"]
+
+### origin sync 상태
+[unpushed 커밋 개수 + 가장 오래된 미push 커밋 시각. `[SYNC_REQUIRED]` 플래그면 최상단 경고로 이동]
 
 ### 오늘 권장 진입 지점
 [일지·Jira·git을 교차하여 "오늘 첫 번째로 할 일"을 1~2문장으로 제안]
