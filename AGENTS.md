@@ -43,9 +43,9 @@
 | `docs/tech-debt.md` | 관련 영역 작업 Context 단계 — 이번 작업이 기존 부채 상환 기회인지 확인 |
 | `docs/journal/` | `/start-dev` 스킬이 자동으로 읽는다. 직접 열어야 할 경우: 특정 날짜의 기각 경로·미결 메모·AI 합의점 재확인 시 |
 
-### Confluence (WS Space, 2026-04-18 재구조화 — ADR-003)
+### Confluence (WS Space, 2026-04-20 재구조화 — 6. Appendix 해체)
 
-> 전체 Page ID 테이블은 `CLAUDE.md` §0 참조.
+> 전체 Page ID 테이블은 `docs/confluence-index.md` 참조.
 
 | 진입점 | 상황 |
 |------|-----|
@@ -54,9 +54,9 @@
 | **[3. Marketing Site (308740188)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308740188)** | 마케팅 티켓 착수 시 (섹션·리드·SEO·i18n) |
 | **[4. Admin Site (305659905)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/305659905)** | Admin 티켓 착수 시 (IA·정책·인프라·기능) |
 | **[5. 운영 (308674657)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308674657)** | 온보딩·운영·QA 프로세스 |
-| **[6.1 ADR (308740232)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308740232)** | 설계 결정 이력 확인 시 |
+| **[6. ADR (308740232)](https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/308740232)** | 설계 결정 이력 확인 시 |
 
-> ⚠️ 구 `5. 화면 설계서(Admin)`, `4. 화면 설계서(Marketing)`, `[PRD] Admin Core Specs` 페이지는 **Deprecated/Superseded** 처리되어 `6.3 Deprecated Archive` 하위로 이동. 신규 작업에서 참조하지 말 것.
+> ⚠️ 구 `5. 화면 설계서(Admin)`, `4. 화면 설계서(Marketing)`, `[PRD] Admin Core Specs` 페이지는 **Deprecated/Superseded** 처리되어 `7. Deprecated Archive` 하위로 이동. 신규 작업에서 참조하지 말 것.
 
 ---
 

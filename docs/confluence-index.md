@@ -2,7 +2,7 @@
 
 > **용도**: Confluence 작업 시 Page ID 조회 전용. CLAUDE.md §0의 운영 규칙(이미지 보존·작성 원칙)은 CLAUDE.md를 따른다.
 > **Space**: WS / **cloudId**: opsnowinc.atlassian.net / **Homepage**: 290849306 / **정책서 루트**: 297075146
-> **구조 원칙**: Domain-first (Marketing / Admin) + Platform Foundation (공통) + Operations + Appendix. ADR-003.
+> **구조 원칙**: Domain-first (Marketing / Admin) + Platform Foundation (공통) + Operations + ADR + Archive. ADR-003 (2026-04-18) → Appendix 해체 (2026-04-20).
 
 ## 문서 Page ID 목록 (v2.0, 2026-04-18 전사 재구조화)
 
@@ -40,9 +40,8 @@
 | 5.1    | 파트너 온보딩 가이드                                      | 289243271 |
 | 5.2    | 운영 및 유지보수 매뉴얼 (Ops Playbook)                    | 289177762 |
 | 5.3    | QA · 테스트 케이스                                       | 289308723 |
-| **6**  | **Appendix — 랜딩**                                      | 308576385 |
-| 6.1    | ADR (Architecture Decision Records)                      | 308740232 |
-| 6.3    | Deprecated Archive                                       | 308740252 |
+| **6**  | **ADR (Architecture Decision Records)**                  | 308740232 |
+| **7**  | **Deprecated Archive**                                   | 308740252 |
 
 ## Archive 보관 — 신규 작업 참조 금지
 
@@ -50,6 +49,6 @@
 
 | 문서                                           | Page ID   | 상태        |
 | ---------------------------------------------- | --------- | ----------- |
-| [Archived] 구 화면 설계서(Marketing Site) v1.4 | 289177685 | Deprecated  |
-| [PRD] Admin Core Specs v1.3                    | 307658769 | Superseded  |
-| 화면 설계서(Admin Site) v1.6                   | 289898546 | Deprecated  |
+| [Archived] 구 화면 설계서(Marketing Site) v1.4 | 289177685 | Deprecated — `7. Deprecated Archive` 하위 |
+| [PRD] Admin Core Specs v1.3                    | 307658769 | Superseded — `7. Deprecated Archive` 하위 |
+| 화면 설계서(Admin Site) v1.6                   | 289898546 | Deprecated — `7. Deprecated Archive` 하위 |
