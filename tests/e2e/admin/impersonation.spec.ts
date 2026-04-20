@@ -32,7 +32,7 @@ test.beforeAll(async () => {
   }
   E2E_PARTNER_ID = partner.id
 
-  const { data: users } = await admin.auth.admin.listUsers()
+  const { data: users } = await admin.auth.admin.listUsers({ perPage: 1000 })
   const master = users.users.find((u) => u.email === TEST_ADMIN_CREDENTIALS.master.email)
   if (!master) throw new Error('[impersonation.spec] master 사용자 조회 실패')
   MASTER_UID = master.id
