@@ -130,6 +130,7 @@ jobs:
           echo "127.0.0.1 partner-test-hidden.localhost" | sudo tee -a /etc/hosts
           echo "127.0.0.1 partner-test-null-title.localhost" | sudo tee -a /etc/hosts
           echo "127.0.0.1 partner-test-empty-contents.localhost" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 admin-whitelabel.localhost" | sudo tee -a /etc/hosts
 
       - name: Run E2E tests
         run: npm run test:e2e
