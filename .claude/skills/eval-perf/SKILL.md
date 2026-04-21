@@ -1,9 +1,9 @@
 ---
-name: perf-eval
+name: eval-perf
 description: 특정 기간 기준으로 프로젝트 배달 성과(티켓 처리·커밋 활동·테스트 추이·기술 부채)를 커밋 시점 실증 기반으로 냉엄하게 평가하고 Confluence Live Doc 자식 페이지를 생성한다.
 ---
 
-# perf-eval — 프로젝트 Perf 평가
+# eval-perf — 프로젝트 Perf 평가
 
 ## 용도
 
@@ -13,10 +13,10 @@ description: 특정 기간 기준으로 프로젝트 배달 성과(티켓 처리
 ## 사용법
 
 ```
-/perf-eval [기간]
+/eval-perf [기간]
 ```
 
-예: `/perf-eval 260420~22`
+예: `/eval-perf 260420~22`
 
 ---
 

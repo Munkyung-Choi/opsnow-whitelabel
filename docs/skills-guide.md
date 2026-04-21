@@ -75,8 +75,8 @@
 
 | 명령어 | 사용 시점 |
 |--------|----------|
-| `/arch-eval [날짜]` | 특정 시점 아키텍처 건강도 평가 — 커밋 시점 실증 기반 10개 항목 냉엄 판정, Confluence Live Doc 자식 페이지 생성 |
-| `/perf-eval [기간]` | 특정 기간 프로젝트 Perf 평가 — 티켓·커밋·테스트 수치 기반 배달 성과 판정, Confluence Live Doc 자식 페이지 생성 |
+| `/eval-arch [날짜]` | 특정 시점 아키텍처 건강도 평가 — 커밋 시점 실증 기반 10개 항목 냉엄 판정, Confluence Live Doc 자식 페이지 생성 |
+| `/eval-perf [기간]` | 특정 기간 프로젝트 Perf 평가 — 티켓·커밋·테스트 수치 기반 배달 성과 판정, Confluence Live Doc 자식 페이지 생성 |
 
 ---
 

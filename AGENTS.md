@@ -76,8 +76,8 @@
 | **dev-end** | `/dev-end` | 세션 종료 전 — 오늘 서사 박제 (`docs/journal/YYYY-MM-DD.md`) + 일/월요일엔 Confluence 주간 롤업 Live Doc 발행 제안 |
 | **mermaid** | `/mermaid [설명]` | Mermaid 다이어그램 생성 시 — `<br/>` 줄바꿈·육각형 판정 노드·`padding: 0` 렌더링 표준 적용 |
 | **aisend** | `/aisend [분석 텍스트]` | 외부 AI 분석을 코드베이스와 대조하여 ✅/❌/⚠️ 판정 — `--ticket WL-XXX`로 Jira 기록 |
-| **arch-eval** | `/arch-eval [날짜]` | 특정 시점 아키텍처 건강도 평가 — 커밋 시점 실증, Confluence Live Doc 생성 |
-| **perf-eval** | `/perf-eval [기간]` | 특정 기간 프로젝트 Perf 평가 — 티켓·커밋·테스트 수치 기반, Confluence Live Doc 생성 |
+| **eval-arch** | `/eval-arch [날짜]` | 특정 시점 아키텍처 건강도 평가 — 커밋 시점 실증, Confluence Live Doc 생성 |
+| **eval-perf** | `/eval-perf [기간]` | 특정 기간 프로젝트 Perf 평가 — 티켓·커밋·테스트 수치 기반, Confluence Live Doc 생성 |
 
 ---
 
