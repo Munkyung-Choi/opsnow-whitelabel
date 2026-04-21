@@ -184,6 +184,35 @@
 
 ---
 
+### DEBT-008 — seeds/snippets/ 잔재 SQL 파일 이관 미완료
+
+- **발생일**: 2026-04-20
+- **영역**: `supabase/snippets/`, `supabase/seeds/`
+- **영향도**: Minor (E2E 시딩 SSOT 불완전 — 운영 장애 없으나 스키마 변경 시 누락 위험)
+- **연관 티켓**: WL-137 (seeds/ 이관 메인 티켓)
+- **현황**:
+  - WL-137에서 `seed_hero_content.sql` 이관 완료, `seeds/`가 공식 SSOT로 확정
+  - `supabase/snippets/` 하위 12개 파일(임시 쿼리·검증 SQL) 잔존
+  - 이 중 E2E 또는 로컬 재현용 SQL이 포함되어 있을 가능성 — 이관 여부 미확인
+- **상환 조건**: `supabase/snippets/` 파일 전수 분류:
+  1. E2E/로컬 재현용 → `supabase/seeds/` 이관
+  2. 1회성 운영 쿼리 → 삭제 또는 `docs/exec-plans/` 보관
+  3. Supabase Studio 임시 쿼리(Untitled query *) → 삭제
+- **참조**: `docs/journal/2026-04-20.md` §Debts & Risks
+
+---
+
+---
+
+## 부채 관리 규칙 (Debt Management Rules)
+
+- **ID 연속성**: 신규 DEBT ID는 현재 최고 ID + 1로 순번 부여한다. 임의 번호 배정 금지.
+- **단일 진입점(SSOT)**: journal, Confluence, 코드 주석에서 DEBT-XXX를 참조하면 반드시 이 파일에 유효한 항목이 존재해야 한다. 미등록 상태로 외부에서 ID를 사용하는 것을 금지한다.
+- **교차 참조 검증**: `/dev-end` 실행 시 오늘 생성·참조된 DEBT ID가 이 파일에 등록되어 있는지 확인한다.
+- **ID 충돌 방지**: 새 항목 작성 전 이 파일의 기존 ID 목록을 확인한다. 현재 최고 ID: **DEBT-008**.
+
+---
+
 ## 상환된 부채 (Resolved)
 
 ### DEBT-002 — ContactForm handleSubmit + 폼 필드 로직 중복
