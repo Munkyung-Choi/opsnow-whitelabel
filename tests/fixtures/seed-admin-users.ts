@@ -129,11 +129,14 @@ export async function seedAdminTestUsers(): Promise<void> {
     TEST_ADMIN_CREDENTIALS.master.password
   )
 
-  await admin.from('profiles').upsert({
-    id: masterId,
-    role: 'master_admin',
-    partner_id: null,
-  })
+  const { error: masterProfileError } = await admin
+    .from('profiles')
+    .upsert({ id: masterId, role: 'master_admin', partner_id: null })
+  if (masterProfileError) {
+    throw new Error(
+      `[seedAdminTestUsers] master_admin 프로필 upsert 실패: ${masterProfileError.message} (masterId: ${masterId})`
+    )
+  }
 
   // ── Step 3: partner_admin 사용자 + 전용 파트너 생성 ──────────────────────
   const partnerId = await ensureUser(
@@ -162,11 +165,16 @@ export async function seedAdminTestUsers(): Promise<void> {
     )
   }
 
-  await admin.from('profiles').upsert({
+  const { error: partnerProfileError } = await admin.from('profiles').upsert({
     id: partnerId,
     role: 'partner_admin',
     partner_id: e2ePartner.id,
   })
+  if (partnerProfileError) {
+    throw new Error(
+      `[seedAdminTestUsers] partner_admin 프로필 upsert 실패: ${partnerProfileError.message}`
+    )
+  }
 
   console.log('[globalSetup] Admin 테스트 사용자 2명 seed 완료')
 }

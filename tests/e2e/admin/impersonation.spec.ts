@@ -4,6 +4,7 @@ import { createAdminClient } from '../../fixtures/supabase-admin'
 import {
   TEST_ADMIN_PARTNER_SLUG,
   TEST_ADMIN_CREDENTIALS,
+  findUserIdByEmail,
 } from '../../fixtures/seed-admin-users'
 
 // WL-51 — Impersonation E2E
@@ -32,15 +33,15 @@ test.beforeAll(async () => {
   }
   E2E_PARTNER_ID = partner.id
 
-  // Auth Admin listUsers는 GoTrue perPage 캡 이슈로 신뢰 불가 — profiles 테이블에서 직접 조회
-  const { data: masterProfile, error: masterError } = await admin
-    .from('profiles')
-    .select('id')
-    .eq('role', 'master_admin')
-    .is('partner_id', null)
-    .single()
-  if (masterError || !masterProfile) throw new Error('[impersonation.spec] master 사용자 조회 실패')
-  MASTER_UID = masterProfile.id
+  // E2E master_admin의 ID를 이메일로 직접 조회한다.
+  // profiles에 static seed master_admin(master@test.opsnow.com)이 공존하므로
+  // role+partner_id 조합으로는 단일 행을 특정할 수 없어 email 기반 조회로 전환한다.
+  MASTER_UID = await findUserIdByEmail(admin, TEST_ADMIN_CREDENTIALS.master.email) ?? ''
+  if (!MASTER_UID) {
+    throw new Error(
+      `[impersonation.spec] E2E master_admin을 auth.users에서 찾지 못함 — email: ${TEST_ADMIN_CREDENTIALS.master.email}`
+    )
+  }
 })
 
 // 각 테스트 시작 전에 남아있는 impersonation 쿠키·로그 잔존 방지 (IMP-06 등 독립성 보장)
