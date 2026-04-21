@@ -319,8 +319,7 @@ Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
 1. **Ignore Rules**: 프로젝트 루트의 `.claudeignore`에 명시된 파일과 폴더는 분석 대상에서 제외한다.
 2. **Selective Reading**: 모든 파일을 한꺼번에 읽지 말고, 작업 중인 Jira 티켓과 직접 연관된 파일 위주로 `read_file`을 실행하라.
 3. **Session Refresh**: 대화가 길어져 컨텍스트 토큰이 임계치에 도달하면 문경 님에게 보고하고 세션을 새로 시작할 것을 제안하라.
-4. **Session Wrap — 일지 작성 안전망**: 사용자가 "세션 종료", "오늘 마무리", "내일 보자", "정리" 등 세션 종료 신호를 보내면 오늘 날짜의 `docs/journal/YYYY-MM-DD.md` 파일 존재 여부를 확인한다. 없거나 오늘 세션의 주요 결정이 반영되지 않은 경우 **`/dev-end` 스킬 실행을 자동 제안**한다. 이는 비개발자 오너의 "이해도 부채" 방지 핵심 수단으로, 누락하지 않는다.
-
+4. **Session Wrap — 일지 작성 안전망**: 사용자가 "세션 종료", "오늘 마무리", "내일 보자", "정리" 등 세션 종료 신호를 보내면 오늘 날짜의 `docs/journal/YYYY-MM-DD.md` 파일 존재 여부를 확인한다.
 ## [8. Harness Enforcement Rules (강제 이행 규칙)]
 
 **Med·High·Critical 트랙의 Design·Audit·Impl 단계 답변** 최상단에는 반드시 아래 [Status Header]를 포함해야 한다.  

@@ -32,10 +32,14 @@ description: 세션 종료 전 오늘의 작업 서사를 docs/journal/YYYY-MM-D
 4. **Context Preservation Gate** (soft check):
    - "오늘 기각한 선택지의 이유가 일지에 기록될 준비가 되어 있는가?"
    - 이 단계는 차단 조건이 아니라 STEP 4 Rejected Paths 보완의 사전 준비다.
-5. `docs/journal/YYYY-MM-DD.md` 존재 여부:
+5. **CLAUDE.md Sync Gate** (soft check):
+   - "이번 세션에서 새로 합의된 운영 규칙·설계 원칙이 CLAUDE.md에 반영됐는가?"
+   - 판단 기준: 오늘 결정 중 "앞으로 항상 이렇게 한다"는 형태의 합의가 있었다면 대상이다.
+   - 반영이 필요한 경우 일지 저장 전에 CLAUDE.md를 먼저 업데이트한다. 사용자 확인 후 진행.
+6. `docs/journal/YYYY-MM-DD.md` 존재 여부:
    - **없음** → 신규 생성 경로 (STEP 2로)
    - **있음** → 갱신 모드 공지 + 기존 내용 읽어서 사용자에게 보여주고 "추가 갱신" vs "처음부터 재작성" 선택 질문
-6. `docs/journal/_template.md` 템플릿 구조를 메모리에 로드
+7. `docs/journal/_template.md` 템플릿 구조를 메모리에 로드
 
 ### STEP 2 — 작업 맥락 수집 (3개 소스 병렬)
 
