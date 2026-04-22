@@ -570,46 +570,41 @@ describe('leads_masked_view — 마스킹 접근 제어 검증 (WL-138 Scenario 
 
 
 // =============================================================================
-// 11. anon 크로스 테넌트 INSERT — RLS 갭 문서화 (WL-138 Scenario B / DEBT-007)
+// 11. anon 크로스 테넌트 INSERT — 차단 확인 (WL-154 / DEBT-007 Issue 2 상환)
 // =============================================================================
-describe('anon 크로스 테넌트 INSERT — RLS 갭 문서화 (DEBT-007)', () => {
+describe('anon 크로스 테넌트 INSERT — 차단 확인 (WL-154)', () => {
   let crossInsertedLeadId = ''
 
   afterAll(async () => {
+    // 방어적 cleanup — 단언 차단이 통과하면 실행되지 않음
     if (crossInsertedLeadId) {
       const svc = serviceClient()
       await svc.from('leads').delete().eq('id', crossInsertedLeadId)
     }
   })
 
-  it('[rls-gap / DEBT-007] anon의 타 파트너 UUID로 leads INSERT: 로컬(드리프트) 차단 / 프로덕션(정책 적용) 허용 — 설계 갭 문서화', async () => {
-    // ⚠️ DEBT-007 설계 갭:
-    //   leads_public_insert: WITH CHECK (partner_id IN (SELECT id FROM partners WHERE is_active=true))
-    //   is_active=true인 모든 파트너 UUID를 허용 → host 컨텍스트 검증 없음.
-    //   프로덕션에서 정책이 적용된 경우 → Server Action 우회 시 cross-tenant INSERT 성공 가능.
-    //   방어선: submitLead Server Action이 host 헤더에서 partner_id를 강제 도출함.
-    //
-    // 로컬 DB 주의: leads_public_insert 정책이 drift로 미적용되거나 partner-b가
-    //   is_active=false인 경우 INSERT가 차단됨(RLS violation). 두 결과 모두 유효하게 처리.
+  it('[intended-design / WL-154] anon의 타 파트너 UUID로 leads INSERT는 RLS 정책 부재로 차단된다', async () => {
+    // WL-154: leads_public_insert 정책 제거 → anon의 leads INSERT 권한 0.
+    //   신규 경로: Server Action(submitLead) → supabaseAdmin(service_role) 전용.
+    //   신뢰 경계: resolvePartnerIdFromHost(host) 서버 도출값 유일.
     const anon = anonClient()
     const { data, error } = await anon
       .from('leads')
       .insert({
         partner_id: PARTNER_B.partnerId,
-        customer_name: '[DEBT-007 gap test]',
-        email: `debt-007-gap-${Date.now()}@test.local`,
+        customer_name: '[WL-154 block test]',
+        email: `wl-154-block-${Date.now()}@test.local`,
       })
       .select('id')
       .single()
 
-    if (error) {
-      // 로컬 드리프트 또는 partner-b 비활성: INSERT 차단 (로컬은 안전)
-      expect(error.message).toMatch(/row-level security|violates/)
-    } else {
-      // 프로덕션 환경: INSERT 성공 = DEBT-007 갭 실존 확인
-      expect(data).toBeDefined()
-      if (data) crossInsertedLeadId = data.id
-    }
+    // 차단 단언: error는 반드시 발생, data는 null
+    expect(error).not.toBeNull()
+    expect(error!.message).toMatch(/row-level security|violates|permission/)
+    expect(data).toBeNull()
+
+    // 방어적 기록 — 단언이 실패하여 data가 반환된 경우 afterAll에서 정리
+    if (data) crossInsertedLeadId = (data as { id: string }).id
   })
 })
 }) // describe.skipIf(!isLocalSupabase)

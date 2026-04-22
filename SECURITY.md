@@ -1,7 +1,7 @@
 # SECURITY.md — OpsNow White-label Site 보안 헌법
 
-> **최종 업데이트**: 2026-04-19 (WL-123 system_logs.partner_id 추가 반영)
-> **참조 문서**: `supabase/migrations/20260408000003_rls_policies.sql`
+> **최종 업데이트**: 2026-04-22 (WL-154 anon `leads` INSERT 정책 제거 + submitLead service_role 전환 반영)
+> **참조 문서**: `supabase/migrations/20260408000003_rls_policies.sql`, `supabase/migrations/20260422000004_drop_leads_public_insert.sql`
 > **Auditor 역할**: 세션 시작 시 이 문서를 반드시 참조하라.
 
 ---
@@ -38,14 +38,15 @@
 
 ---
 
-#### [Fix #2] `leads_public_insert` — 활성 파트너 검증 추가
+#### [Fix #2] `leads_public_insert` — 활성 파트너 검증 추가 **→ WL-154에서 정책 자체 제거 (2026-04-22, Superseded)**
 
 **변경 전**: `WITH CHECK (true)` — 아무 검증 없음
 **변경 후**: `WITH CHECK (partner_id IN (SELECT id FROM partners WHERE is_active = true))`
+**최종 (2026-04-22, WL-154)**: `DROP POLICY` — anon의 `leads` INSERT 권한 0으로 변경. 대신 `submitLead` Server Action이 `supabaseAdmin`(service_role) 경유로 INSERT하며, 신뢰 경계는 `host` 헤더 기반 서버 도출 `partner_id`가 유일.
 
-**근거**: 실제 존재하는 활성 파트너의 `partner_id`를 알고 있는 공격자가 대량의 스팸 리드를 특정 파트너에게 주입 가능. `partners_public_anon_read`로 인해 `anon`이 파트너 목록 조회 가능하므로 공격 경로 완성됨.
+**근거**: 기존 `WITH CHECK`는 `is_active=true` 파트너 UUID 전체를 허용 → REST API 직접 호출 시 cross-tenant INSERT 가능 (DEBT-007 Issue 2). Defense in Depth를 위해 DB 정책을 물리적으로 제거하고 유일한 쓰기 경로를 Server Action으로 수렴.
 
-**⚠️ 잔여 위험**: DB 레벨 1차 방어만 구축. 완전한 스팸 차단을 위해 앱 레벨 Rate Limiting 필요. → WL-30 참조.
+**⚠️ 잔여 위험**: Server Action 레벨에서 Rate Limiting 미적용. 후속 티켓으로 분리.
 
 ---
 
@@ -97,7 +98,7 @@
 | `profiles` | ❌ | 본인만 CRUD | 전체 조회 | RLS 우회 |
 | `contents` | 발행된 것만 조회 | 자사만 CRUD | 전체 CRUD | RLS 우회 |
 | `global_contents` | 전체 조회 | 전체 조회 | 전체 CRUD | RLS 우회 |
-| `leads` | 자사에만 INSERT | 자사만 SELECT·UPDATE | **직접 접근 불가** | RLS 우회 |
+| `leads` | ❌ (WL-154: 직접 INSERT 금지) | 자사만 SELECT·UPDATE | **직접 접근 불가** (마스킹 뷰 경유) | RLS 우회 — `submitLead` Server Action 전용 INSERT |
 | `site_visits` | ❌ | 자사만 조회 | 전체 조회 | RLS 우회 (Upsert) |
 | `system_logs` | ❌ | 자기 파트너 `partner_id` 또는 `on_behalf_of` 매칭 로그 SELECT (WL-121 + WL-123) | 전체 SELECT | RLS 우회 (INSERT) |
 
@@ -182,6 +183,17 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 | `/api/auth/provision` | `profiles` INSERT/UPDATE | 역할 변경 클라이언트 금지 | ✅ 필수 |
 | `/api/admin/domain-approval` | `partners.custom_domain_status` | 도메인 승인 관리자 전용 | ✅ 필수 |
 | `/api/admin/impersonate` | `system_logs` INSERT + 서명 쿠키 발급 | master_admin 대리 접속 감사 (WL-51) | ✅ 필수 |
+
+### 허가된 marketing Server Action (2026-04-22, WL-154 확정)
+
+| Server Action | 대상 테이블·컬럼 | 이유 | system_logs 기록 |
+|---|---|---|---|
+| `submitLead` (`src/app/[partnerId]/actions/leads.ts`) | `leads` INSERT | DEBT-007 Issue 2 해소 — anon RLS 제거로 유일한 쓰기 경로 | ➖ 생략 (공개 폼, 대량 기록 시 폭증). 필요 시 별도 티켓으로 신규 분석 이벤트 테이블 도입 |
+
+**불변 법칙 (Invariant) — WL-154, 2026-04-22**:
+> `submitLead`는 어떠한 경우에도 `FormData`에서 `partner_id`·`status`·`created_at` 등 서버 도출/관리 필드를 읽지 않는다.  
+> `leadSchema.strict()`가 Zod 레이어에서 unknown key를 거부하며, INSERT payload는 `{ ...parsed.data, partner_id: <host 도출값>, status: 'new' }` 순서로 서버 도출값을 **최종 override** 한다.  
+> 신뢰 경계는 `resolvePartnerIdFromHost(headers.get('host'))` 단일 함수.
 
 **불변 법칙 (Invariant) — WL-51, 2026-04-18**:
 > `/api/admin/impersonate`는 어떠한 경우에도 `master_admin` 권한 없이는 실행되지 않는다.

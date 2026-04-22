@@ -290,6 +290,7 @@ Admin 첫 기능 티켓 착수 전 다음 인프라의 존재를 확인한다:
 - **service_role 격리**: `supabaseAdmin`(service_role key)은 서버사이드에서만 사용. 클라이언트 컴포넌트에 절대 노출 금지.
   - **허가된 Route Handler**: `/api/visits/upsert`, `/api/admin/logs`, `/api/auth/provision`, `/api/admin/domain-approval` (4개 한정).
   - **허가된 서버 전용 라이브러리**: `src/lib/audit/`, `src/lib/auth/` 하위 헬퍼. 이 모듈들은 Server Component·Server Action·Route Handler 전용으로 클라이언트 번들에 포함되지 않는다. 직접 `supabaseAdmin`을 import하여 `writeAuditLog`처럼 공유 함수를 호출할 수 있다. 클라이언트 노출 여부는 `'use client'` 디렉티브 부재 + 호출자가 server-only 경로임을 보장.
+  - **허가된 marketing Server Action (WL-154)**: `src/app/[partnerId]/actions/leads.ts` `submitLead` 1건 한정. 사유: DEBT-007 Issue 2 해소 — `leads_public_insert` anon RLS 정책 제거에 따라 marketing 리드 수집 경로가 Server Action + service_role 전용으로 전환. 신뢰 경계는 `host` 헤더 기반 `resolvePartnerIdFromHost()` 서버 도출값이 유일하며, FormData의 어떠한 user-supplied 값(특히 `partner_id`)도 INSERT payload로 전달되지 않는다(`leadSchema.strict()` + payload 순서로 이중 방어). **여기 외 marketing 계층에서 `supabaseAdmin` 신규 사용은 Auditor 사전 승인 + Critical 트랙 + 본 목록 개정을 동반한다.**
 - **Server Action 인증 필수**: Admin 영역의 모든 Server Action은 실행 시작 시 반드시 세션 유효성과 역할 권한을 확인한다. 인증 체크 없는 Server Action을 작성하지 않는다.
 - **입력 검증 경계**: 사용자 입력(폼 데이터, URL 파라미터)은 반드시 Server Action 진입 시점에서 Zod 스키마로 검증한다. 클라이언트 검증은 UX 편의이며, 서버 검증을 대체하지 않는다.
 

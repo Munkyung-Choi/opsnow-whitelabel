@@ -1,16 +1,13 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase/server';
 import { leadSchema, type LeadFormState } from '@/lib/schemas/lead';
 import { resolvePartnerIdFromHost } from '@/lib/marketing/resolve-partner-from-host';
-import type { Database } from '@/types/supabase';
 
-// anon key + RLS policy leads_public_insert handles authorization
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// WL-154 — DEBT-007 Issue 2 상환
+// service_role 경유 (RLS 우회). 신뢰 경계는 host 기반 resolvePartnerIdFromHost().
+// FormData의 partner_id·status 등은 leadSchema.strict()가 unknown key로 거부한다.
 
 export async function submitLead(
   _prev: LeadFormState,
@@ -29,7 +26,7 @@ export async function submitLead(
     return { status: 'error', message: '파트너를 확인할 수 없습니다.' };
   }
 
-  // 3. Zod validation
+  // 3. Zod strict validation — unknown key 거부 (WL-154)
   const parsed = leadSchema.safeParse({
     customer_name: formData.get('customer_name'),
     company_name: formData.get('company_name') || undefined,
@@ -45,10 +42,12 @@ export async function submitLead(
     };
   }
 
-  // 4. INSERT — RLS policy `leads_public_insert` enforces partner_id is active
-  const { error } = await supabase.from('leads').insert({
-    partner_id: partnerId,
+  // 4. INSERT via service_role. Payload 순서 방어: 스프레드 후 서버 도출값이
+  //    최종 override. parsed.data는 이미 strict로 unknown key 제거된 상태지만
+  //    이중 방어로 순서를 고정한다.
+  const { error } = await supabaseAdmin.from('leads').insert({
     ...parsed.data,
+    partner_id: partnerId,
     status: 'new',
   });
 

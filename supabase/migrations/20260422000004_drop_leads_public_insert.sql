@@ -1,0 +1,21 @@
+-- WL-154 — DEBT-007 Issue 2 상환
+-- 목적: anon cross-tenant INSERT 갭 물리적 차단
+--
+-- 배경: 기존 leads_public_insert 정책은 WITH CHECK 절이
+--       "partner_id IN (SELECT id FROM partners WHERE is_active = true)" 로
+--       is_active=true인 모든 파트너 UUID를 허용. host 컨텍스트 검증 부재.
+--       Supabase REST API 직접 호출 시 cross-tenant INSERT 성공 가능.
+--
+-- 해결: RLS 정책 제거. 신규 경로는 Server Action(submitLead) → supabaseAdmin
+--       (service_role, RLS 우회) 전용. 신뢰 경계는 resolvePartnerIdFromHost(host).
+--
+-- 운영: RLS/보안 변경 — Cloud 적용은 SQL Editor 직접 실행 (CLAUDE.md 운영 규칙).
+--       배포 순서: 코드 배포 Vercel green 확인 → SQL Editor 실행 (역순 금지).
+--       역순 시 기존 prod 코드의 anon INSERT 경로 전면 RLS violation 장애.
+--
+-- 롤백 SQL (사고 시 복구 — 사용 전 원인 분석 필수):
+--   CREATE POLICY "leads_public_insert" ON leads
+--     FOR INSERT TO anon
+--     WITH CHECK (partner_id IN (SELECT id FROM partners WHERE is_active = true));
+
+DROP POLICY IF EXISTS "leads_public_insert" ON leads;

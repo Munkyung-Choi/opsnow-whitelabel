@@ -215,20 +215,6 @@
 
 ---
 
-### DEBT-007 — anon INSERT 크로스 테넌트 갭 (Issue 1 상환, Issue 2 활성)
-
-- **발생일**: 2026-04-20
-- **영역**: `supabase/migrations/20260408000003_rls_policies.sql` (Issue 2)
-- **영향도**: Major (anon REST API 직접 호출 시 cross-tenant INSERT 가능)
-- **연관 티켓**: WL-138 (보안 E2E 검증), **WL-153 (Issue 1 상환, 2026-04-22)**, WL-154 (Issue 2 해소 예정)
-- **상환 이력**:
-  - ✅ **Issue 1 (2026-04-22 WL-153 상환)**: `leads_masked_view`에 `security_invoker=false` 전환 + schema-qualified 참조(`public.leads`, `public.profiles`)로 search_path hijacking 방어. 뷰 소유자(postgres superuser) 권한으로 실행 → master_admin 마스킹 조회 정상 작동. `rls-isolation.test.ts` §10 `[intended-design / WL-153]` 테스트로 실증.
-  - ⏳ **Issue 2 (WL-154 예정)**: `leads_public_insert` RLS는 `is_active=true` 파트너 UUID를 모두 허용. Server Action 경유 없이 Supabase REST API를 직접 호출하면 타 파트너 UUID로 INSERT 가능. 방어선이 Server Action(host 헤더 교정)에만 의존.
-- **Issue 2 상환 조건**: `leads_public_insert` 정책 제거 + `src/app/[partnerId]/actions/leads.ts`를 `supabaseAdmin`(service_role) 경유로 전환. 마케팅 ContactForm E2E로 regression 확인 필수.
-- **임시 대응 (Issue 2)**: Server Action이 `host` 헤더에서 partner_id를 강제 도출하여 사실상 방어 중. REST API 직접 호출은 외부 공격 벡터이며 현재 운영 장애 없음.
-
----
-
 ### DEBT-008 — seeds/snippets/ 잔재 SQL 파일 이관 미완료
 
 - **발생일**: 2026-04-20
@@ -277,6 +263,23 @@
 ---
 
 ## 상환된 부채 (Resolved)
+
+### DEBT-007 — anon INSERT 크로스 테넌트 갭 (전체 상환)
+
+- **발생일**: 2026-04-20
+- **상환일**: 2026-04-22 (Issue 1 WL-153, Issue 2 WL-154)
+- **영역**: `leads_masked_view` (Issue 1) / `leads_public_insert` RLS (Issue 2)
+- **연관 티켓**: WL-138 (보안 E2E 검증), WL-153 (Issue 1), WL-154 (Issue 2)
+- **상환 이력**:
+  - ✅ **Issue 1 (2026-04-22 WL-153)**: `leads_masked_view`에 `security_invoker=false` 전환 + schema-qualified 참조(`public.leads`, `public.profiles`)로 search_path hijacking 방어. 뷰 소유자(postgres superuser) 권한으로 실행 → master_admin 마스킹 조회 정상 작동. `rls-isolation.test.ts` §10 `[intended-design / WL-153]`로 실증.
+  - ✅ **Issue 2 (2026-04-22 WL-154)**: `leads_public_insert` RLS 정책 `DROP` + `src/app/[partnerId]/actions/leads.ts` `submitLead`을 `supabaseAdmin`(service_role) 경유로 전환. `leadSchema.strict()` + INSERT payload 순서 고정(`{ ...parsed.data, partner_id, status }`)으로 Auditor MEDIUM 이중 방어 적용. 신뢰 경계는 `resolvePartnerIdFromHost(host)` 단일 함수.
+- **최종 방어선**:
+  - anon: `leads` 테이블에 대해 어떠한 DML 권한도 없음
+  - `submitLead` Server Action: host 헤더 서버 도출 + Zod strict + 페이로드 순서 override 3층 방어
+  - master_admin 조회: `leads_masked_view`(security_definer + schema-qualified) 경유 마스킹
+- **상환 커밋 (예정)**: `feat(WL-154): leads anon INSERT RLS 제거 + submitLead service_role 전환 — DEBT-007 전체 상환`
+
+---
 
 ### DEBT-002 — ContactForm handleSubmit + 폼 필드 로직 중복
 
