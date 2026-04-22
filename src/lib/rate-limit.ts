@@ -2,47 +2,85 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 // WL-145 — 파트너별 Rate Limiting (Noisy Neighbor 방어)
+// WL-146 — Admin IP 기반 Rate Limiting (Credential Stuffing 방어)
 // Edge Runtime에서 동작. @upstash/ratelimit이 REST API 기반이라 Edge 호환.
 
-// Edge Worker 인스턴스 내 메모리 캐시 — Upstash 명령 호출 절감
+// Edge Worker 인스턴스 내 메모리 캐시 — Upstash 명령 호출 절감.
 // 무료 티어 10,000 commands/day 할당량 보존 목적.
-// Isolate별 독립이므로 정확도 보증이 아닌 근사 최적화.
-const ephemeralCache = new Map();
+// 파트너·어드민 트래픽이 서로 eviction하지 않도록 분리.
+const partnerEphemeralCache = new Map<string, number>();
+const adminEphemeralCache = new Map<string, number>();
 
-let _rateLimiter: Ratelimit | null = null;
-let _initAttempted = false;
+interface LimiterConfig {
+  envRequestsKey: string;
+  envWindowKey: string;
+  defaultRequestsProd: number;
+  defaultRequestsDev: number;
+  defaultWindow: `${number} s`;
+  prefix: string;
+  ephemeralCache: Map<string, number>;
+}
 
-// Lazy singleton — env 누락 시 null 반환 (Fail-open).
-// @upstash/redis는 env 누락 시 throw하지 않고 warning만 출력하므로
-// 명시적으로 env 존재를 검증한 뒤 인스턴스화한다.
-// 호출부(checkRateLimit)는 null을 Fail-open으로 처리.
-export function getPartnerRateLimiter(): Ratelimit | null {
-  if (_initAttempted) return _rateLimiter;
-  _initAttempted = true;
+function createLimiter(config: LimiterConfig): Ratelimit | null {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    console.error('[RateLimit] init failed — UPSTASH_REDIS_REST_URL/TOKEN missing. Fail-open.');
+    return null;
+  }
   try {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-      console.error('[RateLimit] init failed — UPSTASH_REDIS_REST_URL/TOKEN missing. Fail-open.');
-      _rateLimiter = null;
-      return _rateLimiter;
-    }
-    // Dev/test 환경은 관대한 기본값, Production은 50/60s 기본.
-    // 명시적 override: RATE_LIMIT_REQUESTS / RATE_LIMIT_WINDOW env.
     const isDev = process.env.NODE_ENV !== 'production';
-    const defaultRequests = isDev ? 500 : 50;
-    const requests = parseInt(process.env.RATE_LIMIT_REQUESTS ?? '', 10) || defaultRequests;
-    const window = (process.env.RATE_LIMIT_WINDOW ?? '60 s') as `${number} s`;
-    _rateLimiter = new Ratelimit({
+    const defaultRequests = isDev ? config.defaultRequestsDev : config.defaultRequestsProd;
+    const requests = parseInt(process.env[config.envRequestsKey] ?? '', 10) || defaultRequests;
+    const window = (process.env[config.envWindowKey] ?? config.defaultWindow) as `${number} s`;
+    return new Ratelimit({
       redis: Redis.fromEnv(),
       limiter: Ratelimit.slidingWindow(requests, window),
-      ephemeralCache,
+      ephemeralCache: config.ephemeralCache,
       analytics: false,
-      prefix: 'rl_partner',
+      prefix: config.prefix,
     });
   } catch (e) {
     console.error('[RateLimit] init failed — Fail-open:', e);
-    _rateLimiter = null;
+    return null;
   }
-  return _rateLimiter;
+}
+
+// ── Partner Rate Limiter (WL-145) ───────────────────────────────────────────
+let _partnerRateLimiter: Ratelimit | null = null;
+let _partnerInitAttempted = false;
+
+export function getPartnerRateLimiter(): Ratelimit | null {
+  if (_partnerInitAttempted) return _partnerRateLimiter;
+  _partnerInitAttempted = true;
+  _partnerRateLimiter = createLimiter({
+    envRequestsKey: 'RATE_LIMIT_REQUESTS',
+    envWindowKey: 'RATE_LIMIT_WINDOW',
+    defaultRequestsProd: 50,
+    defaultRequestsDev: 500,
+    defaultWindow: '60 s',
+    prefix: 'rl_partner',
+    ephemeralCache: partnerEphemeralCache,
+  });
+  return _partnerRateLimiter;
+}
+
+// ── Admin Rate Limiter (WL-146) ─────────────────────────────────────────────
+// IP 기반 Credential Stuffing 방어. Partner와 독립된 인스턴스·캐시·설정.
+let _adminRateLimiter: Ratelimit | null = null;
+let _adminInitAttempted = false;
+
+export function getAdminRateLimiter(): Ratelimit | null {
+  if (_adminInitAttempted) return _adminRateLimiter;
+  _adminInitAttempted = true;
+  _adminRateLimiter = createLimiter({
+    envRequestsKey: 'RATE_LIMIT_ADMIN_REQUESTS',
+    envWindowKey: 'RATE_LIMIT_ADMIN_WINDOW',
+    defaultRequestsProd: 30,
+    defaultRequestsDev: 300,
+    defaultWindow: '60 s',
+    prefix: 'rl_admin',
+    ephemeralCache: adminEphemeralCache,
+  });
+  return _adminRateLimiter;
 }
 
 export function getRateLimitHeaders(

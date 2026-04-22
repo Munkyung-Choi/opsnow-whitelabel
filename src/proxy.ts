@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 import { type Locale, SUPPORTED_LOCALES, COUNTRY_LOCALE_MAP, validateLocale } from '@/lib/i18n/locales';
-import { getPartnerRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit';
+import type { Ratelimit } from '@upstash/ratelimit';
+import { getPartnerRateLimiter, getAdminRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit';
 // 기존 소비자(import { Locale/validateLocale } from '@/proxy') 하위 호환 re-export
 export type { Locale } from '@/lib/i18n/locales';
 export { validateLocale }; // 내부 import 바인딩을 그대로 재노출
@@ -279,10 +280,13 @@ function buildRewriteUrl(
   return url;
 }
 
-// [WL-145] Rate Limit 헬퍼 — Upstash Redis 기반 sliding window.
-// init 실패·runtime 에러 모두 Fail-open (null 반환) — 마케팅 사이트 가용성 우선.
-async function checkRateLimit(key: string): Promise<NextResponse | null> {
-  const limiter = getPartnerRateLimiter();
+// [WL-145/WL-146] Rate Limit 헬퍼 — Upstash Redis 기반 sliding window.
+// init 실패·runtime 에러 모두 Fail-open (null 반환) — 가용성 우선.
+// WL-146에서 limiter 매개변수화 — partner/admin 독립 인스턴스 주입.
+async function checkRateLimit(
+  key: string,
+  limiter: Ratelimit | null
+): Promise<NextResponse | null> {
   if (!limiter) return null;
   try {
     const { success, limit, remaining, reset } = await limiter.limit(key);
@@ -298,6 +302,18 @@ async function checkRateLimit(key: string): Promise<NextResponse | null> {
     console.warn('[RateLimit] Fail-open triggered:', e);
     return null;
   }
+}
+
+// [WL-146] Edge Runtime에서 신뢰 가능한 client IP 추출.
+// Vercel 프로덕션은 `x-vercel-forwarded-for`를 플랫폼이 보장·덮어쓴다.
+// Fallback `x-forwarded-for`는 "client, proxy1, proxy2" 형식 — 첫 값 사용.
+// IPv6 주소(2001:db8::1)는 콜론 포함 → split(':') 금지, 쉼표로만 분리.
+function getClientIp(request: NextRequest): string {
+  const vercelIp = request.headers.get('x-vercel-forwarded-for');
+  if (vercelIp) return vercelIp.trim();
+  const xff = request.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  return 'unknown';
 }
 
 export async function proxy(request: NextRequest) {
@@ -322,12 +338,26 @@ export async function proxy(request: NextRequest) {
   }
 
   // Auth routes: 로그인 페이지 — 항상 통과 (redirect 루프 방지)
+  // [WL-146] /auth/* 경로도 Server Component·Server Action에서 Supabase Auth API를 호출하므로
+  // Credential Stuffing 탐색 대상. isAdminHost 분기 진입 전 IP 기반 rate limit 적용.
   if (pathname.startsWith('/auth')) {
+    const authLimited = await checkRateLimit(
+      `ip:${getClientIp(request)}`,
+      getAdminRateLimiter()
+    );
+    if (authLimited) return authLimited;
     return NextResponse.next();
   }
 
   // Admin host: 파트너 라우팅 건너뛰고 세션 검증 (host-first 단일 진입 — AC-INF01a)
   if (isAdminHost(host)) {
+    // [WL-146] supabase.auth.getUser() 호출 전 IP 기반 rate limit — Supabase Auth API 부하 증폭 방어.
+    const adminLimited = await checkRateLimit(
+      `ip:${getClientIp(request)}`,
+      getAdminRateLimiter()
+    );
+    if (adminLimited) return adminLimited;
+
     const response = NextResponse.next({ request });
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -375,7 +405,7 @@ export async function proxy(request: NextRequest) {
       const partner = await resolvePartnerBySubdomain(devSlug);
       if (partner) {
         // [WL-145] DEV fallback 경로에도 rate limit 적용 — Preview URL 공격면 차단
-        const limited = await checkRateLimit(partner.id);
+        const limited = await checkRateLimit(partner.id, getPartnerRateLimiter());
         if (limited) return limited;
         const { locale: pathLocale, cleanPathname } = extractPathLocale(pathname);
         const locale = pathLocale ?? detectLocale(request, partner.default_locale);
@@ -395,7 +425,7 @@ export async function proxy(request: NextRequest) {
   // resolvePartnerFromHost 호출 전에 적용하여 존재하지 않는 서브도메인 무차별 공격이
   // Supabase partners 조회 + partnerCache FIFO 퇴출을 유발하지 못하도록 차단.
   const cleanHost = host.split(':')[0];
-  const hostLimited = await checkRateLimit(`host:${cleanHost}`);
+  const hostLimited = await checkRateLimit(`host:${cleanHost}`, getPartnerRateLimiter());
   if (hostLimited) return hostLimited;
 
   // *.localhost 서브도메인 + 프로덕션 호스트 처리
@@ -412,7 +442,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // [WL-145] Partner ID 기반 rate limit — Noisy Neighbor 방어 메인 게이트
-  const partnerLimited = await checkRateLimit(partner.id);
+  const partnerLimited = await checkRateLimit(partner.id, getPartnerRateLimiter());
   if (partnerLimited) return partnerLimited;
 
   // URL 경로 locale 최우선 추출 (/ko/faq → locale='ko', path='/faq')

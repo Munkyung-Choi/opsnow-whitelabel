@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-// WL-145 — Rate Limit Unit Tests
+// WL-145/WL-146 — Rate Limit Unit Tests
 // getPartnerRateLimiter(): lazy singleton + env 누락 시 null 반환
+// getAdminRateLimiter(): partner와 독립된 admin 전용 limiter (WL-146)
 // getRateLimitHeaders(): HTTP 헤더 포맷
 
 // @upstash/redis fromEnv()는 env가 없을 때 throw — Fail-open 시나리오 검증을 위해
@@ -81,5 +82,73 @@ describe('getPartnerRateLimiter() — lazy singleton + Fail-open', () => {
     const second = getPartnerRateLimiter()
     expect(first).not.toBeNull()
     expect(first).toBe(second) // 동일 인스턴스 재사용
+  })
+})
+
+describe('getAdminRateLimiter() — WL-146 IP 기반 Credential Stuffing 방어', () => {
+  beforeEach(() => {
+    vi.resetModules()
+  })
+
+  it('env 누락 시 null 반환 (Fail-open — partner와 독립된 _initAttempted 가드)', async () => {
+    const originalUrl = process.env.UPSTASH_REDIS_REST_URL
+    const originalToken = process.env.UPSTASH_REDIS_REST_TOKEN
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const { getAdminRateLimiter } = await import('@/lib/rate-limit')
+      const limiter = getAdminRateLimiter()
+      expect(limiter).toBeNull()
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[RateLimit] init failed')
+      )
+    } finally {
+      errorSpy.mockRestore()
+      if (originalUrl !== undefined) process.env.UPSTASH_REDIS_REST_URL = originalUrl
+      if (originalToken !== undefined) process.env.UPSTASH_REDIS_REST_TOKEN = originalToken
+    }
+  })
+
+  it('init 실패 후 재호출 시에도 null 반환 (admin 전용 _initAttempted 가드)', async () => {
+    const originalUrl = process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_URL
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const { getAdminRateLimiter } = await import('@/lib/rate-limit')
+      const first = getAdminRateLimiter()
+      const second = getAdminRateLimiter()
+      expect(first).toBeNull()
+      expect(second).toBeNull()
+      expect(errorSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      errorSpy.mockRestore()
+      if (originalUrl !== undefined) process.env.UPSTASH_REDIS_REST_URL = originalUrl
+    }
+  })
+
+  it('env 존재 시 Ratelimit 인스턴스 반환 + 동일 인스턴스 캐싱', async () => {
+    process.env.UPSTASH_REDIS_REST_URL = 'https://example.upstash.io'
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+    const { getAdminRateLimiter } = await import('@/lib/rate-limit')
+    const first = getAdminRateLimiter()
+    const second = getAdminRateLimiter()
+    expect(first).not.toBeNull()
+    expect(first).toBe(second)
+  })
+
+  it('partner limiter와 독립된 인스턴스 — 상호 간섭 없음', async () => {
+    process.env.UPSTASH_REDIS_REST_URL = 'https://example.upstash.io'
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+
+    const { getAdminRateLimiter, getPartnerRateLimiter } = await import('@/lib/rate-limit')
+    const admin = getAdminRateLimiter()
+    const partner = getPartnerRateLimiter()
+    expect(admin).not.toBeNull()
+    expect(partner).not.toBeNull()
+    expect(admin).not.toBe(partner) // 서로 다른 Ratelimit 인스턴스
   })
 })
