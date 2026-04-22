@@ -185,6 +185,43 @@ test.describe('(3) 입력 검증 — 빈 값 저장', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// (5) Dirty UI 피드백 — WL-148
+// ──────────────────────────────────────────────────────────
+test.describe('(5) Dirty UI 피드백 — WL-148', () => {
+  test.describe.configure({ mode: 'serial' })
+  test.use({ storageState: PARTNER_AUTH_FILE })
+
+  test.beforeAll(async () => {
+    await ensureHeroContentExists()
+  })
+
+  test.afterEach(async () => {
+    await resetTestPartnerHero()
+  })
+
+  test('ko 제목 수정 → hero 탭에 dirty dot 표시. 저장 후 dot 제거', async ({ page }) => {
+    await page.goto(`${ADMIN_ORIGIN}/admin/site-builder/content`)
+    await page.waitForLoadState('networkidle')
+
+    const dirtyDot = page.locator('[data-testid="section-dirty-hero"]')
+
+    // 초기 상태 — dirty dot 없음
+    await expect(dirtyDot).toBeHidden()
+
+    // ko 제목 수정 → dirty dot 표시
+    const titleInput = page.locator('[data-testid="hero-title-ko"]')
+    await titleInput.clear()
+    await titleInput.fill('더티 상태 테스트')
+    await expect(dirtyDot).toBeVisible()
+
+    // 저장 → dot 제거
+    await page.locator('[data-testid="save-hero"]').click()
+    await expect(page.getByText('저장되었습니다.')).toBeVisible({ timeout: 10000 })
+    await expect(dirtyDot).toBeHidden()
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // (4) 데이터 격리
 // ──────────────────────────────────────────────────────────
 test.describe('(4) 데이터 격리 — 저장이 자기 파트너에만 적용', () => {

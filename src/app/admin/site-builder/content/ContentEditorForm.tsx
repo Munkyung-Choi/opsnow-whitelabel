@@ -2,16 +2,14 @@
 
 import { useActionState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import { updatePartnerContent } from './actions'
-import PublishToggle from './PublishToggle'
 import { usePreviewBridge } from './_hooks/use-preview-bridge'
-import type {
-  ContentEditFormState,
-  EditableSectionType,
+import { useFormDirty } from './_hooks/use-form-dirty'
+import SectionFormRenderer from './_components/SectionFormRenderer'
+import {
+  SECTION_FIELDS,
+  type ContentEditFormState,
+  type EditableSectionType,
 } from '@/lib/schemas/site-builder-content'
 
 interface SectionData {
@@ -40,6 +38,8 @@ const SECTION_LABELS: Record<EditableSectionType, string> = {
   contact: '문의',
 }
 
+const SECTION_ORDER: EditableSectionType[] = ['hero', 'about', 'contact']
+
 const initialState: ContentEditFormState = {}
 
 export default function ContentEditorForm({ sections, subdomain, defaultLocale }: Props) {
@@ -48,200 +48,33 @@ export default function ContentEditorForm({ sections, subdomain, defaultLocale }
   const [aboutState, aboutAction, aboutIsPending] = useActionState(updatePartnerContent, initialState)
   const [contactState, contactAction, contactIsPending] = useActionState(updatePartnerContent, initialState)
 
-  const hero = sections.find((s) => s.section_type === 'hero')
-  const about = sections.find((s) => s.section_type === 'about')
-  const contact = sections.find((s) => s.section_type === 'contact')
+  const heroDirty = useFormDirty()
+  const aboutDirty = useFormDirty()
+  const contactDirty = useFormDirty()
 
-  function sectionForm(
-    section: SectionData | undefined,
-    sectionType: EditableSectionType,
-    action: typeof heroAction,
-    isPending: boolean,
-    state: ContentEditFormState
-  ) {
-    if (!section) {
-      return (
-        <div className="py-8 text-sm text-muted-foreground">
-          이 섹션의 콘텐츠가 없습니다. DB 트리거로 자동 초기화되지 않은 경우 관리자에게 문의하세요.
-        </div>
-      )
+  const sectionData: Record<EditableSectionType, SectionData | undefined> = {
+    hero: sections.find((s) => s.section_type === 'hero'),
+    about: sections.find((s) => s.section_type === 'about'),
+    contact: sections.find((s) => s.section_type === 'contact'),
+  }
+
+  const sectionRuntime: Record<
+    EditableSectionType,
+    {
+      action: typeof heroAction
+      isPending: boolean
+      state: ContentEditFormState
+      dirty: ReturnType<typeof useFormDirty>
     }
-
-    return (
-      <div className="space-y-6">
-        {/* 발행 상태 — 별도 form (PublishToggle 자체 form과 중첩 방지) */}
-        <div className="flex items-center gap-3 pb-4 border-b border-border">
-          <span className="text-sm font-medium text-foreground">발행 상태</span>
-          <PublishToggle sectionType={sectionType} isPublished={section.is_published} />
-        </div>
-
-        {/* 콘텐츠 편집 form */}
-        <form action={action} className="space-y-6">
-        <input type="hidden" name="section_type" value={sectionType} />
-
-        {/* 언어 탭 */}
-        <Tabs defaultValue="ko">
-          <TabsList>
-            <TabsTrigger value="ko">한국어</TabsTrigger>
-            <TabsTrigger value="en">English</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="ko" forceMount className="space-y-4 pt-4 data-[state=inactive]:hidden">
-            <div className="space-y-1.5">
-              <Label htmlFor={`${sectionType}-title-ko`}>제목</Label>
-              <Input
-                id={`${sectionType}-title-ko`}
-                name="title_ko"
-                defaultValue={section.title_ko}
-                placeholder="한국어 제목"
-                onChange={(e) =>
-                  sendPreview(sectionType, { [`${sectionType}.title`]: e.target.value })
-                }
-                data-testid={`${sectionType}-title-ko`}
-              />
-              {state.fieldErrors?.title_ko && (
-                <p className="text-xs text-destructive" role="alert">
-                  {state.fieldErrors.title_ko}
-                </p>
-              )}
-            </div>
-
-            {sectionType === 'hero' && (
-              <div className="space-y-1.5">
-                <Label htmlFor={`${sectionType}-subtitle-ko`}>부제목</Label>
-                <Textarea
-                  id={`${sectionType}-subtitle-ko`}
-                  name="subtitle_ko"
-                  defaultValue={section.subtitle_ko}
-                  placeholder="한국어 부제목"
-                  rows={3}
-                  onChange={(e) =>
-                    sendPreview(sectionType, { [`${sectionType}.subtitle`]: e.target.value })
-                  }
-                />
-              </div>
-            )}
-
-            {sectionType === 'about' && (
-              <div className="space-y-1.5">
-                <Label htmlFor="about-body-ko">본문</Label>
-                <Textarea
-                  id="about-body-ko"
-                  name="body_ko"
-                  defaultValue={section.body_ko}
-                  placeholder="한국어 본문"
-                  rows={5}
-                  onChange={(e) =>
-                    sendPreview(sectionType, { [`${sectionType}.body`]: e.target.value })
-                  }
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="en" forceMount className="space-y-4 pt-4 data-[state=inactive]:hidden">
-            <div className="space-y-1.5">
-              <Label htmlFor={`${sectionType}-title-en`}>Title</Label>
-              <Input
-                id={`${sectionType}-title-en`}
-                name="title_en"
-                defaultValue={section.title_en}
-                placeholder="English title"
-                onChange={(e) =>
-                  sendPreview(sectionType, { [`${sectionType}.title`]: e.target.value })
-                }
-                data-testid={`${sectionType}-title-en`}
-              />
-            </div>
-
-            {sectionType === 'hero' && (
-              <div className="space-y-1.5">
-                <Label htmlFor={`${sectionType}-subtitle-en`}>Subtitle</Label>
-                <Textarea
-                  id={`${sectionType}-subtitle-en`}
-                  name="subtitle_en"
-                  defaultValue={section.subtitle_en}
-                  placeholder="English subtitle"
-                  rows={3}
-                  onChange={(e) =>
-                    sendPreview(sectionType, { [`${sectionType}.subtitle`]: e.target.value })
-                  }
-                />
-              </div>
-            )}
-
-            {sectionType === 'about' && (
-              <div className="space-y-1.5">
-                <Label htmlFor="about-body-en">Body</Label>
-                <Textarea
-                  id="about-body-en"
-                  name="body_en"
-                  defaultValue={section.body_en}
-                  placeholder="English body"
-                  rows={5}
-                  onChange={(e) =>
-                    sendPreview(sectionType, { [`${sectionType}.body`]: e.target.value })
-                  }
-                />
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* contact_info 필드 (언어 독립) */}
-        {sectionType === 'contact' && (
-          <div className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="contact-email">이메일</Label>
-              <Input
-                id="contact-email"
-                name="contact_email"
-                type="email"
-                defaultValue={section.contact_email}
-                placeholder="contact@example.com"
-                data-testid="contact-email"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="contact-phone">전화번호</Label>
-              <Input
-                id="contact-phone"
-                name="contact_phone"
-                defaultValue={section.contact_phone}
-                placeholder="02-1234-5678"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="contact-address">주소</Label>
-              <Input
-                id="contact-address"
-                name="contact_address"
-                defaultValue={section.contact_address}
-                placeholder="서울시 강남구 ..."
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 피드백 메시지 */}
-        {state.error && (
-          <p className="text-sm text-destructive" role="alert">{state.error}</p>
-        )}
-        {state.ok && (
-          <p className="text-sm text-primary" role="status">저장되었습니다.</p>
-        )}
-
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="min-w-24"
-          data-testid={`save-${sectionType}`}
-        >
-          {isPending ? '저장 중...' : '저장'}
-        </Button>
-        </form>
-      </div>
-    )
+  > = {
+    hero: { action: heroAction, isPending: heroIsPending, state: heroState, dirty: heroDirty },
+    about: { action: aboutAction, isPending: aboutIsPending, state: aboutState, dirty: aboutDirty },
+    contact: {
+      action: contactAction,
+      isPending: contactIsPending,
+      state: contactState,
+      dirty: contactDirty,
+    },
   }
 
   return (
@@ -250,22 +83,40 @@ export default function ContentEditorForm({ sections, subdomain, defaultLocale }
       <div className="w-[480px] shrink-0 overflow-y-auto">
         <Tabs defaultValue="hero">
           <TabsList className="mb-6">
-            {(['hero', 'about', 'contact'] as EditableSectionType[]).map((type) => (
-              <TabsTrigger key={type} value={type}>
-                {SECTION_LABELS[type]}
+            {SECTION_ORDER.map((type) => (
+              <TabsTrigger key={type} value={type} data-testid={`section-tab-${type}`}>
+                <span className="inline-flex items-center gap-1.5">
+                  {SECTION_LABELS[type]}
+                  {sectionRuntime[type].dirty.dirty && (
+                    <span
+                      className="inline-block w-1.5 h-1.5 rounded-full bg-primary"
+                      aria-label="수정 중"
+                      data-testid={`section-dirty-${type}`}
+                    />
+                  )}
+                </span>
               </TabsTrigger>
             ))}
           </TabsList>
 
-          <TabsContent value="hero">
-            {sectionForm(hero, 'hero', heroAction, heroIsPending, heroState)}
-          </TabsContent>
-          <TabsContent value="about">
-            {sectionForm(about, 'about', aboutAction, aboutIsPending, aboutState)}
-          </TabsContent>
-          <TabsContent value="contact">
-            {sectionForm(contact, 'contact', contactAction, contactIsPending, contactState)}
-          </TabsContent>
+          {SECTION_ORDER.map((type) => {
+            const runtime = sectionRuntime[type]
+            return (
+              <TabsContent key={type} value={type}>
+                <SectionFormRenderer
+                  sectionType={type}
+                  section={sectionData[type]}
+                  fields={SECTION_FIELDS[type]}
+                  action={runtime.action}
+                  isPending={runtime.isPending}
+                  state={runtime.state}
+                  sendPreview={sendPreview}
+                  onFieldChange={runtime.dirty.markDirty}
+                  onSaveSuccess={runtime.dirty.markClean}
+                />
+              </TabsContent>
+            )
+          })}
         </Tabs>
       </div>
 
