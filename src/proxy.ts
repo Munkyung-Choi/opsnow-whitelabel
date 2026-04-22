@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 import { type Locale, SUPPORTED_LOCALES, COUNTRY_LOCALE_MAP, validateLocale } from '@/lib/i18n/locales';
+import { getPartnerRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit';
 // 기존 소비자(import { Locale/validateLocale } from '@/proxy') 하위 호환 re-export
 export type { Locale } from '@/lib/i18n/locales';
 export { validateLocale }; // 내부 import 바인딩을 그대로 재노출
@@ -278,6 +279,27 @@ function buildRewriteUrl(
   return url;
 }
 
+// [WL-145] Rate Limit 헬퍼 — Upstash Redis 기반 sliding window.
+// init 실패·runtime 에러 모두 Fail-open (null 반환) — 마케팅 사이트 가용성 우선.
+async function checkRateLimit(key: string): Promise<NextResponse | null> {
+  const limiter = getPartnerRateLimiter();
+  if (!limiter) return null;
+  try {
+    const { success, limit, remaining, reset } = await limiter.limit(key);
+    if (!success) {
+      console.error(`[RateLimit] blocked key=${key}`);
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: getRateLimitHeaders(limit, remaining, reset),
+      });
+    }
+    return null;
+  } catch (e) {
+    console.warn('[RateLimit] Fail-open triggered:', e);
+    return null;
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const host = request.headers.get('host') ?? '';
   const pathname = request.nextUrl.pathname;
@@ -352,6 +374,9 @@ export async function proxy(request: NextRequest) {
     if (devSlug) {
       const partner = await resolvePartnerBySubdomain(devSlug);
       if (partner) {
+        // [WL-145] DEV fallback 경로에도 rate limit 적용 — Preview URL 공격면 차단
+        const limited = await checkRateLimit(partner.id);
+        if (limited) return limited;
         const { locale: pathLocale, cleanPathname } = extractPathLocale(pathname);
         const locale = pathLocale ?? detectLocale(request, partner.default_locale);
         const finalLocale = partner.published_locales.includes(locale)
@@ -366,6 +391,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // [WL-145] Host 기반 선행 게이트 — Partner Enumeration 공격 방어
+  // resolvePartnerFromHost 호출 전에 적용하여 존재하지 않는 서브도메인 무차별 공격이
+  // Supabase partners 조회 + partnerCache FIFO 퇴출을 유발하지 못하도록 차단.
+  const cleanHost = host.split(':')[0];
+  const hostLimited = await checkRateLimit(`host:${cleanHost}`);
+  if (hostLimited) return hostLimited;
+
   // *.localhost 서브도메인 + 프로덕션 호스트 처리
   const partner = await resolvePartnerFromHost(host);
 
@@ -378,6 +410,10 @@ export async function proxy(request: NextRequest) {
       : `https://${BASE_DOMAIN}`;
     return NextResponse.redirect(new URL('/not-found', notFoundBase));
   }
+
+  // [WL-145] Partner ID 기반 rate limit — Noisy Neighbor 방어 메인 게이트
+  const partnerLimited = await checkRateLimit(partner.id);
+  if (partnerLimited) return partnerLimited;
 
   // URL 경로 locale 최우선 추출 (/ko/faq → locale='ko', path='/faq')
   // cookie/IP 감지(detectLocale)보다 URL 명시 locale을 우선한다.
