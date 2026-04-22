@@ -30,6 +30,34 @@
 
 ## 활성 부채 (Active)
 
+### DEBT-012 — FEATURE_KEYS DB·코드 4곳 drift 관리 부재
+
+- **발생일**: 2026-04-22
+- **영역**: `src/lib/features/features-schema.ts`, `supabase/migrations/20260422000001_partners_features_check.sql`, `supabase/migrations/20260422000002_update_partner_feature_fn_allowlist.sql`, `tests/lib/features/features-sync.test.ts`
+- **영향도**: Minor (현재 3 key 관리, 행동 기반 drift 탐지 테스트로 silent failure 방어 중. 구조적 해결은 key 확장 시 재평가)
+- **연관 티켓**: WL-150 (이중 방어 도입 시 drift 축 노출), WL-124 (features 인프라 원천)
+- **현황**:
+  - TypeScript SSOT: `FEATURE_KEYS = ['custom_domain', 'analytics', 'multi_locale']` 상수 1곳
+  - DB CHECK 함수: `is_valid_partner_features(jsonb)` 내부 `e.key NOT IN ('custom_domain', 'analytics', 'multi_locale')` — 하드코딩 복제
+  - DB RPC: `update_partner_feature.p_feature_key NOT IN ('custom_domain', 'analytics', 'multi_locale')` — 하드코딩 복제
+  - RPC 본문 `jsonb_build_object` 재구성 항목 — 3 key 하드코딩 (prune 대상)
+  - 위 4곳이 동기 유지되지 않으면 (A) 코드만 확장 → 런타임 silent warning, (B) DB만 확장 → 테스트 미포착, (C) RPC만 확장 → CHECK 위반, (D) CHECK만 확장 → RPC reject 불일치
+- **상환 범위**:
+  1. DB에 `allowed_feature_keys` 참조 테이블 신설 + FK 제약
+  2. CHECK 함수와 RPC IF 절을 정적 NOT IN 대신 `SELECT key FROM allowed_feature_keys`로 치환
+  3. `FEATURE_KEYS` TypeScript 상수는 빌드 시 DB에서 읽어 생성 (또는 반대 방향으로 마이그레이션이 상수를 fixture로 읽음)
+- **트리거 조건**: 
+  - key 6개 이상에 도달하거나
+  - drift 사고 1회 발생 시 (런타임 오류·silent fail 관찰)
+  - 현재 임시 대응 수준 유지
+- **임시 대응**:
+  - `tests/lib/features/features-sync.test.ts` 행동 기반 drift 탐지 (FEATURE_KEYS 전원 accept + sentinel 3종 reject 검증)
+  - 각 마이그레이션 파일 상단 주석에 "FEATURE_KEYS 확장 시 4곳 동기 수정 필요" 명시
+  - `features-schema.ts` 주석에 확장 체크리스트 4곳 경로 기재
+- **참조**: `docs/audits/WL-150.md` §Auditor 발견 6건 종합 #5, Auditor sub-agent 취약점 5
+
+---
+
 ### DEBT-009 — Public API 경로 rate limit 미적용
 
 - **발생일**: 2026-04-22
@@ -247,7 +275,7 @@
 - **ID 연속성**: 신규 DEBT ID는 현재 최고 ID + 1로 순번 부여한다. 임의 번호 배정 금지.
 - **단일 진입점(SSOT)**: journal, Confluence, 코드 주석에서 DEBT-XXX를 참조하면 반드시 이 파일에 유효한 항목이 존재해야 한다. 미등록 상태로 외부에서 ID를 사용하는 것을 금지한다.
 - **교차 참조 검증**: `/dev-end` 실행 시 오늘 생성·참조된 DEBT ID가 이 파일에 등록되어 있는지 확인한다.
-- **ID 충돌 방지**: 새 항목 작성 전 이 파일의 기존 ID 목록을 확인한다. 현재 최고 ID: **DEBT-011**.
+- **ID 충돌 방지**: 새 항목 작성 전 이 파일의 기존 ID 목록을 확인한다. 현재 최고 ID: **DEBT-012**.
 
 ---
 
