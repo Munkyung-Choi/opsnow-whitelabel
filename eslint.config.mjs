@@ -61,6 +61,48 @@ const eslintConfig = defineConfig([
       }],
     },
   },
+  // WL-149 — 컴포넌트 비대화·복잡도 거버넌스 (God Component 재발 방지)
+  // max-lines 위반 시 대응: CLAUDE.md §8 참조 (컴포넌트 분할 or 선언적 패턴 도입 검토)
+  {
+    rules: {
+      "max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
+      complexity: ["warn", { max: 15 }],
+    },
+  },
+  // 테스트 파일 — 시나리오 설명 가독성 우선. max-lines 미적용.
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx", "tests/**/*.ts", "tests/**/*.tsx"],
+    rules: {
+      "max-lines": "off",
+    },
+  },
+  // 기존 부채 Ratchet — 현 수치를 상한으로 고정. 개선 시 하향, 재성장 시 error.
+  {
+    files: ["src/proxy.ts"],
+    rules: {
+      "max-lines": ["error", { max: 500, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ["src/lib/marketing/parsers.ts"],
+    rules: {
+      "max-lines": ["error", { max: 500, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ["src/components/marketing/FaqHubClient.tsx"],
+    rules: {
+      "max-lines": ["error", { max: 400, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  // 운영 스크립트(scripts/) — RLS 검증·AI 감사 등 개발자 수동 실행 도구.
+  // 런타임 번들 미포함. 절차형 로직이라 길어지는 특성 허용.
+  {
+    files: ["scripts/**/*.{ts,mjs,js}"],
+    rules: {
+      "max-lines": ["error", { max: 500, skipBlankLines: true, skipComments: true }],
+    },
+  },
 ]);
 
 export default eslintConfig;

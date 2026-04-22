@@ -222,6 +222,24 @@
 
 ---
 
+### DEBT-011 — FaqHubClient.tsx God Component 유기적 부채
+
+- **발생일**: 2026-04-22
+- **영역**: `src/components/marketing/FaqHubClient.tsx`
+- **영향도**: Minor (383줄 — 현재 WL-149 `max-lines` 400 override로 방어 중)
+- **연관 티켓**: WL-149 (ESLint 거버넌스 도입 시 식별), WL-148 (SiteBuilder 선언적 패턴 선례)
+- **증상**:
+  - UI + State + Logic 엉김 — FAQ 검색·카테고리 필터·URL 쿼리 파라미터 동기화·렌더링이 단일 Client Component에 혼재
+  - 기능 추가(검색 가중치 변경, 카테고리 계층화 등) 시 재비대 위험
+- **상환 조건**: WL-148 SiteBuilder 리팩터링과 유사한 분리 패턴 적용
+  1. `_hooks/use-faq-filter.ts` — 검색·카테고리 상태 로직 분리
+  2. `_hooks/use-faq-url-sync.ts` — URL query param ↔ 상태 브릿지
+  3. `_components/` — FaqList, FaqSearch, FaqCategoryTabs 분리
+  4. ESLint override `max-lines: 400`을 300 아래로 하향 (Ratchet)
+- **임시 대응**: `max-lines: 400` override로 현 상한 고정. 마케팅 FAQ 기능 확장 티켓 착수 시 우선 리팩터링.
+
+---
+
 ---
 
 ## 부채 관리 규칙 (Debt Management Rules)
@@ -229,7 +247,7 @@
 - **ID 연속성**: 신규 DEBT ID는 현재 최고 ID + 1로 순번 부여한다. 임의 번호 배정 금지.
 - **단일 진입점(SSOT)**: journal, Confluence, 코드 주석에서 DEBT-XXX를 참조하면 반드시 이 파일에 유효한 항목이 존재해야 한다. 미등록 상태로 외부에서 ID를 사용하는 것을 금지한다.
 - **교차 참조 검증**: `/dev-end` 실행 시 오늘 생성·참조된 DEBT ID가 이 파일에 등록되어 있는지 확인한다.
-- **ID 충돌 방지**: 새 항목 작성 전 이 파일의 기존 ID 목록을 확인한다. 현재 최고 ID: **DEBT-010**.
+- **ID 충돌 방지**: 새 항목 작성 전 이 파일의 기존 ID 목록을 확인한다. 현재 최고 ID: **DEBT-011**.
 
 ---
 

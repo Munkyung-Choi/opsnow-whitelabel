@@ -349,6 +349,16 @@ Low 트랙·단순 질의응답·현황 조회는 생략 가능하다.
 7. **High/Critical Human Gate**: High·Critical 트랙의 Human Check는 절대 생략 불가. 승인 전 Impl 시작 금지.
 8. **Report Accuracy**: Jira 댓글의 "테스트 결과"에 lint/tsc 결과를 기재하지 않는다. Vitest와 Playwright 실행 결과만 기재한다.
 
+### God Component 거버넌스 (WL-149)
+
+`eslint.config.mjs`에 `max-lines: 300` + `complexity: 15` 규칙이 도입되어 있다. 위반 시 개발자는 아래 우선순위로 대응한다.
+
+1. **컴포넌트 분할**: 단일 파일이 UI + 상태 + 외부 통신을 모두 담고 있다면 `_components/` `_hooks/` 하위로 분리한다. 예시: WL-147 `usePreviewBridge` 훅 분리.
+2. **선언적 패턴 도입**: `if (type === 'A') { ... } else if (type === 'B') { ... }` 조건 분기가 반복된다면 데이터 기반 스키마로 전환한다. 예시: WL-148 `SECTION_FIELDS` + `SectionFormRenderer`.
+3. **기존 부채에 편승 금지**: `eslint.config.mjs`의 개별 `max-lines` override(proxy.ts 500 / parsers.ts 500 / FaqHubClient.tsx 400 등)는 **Ratchet 방식** — 현재 수치를 상한으로 고정하고 개선 시 하향만 허용한다. 신규 코드 작성 시 기존 override 숫자 이하로 유지하고, 가능하면 축소 커밋을 함께 제안한다.
+4. **Complexity warn 누적 방지**: `complexity: 15` 경고가 `warn` 상태라도 신규 코드에서는 발생시키지 않는다. 기존 warn은 점진 개선 대상이며 리팩터 기회가 있을 때 함께 처리한다.
+5. **불가피한 초과 시**: tech-debt.md에 DEBT 신규 등록 후 `eslint.config.mjs`에 개별 override를 추가한다. 무단 override 금지.
+
 ### 외부 LLM 피드백 검증 원칙
 
 외부 LLM 기능 변경 제안 시 → `/aisend` 스킬로 코드베이스 교차검증 후 문경 님 보고. Low 트랙(텍스트·CSS·오탈자)은 일반 절차. 외부 피드백은 **참고 자료**이며 **구현 지시가 아니다**.
