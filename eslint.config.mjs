@@ -106,7 +106,10 @@ const eslintConfig = defineConfig([
   // WL-151 — partners.features 직접 접근 차단. hasFeature(partner, 'key') 경유 강제.
   // 근거: src/types/supabase.ts가 features를 Json(유니언)으로 생성해 TypeScript가
   //       `partner.features.analytics` 타입 오류를 잡지 못함. Zod 런타임 검증 우회 방지.
-  // 커버 패턴: partner.features.analytics, partner.features['analytics'], partner.features[key]
+  // 커버 패턴 #1: partner.features.analytics, partner.features['analytics'], partner.features[key]
+  // 커버 패턴 #2: const { features } = partner / function({ features }) / ({ features }) => {}
+  //              (ObjectPattern 구조 분해 — 변수 선언·화살표·일반 함수 파라미터 통합 커버)
+  // 예외 스코프: src/lib/features/** (hasFeature 구현), src/lib/marketing/** (global_contents.meta.features — 별도 도메인)
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
@@ -118,12 +121,22 @@ const eslintConfig = defineConfig([
           message:
             "partners.features 직접 접근 금지. hasFeature(partner, 'key') 경유하세요. (WL-151/WL-124)",
         },
+        {
+          selector: "ObjectPattern > Property[key.name='features']",
+          message:
+            "partners.features 구조 분해 금지. hasFeature(partner, 'key') 경유하세요. (WL-151/WL-124)",
+        },
       ],
     },
   },
   // 예외: hasFeature 구현 + Zod schema 정의 파일은 직접 접근이 본연의 책임
   {
     files: ["src/lib/features/**"],
+    rules: { "no-restricted-syntax": "off" },
+  },
+  // 예외: global_contents.meta.features (FinOps 섹션 콘텐츠 배열) — partners.features 기능 플래그와 별도 도메인
+  {
+    files: ["src/lib/marketing/**"],
     rules: { "no-restricted-syntax": "off" },
   },
 ]);
