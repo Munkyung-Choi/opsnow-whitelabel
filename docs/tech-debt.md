@@ -30,31 +30,51 @@
 
 ## 활성 부채 (Active)
 
-### DEBT-005 — 파트너별 Rate Limiting 미구현 (Noisy Neighbor 방어)
+### DEBT-009 — Public API 경로 rate limit 미적용
 
-- **발생일**: 2026-04-20
-- **영역**: `src/middleware.ts` / `/api/*` Route Handlers / Next.js Edge
-- **영향도**: Major (파트너 10+ 시 단일 파트너 과부하가 전체 서비스에 영향 가능)
-- **연관 티켓**: WL-124 (Feature Flag 인프라), CLAUDE.md §3.4 규칙 5 (Transaction Pooler)
+- **발생일**: 2026-04-22
+- **영역**: `src/app/api/set-locale/route.ts`, `src/app/api/admin/impersonate/route.ts`, `src/app/api/admin/logs/route.ts`
+- **영향도**: Major (proxy.ts matcher에서 `api` 제외되어 WL-145 rate limit 게이트 우회 가능)
+- **연관 티켓**: WL-145 (파트너별 Rate Limiting, proxy.ts 중심 구현)
 - **현황**:
-  - DB 커넥션은 Transaction Pooler로 선형 증가 방지 (규칙 5 준수)
-  - `/api/leads` 마이그레이션 주석에 `"앱 레벨 Rate Limiting 필수"` 경고 이미 기재
-  - 파트너별 API 호출 빈도 제한 로직은 미구현
-- **권장 해결책**: Upstash Redis + `@upstash/ratelimit`
-  - Next.js Edge Middleware에서 실행 → 지연 시간 최소화
-  - 서버리스 환경 최적화 (Redis 커넥션 풀 불필요)
-  - 파트너 ID 기반 per-tenant 슬라이딩 윈도우 제한
+  - proxy.ts matcher: `['/((?!_next/static|_next/image|favicon.ico|api|not-found|images/).*)']`
+  - `/api/*` 경로는 proxy를 거치지 않아 rate limit 미적용
+  - Admin Route Handler(`/api/admin/*`)는 `Authorization: Bearer` 검증으로 간접 보호되나 폭주 방어 없음
+  - `/api/set-locale`은 인증 불필요 — 현재 무방비
+- **상환 범위**:
+  1. 각 Route Handler 내부에서 `partnerRateLimiter.limit()` 개별 호출
+  2. 또는 공통 미들웨어 헬퍼(`withRateLimit()`)를 신설하여 Route Handler에 래핑
+- **권장 해결책**:
   ```typescript
-  // 구현 예시
-  const ratelimit = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(100, '1m') })
-  const { success } = await ratelimit.limit(partnerId)
-  if (!success) return new Response('Too Many Requests', { status: 429 })
+  // src/lib/rate-limit.ts 확장
+  export async function withRateLimit<T>(
+    key: string,
+    handler: () => Promise<T>
+  ): Promise<T | NextResponse> { ... }
   ```
-- **상환 트리거 조건** (둘 중 먼저 도달하는 조건):
-  1. 운영 파트너 수 **N > 10** 도달
-  2. 특정 파트너의 API 호출이 전체 트래픽의 **70% 이상** 지속
-- **상환 범위**: `/api/leads` Route Handler 우선 적용 → 이후 `/api/visits/upsert` → 전체 Admin API 확장
-- **참조**: CLAUDE.md §3.4 규칙 5, supabase/migrations/20260408000003_rls_policies.sql §leads 정책 주석
+- **상환 조건**: `/api/*` Route Handler 신설 시마다 rate limit 포함 의무화. 현존 3개 파일은 후속 티켓으로 일괄 처리.
+- **참조**: WL-145 Auditor Digest, docs/audits/WL-145.md
+
+---
+
+### DEBT-010 — Upstash Quota Monitoring 부재 (analytics: false 가시성 부채)
+
+- **발생일**: 2026-04-22
+- **영역**: `src/lib/rate-limit.ts` / Upstash Redis 대시보드
+- **영향도**: Major (10k/day 한도 소진 시 Fail-open 무한 통과 창 형성 — 공격자 악용 가능)
+- **연관 티켓**: WL-145 (파트너별 Rate Limiting), WL-145 Auditor Risk #5
+- **현황**:
+  - 무료 티어 10,000 commands/day 제약
+  - `analytics: false`로 설정하여 Upstash 대시보드 정밀 분석 불가 (비용 절감 vs 가시성 트레이드오프)
+  - 한도 도달 시 rate limit이 Fail-open으로 무한 통과 → 방어선 무력화
+  - 현재 수동 모니터링 경로 없음
+- **상환 범위**:
+  1. Upstash 대시보드 Webhook 설정 (80% 소진 시 이메일·Slack 알림)
+  2. 또는 `console.warn('[RateLimit] Fail-open triggered')` 로그를 Vercel Logs에서 주기 쿼리
+  3. 또는 별도 헬스체크 스크립트로 일일 명령 사용량 조회
+- **상환 조건**: 파트너 수 N > 5 또는 일평균 트래픽 3k req/day 초과 시 우선 상환.
+- **임시 대응**: Fail-open 시 `console.warn` 로깅 (WL-145 구현에 포함). Upstash 유료 플랜 검토 시 함께 처리.
+- **참조**: WL-145 Auditor Digest, docs/audits/WL-145.md §Q1 Resolution
 
 ---
 
@@ -209,7 +229,7 @@
 - **ID 연속성**: 신규 DEBT ID는 현재 최고 ID + 1로 순번 부여한다. 임의 번호 배정 금지.
 - **단일 진입점(SSOT)**: journal, Confluence, 코드 주석에서 DEBT-XXX를 참조하면 반드시 이 파일에 유효한 항목이 존재해야 한다. 미등록 상태로 외부에서 ID를 사용하는 것을 금지한다.
 - **교차 참조 검증**: `/dev-end` 실행 시 오늘 생성·참조된 DEBT ID가 이 파일에 등록되어 있는지 확인한다.
-- **ID 충돌 방지**: 새 항목 작성 전 이 파일의 기존 ID 목록을 확인한다. 현재 최고 ID: **DEBT-008**.
+- **ID 충돌 방지**: 새 항목 작성 전 이 파일의 기존 ID 목록을 확인한다. 현재 최고 ID: **DEBT-010**.
 
 ---
 
@@ -222,3 +242,18 @@
 - **상환 커밋**: `refactor(DEBT-002): ContactFormFields 추출 — WL-42 Server Action 공유 기반`
 - **상환 내용**: `ContactFormFields` 서브컴포넌트 신설. `ContactFormMain`, `ContactFormSimple`이 동일 컴포넌트 공유. `FinalCTASection` Props에서 `partnerId` 제거. `section-registry.tsx` 연동 정리.
 - **연관**: WL-42
+
+---
+
+### DEBT-005 — 파트너별 Rate Limiting 미구현 (Noisy Neighbor 방어)
+
+- **발생일**: 2026-04-20
+- **상환일**: 2026-04-22
+- **상환 커밋**: `feat(WL-145): 파트너별 Rate Limiting — Noisy Neighbor 방어 (Critical)` (`4847556`)
+- **상환 내용**:
+  - `src/lib/rate-limit.ts` 신규 생성 — Lazy singleton + env 검증 + Fail-open
+  - `src/proxy.ts`에 3개 게이트 삽입 (DEV fallback / host 선행 / partner.id)
+  - Upstash Redis + `@upstash/ratelimit` slidingWindow (기본 dev/test 500/60s, production 50/60s)
+  - `RATE_LIMIT_REQUESTS`/`RATE_LIMIT_WINDOW` env override 지원
+- **상환 범위 수정사항**: 당초 계획의 `/api/leads` + `/api/visits/upsert`는 현재 코드베이스에 미존재. 실제 상환은 **proxy.ts 중앙 게이트**로 마케팅 사이트 전체 + Server Action 경로(proxy matcher 포함) 자동 커버. 현존 `/api/*` Route Handler는 **DEBT-009**로 후속 관리.
+- **연관**: WL-145, DEBT-009 (Public API 방어), DEBT-010 (Quota Monitoring)
