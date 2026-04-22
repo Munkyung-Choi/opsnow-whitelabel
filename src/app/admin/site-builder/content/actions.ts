@@ -71,9 +71,6 @@ export async function updatePartnerContent(
         case 'hero':
           updatePayload.subtitle = { ko: parsed.data.subtitle_ko, en: parsed.data.subtitle_en }
           break
-        case 'about':
-          updatePayload.body = { ko: parsed.data.body_ko, en: parsed.data.body_en }
-          break
         case 'contact':
           updatePayload.contact_info = {
             email: parsed.data.contact_email ?? '',

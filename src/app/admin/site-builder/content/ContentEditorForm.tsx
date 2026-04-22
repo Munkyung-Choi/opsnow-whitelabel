@@ -34,27 +34,23 @@ interface Props {
 
 const SECTION_LABELS: Record<EditableSectionType, string> = {
   hero: '히어로',
-  about: '회사 소개',
   contact: '문의',
 }
 
-const SECTION_ORDER: EditableSectionType[] = ['hero', 'about', 'contact']
+const SECTION_ORDER: EditableSectionType[] = ['hero', 'contact']
 
 const initialState: ContentEditFormState = {}
 
 export default function ContentEditorForm({ sections, subdomain, defaultLocale }: Props) {
   const { iframeRef, previewUrl, sendPreview } = usePreviewBridge(subdomain, defaultLocale)
   const [heroState, heroAction, heroIsPending] = useActionState(updatePartnerContent, initialState)
-  const [aboutState, aboutAction, aboutIsPending] = useActionState(updatePartnerContent, initialState)
   const [contactState, contactAction, contactIsPending] = useActionState(updatePartnerContent, initialState)
 
   const heroDirty = useFormDirty()
-  const aboutDirty = useFormDirty()
   const contactDirty = useFormDirty()
 
   const sectionData: Record<EditableSectionType, SectionData | undefined> = {
     hero: sections.find((s) => s.section_type === 'hero'),
-    about: sections.find((s) => s.section_type === 'about'),
     contact: sections.find((s) => s.section_type === 'contact'),
   }
 
@@ -68,7 +64,6 @@ export default function ContentEditorForm({ sections, subdomain, defaultLocale }
     }
   > = {
     hero: { action: heroAction, isPending: heroIsPending, state: heroState, dirty: heroDirty },
-    about: { action: aboutAction, isPending: aboutIsPending, state: aboutState, dirty: aboutDirty },
     contact: {
       action: contactAction,
       isPending: contactIsPending,

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const EDITABLE_SECTION_TYPES = ['hero', 'about', 'contact'] as const
+export const EDITABLE_SECTION_TYPES = ['hero', 'contact'] as const
 export type EditableSectionType = (typeof EDITABLE_SECTION_TYPES)[number]
 
 const HeroContentSchema = z.object({
@@ -9,14 +9,6 @@ const HeroContentSchema = z.object({
   title_en: z.string(),
   subtitle_ko: z.string(),
   subtitle_en: z.string(),
-})
-
-const AboutContentSchema = z.object({
-  section_type: z.literal('about'),
-  title_ko: z.string().min(1, '한국어 제목을 입력하세요.'),
-  title_en: z.string(),
-  body_ko: z.string(),
-  body_en: z.string(),
 })
 
 const ContactContentSchema = z.object({
@@ -30,7 +22,6 @@ const ContactContentSchema = z.object({
 
 export const updateSectionContentSchema = z.discriminatedUnion('section_type', [
   HeroContentSchema,
-  AboutContentSchema,
   ContactContentSchema,
 ])
 
@@ -112,29 +103,6 @@ export const SECTION_FIELDS: Record<EditableSectionType, FieldDef[]> = {
       rows: 3,
       i18n: true,
       previewKey: 'subtitle',
-    },
-  ],
-  about: [
-    {
-      name: 'title',
-      label: '제목',
-      labelEn: 'Title',
-      type: 'input',
-      placeholder: '한국어 제목',
-      placeholderEn: 'English title',
-      i18n: true,
-      previewKey: 'title',
-    },
-    {
-      name: 'body',
-      label: '본문',
-      labelEn: 'Body',
-      type: 'textarea',
-      placeholder: '한국어 본문',
-      placeholderEn: 'English body',
-      rows: 5,
-      i18n: true,
-      previewKey: 'body',
     },
   ],
   contact: [

@@ -77,17 +77,6 @@ describe('updateSectionContentSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('about section_type — body_ko/en 포함 시 통과', () => {
-    const result = updateSectionContentSchema.safeParse({
-      section_type: 'about',
-      title_ko: '회사 소개',
-      title_en: 'About',
-      body_ko: '본문',
-      body_en: 'Body',
-    })
-    expect(result.success).toBe(true)
-  })
-
   it('contact section_type — contact 필드 포함 시 통과', () => {
     const result = updateSectionContentSchema.safeParse({
       section_type: 'contact',
@@ -125,19 +114,4 @@ describe('updateSectionContentSchema', () => {
     }
   })
 
-  it('about 파싱 결과에 body_ko/en 존재, subtitle_ko 미존재', () => {
-    const result = updateSectionContentSchema.safeParse({
-      section_type: 'about',
-      title_ko: '제목',
-      title_en: '',
-      body_ko: '본문',
-      body_en: '',
-      subtitle_ko: '무시되어야 함',
-    })
-    expect(result.success).toBe(true)
-    if (result.success && result.data.section_type === 'about') {
-      expect(result.data.body_ko).toBe('본문')
-      expect('subtitle_ko' in result.data).toBe(false)
-    }
-  })
 })

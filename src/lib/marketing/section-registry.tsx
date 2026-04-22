@@ -109,6 +109,7 @@ const SECTION_REGISTRY: Readonly<Record<MarketingSectionType, SectionRenderFn>> 
       locale={data.locale}
     />
   ),
+  // NOTE: final_cta 섹션은 내부적으로 ContactFormMain을 래핑하여 파트너별 연락처/리드 수집 폼을 최종 렌더링함.
   final_cta: (data) => (
     <DynamicFinalCTASection
       locale={data.locale}

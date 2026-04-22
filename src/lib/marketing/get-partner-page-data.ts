@@ -198,7 +198,6 @@ export interface PartnerPageData {
   locale: Locale;
   // 하위 호환 필드 (terms/privacy 페이지 등 기존 소비자 유지)
   hero: LocalizedContentRow | null;
-  about: LocalizedContentRow | null;
   footer: LocalizedContentRow | null;
   terms: LocalizedContentRow | null;
   privacy: LocalizedContentRow | null;
@@ -272,7 +271,6 @@ export const getPartnerPageData = cache(async (
     globalContents,
     locale,
     hero: bySection('hero'),
-    about: bySection('about'),
     footer: bySection('footer'),
     terms: bySection('terms'),
     privacy: bySection('privacy'),
