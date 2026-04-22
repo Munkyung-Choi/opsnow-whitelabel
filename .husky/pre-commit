@@ -1,6 +1,5 @@
 # ─── Drift Precheck ──────────────────────────────────────────────
-# 신규 마이그레이션 파일 스테이징 시 이전 마이그레이션이 모두 로컬 적용됐는지 확인.
-# 로컬 전용 검사 (네트워크 불필요).
+# 신규 마이그레이션 파일 스테이징 시 이전 마이그레이션이 모두 Cloud에 적용됐는지 확인.
 new_migrations=$(git diff --cached --name-only --diff-filter=A | grep '^supabase/migrations/.*\.sql$' || true)
 
 if [ -n "$new_migrations" ]; then
@@ -12,13 +11,23 @@ if [ -n "$new_migrations" ]; then
     echo "⚠️  supabase CLI 오류 — Precheck 생략 (수동 확인 권장):"
     echo "$migration_output" | head -5
   else
-    # 미적용 로컬 마이그레이션 패턴: LOCAL 타임스탬프 뒤에 REMOTE 컬럼이 비어있는 행.
-    # 정상: "20260418000001 | 20260418000001 | ..."  (파이프 사이 숫자 존재)
+    # Cloud 미적용 패턴: LOCAL 타임스탬프 뒤에 REMOTE 컬럼이 비어있는 행.
+    # 정상:    "20260418000001 | 20260418000001 | ..."  (파이프 사이 숫자 존재)
     # 드리프트: "20260418000099 |                | ..."  (파이프 사이 공백만)
     # CLI 버전별 테이블 스타일(│ vs |)을 모두 포괄.
-    if echo "$migration_output" | grep -E '[0-9]{14}[[:space:]]+(│|\|)[[:space:]]+(│|\|)' >/dev/null 2>&1; then
+    drift_lines=$(echo "$migration_output" | grep -E '[0-9]{14}[[:space:]]+(│|\|)[[:space:]]+(│|\|)' || true)
+
+    # WL-152: 스테이징된 신규 파일은 "의도된 절차적 간극"이므로 drift에서 제외.
+    # CLAUDE.md Breakpoint #1에 따라 DB Schema 변경의 Cloud 적용은 문경 님 SQL Editor
+    # 수동 실행이 원칙 — 커밋 시점에 Cloud 미반영이 정상 흐름.
+    staged_versions=$(echo "$new_migrations" | sed 's|supabase/migrations/\([0-9]\{14\}\).*|\1|')
+    for version in $staged_versions; do
+      drift_lines=$(echo "$drift_lines" | grep -v "$version" || true)
+    done
+
+    if [ -n "$drift_lines" ]; then
       echo ""
-      echo "❌ 이전 마이그레이션 중 로컬 미적용 이력이 존재합니다:"
+      echo "❌ 이전 마이그레이션 중 Cloud 미적용 이력이 존재합니다:"
       echo ""
       echo "$migration_output"
       echo ""
