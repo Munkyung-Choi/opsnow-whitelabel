@@ -24,7 +24,7 @@ description: 특정 기간 기준으로 프로젝트 배달 성과(티켓 처리
 
 ### STEP 1 — 직전 평가 양식 확정
 
-1. Confluence 부모 페이지(`309232105`) 하위 자식 페이지 목록을 `getConfluencePageDescendants`로 조회한다.
+1. Confluence 부모 페이지(`299827212`) 하위 자식 페이지 목록을 `getConfluencePageDescendants`로 조회한다.
 2. 가장 최근 자식 페이지를 `getConfluencePage(contentFormat: "markdown")`으로 읽어 양식을 확정한다.
 3. 자식 페이지가 없으면(첫 실행) STEP 2 수집 후 STEP 3의 기본 항목으로 양식을 정의한다.
 4. **양식을 확정하기 전까지 평가를 시작하지 않는다.**
@@ -80,7 +80,7 @@ description: 특정 기간 기준으로 프로젝트 배달 성과(티켓 처리
 |---------|---|
 | cloudId | `opsnowinc.atlassian.net` |
 | spaceId | `290848804` (WS Space) |
-| parentId | `309232105` (Perf 평가 부모) |
+| parentId | `299827212` (Perf 평가 부모) |
 | title | `Perf-[기간]` (예: `Perf-260420~22`) |
 | contentFormat | `markdown` |
 | subtype | `live` ← **Live Doc 필수. 일반 페이지로 발행 금지.** |
@@ -101,6 +101,6 @@ description: 특정 기간 기준으로 프로젝트 배달 성과(티켓 처리
 
 ## 참조
 
-- Confluence 부모: `https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/309232105`
+- Confluence 부모: `https://opsnowinc.atlassian.net/wiki/spaces/WS/pages/299827212`
 - cloudId: `opsnowinc.atlassian.net`
 - Jira 프로젝트: `WL`
