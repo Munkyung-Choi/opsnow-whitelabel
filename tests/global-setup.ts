@@ -1,6 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import { loadEnvConfig } from '@next/env';
 import { cleanupTestPartners, seedTestPartners, TEST_PARTNER_SLUGS } from './fixtures/seed-partners';
 import { cleanupAdminTestUsers, seedAdminTestUsers } from './fixtures/seed-admin-users';
+import { E2E_ADMIN_IDS_FILE } from './fixtures/auth-files';
 
 /**
  * Playwright globalSetup — 모든 테스트 실행 전 1회 실행
@@ -24,7 +27,12 @@ export default async function globalSetup() {
   await cleanupAdminTestUsers();
   await cleanupTestPartners();
   await seedTestPartners();
-  await seedAdminTestUsers();
+  const adminIds = await seedAdminTestUsers();
+
+  // seed에서 직접 얻은 ID를 파일로 저장 — auth.admin.listUsers가 CI 환경에서
+  // 빈 결과를 반환하는 사례가 있어 listUsers 대신 이 파일을 신뢰 원천으로 사용.
+  fs.mkdirSync(path.dirname(E2E_ADMIN_IDS_FILE), { recursive: true });
+  fs.writeFileSync(E2E_ADMIN_IDS_FILE, JSON.stringify(adminIds));
 
   // 병렬 테스트 실행 전 테스트 파트너 페이지를 사전 워밍한다.
   // Next.js dev 서버는 처음 접근하는 서브도메인 페이지를 SSR 컴파일하는데,

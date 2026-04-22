@@ -98,13 +98,18 @@ async function ensureUser(
  *
  * 서브도메인 기준 고아 파트너 선정리는 유지: auth.users 없이 떠도는 파트너 대응.
  */
-async function purgeTestUsers(admin: AdminClient): Promise<void> {
+export async function purgeTestUsers(admin: AdminClient): Promise<void> {
   await admin.from('partners').delete().eq('subdomain', TEST_ADMIN_PARTNER_SLUG)
 
   const { error } = await admin.rpc('cleanup_e2e_test_users')
   if (error) {
     throw new Error(`[purgeTestUsers] cleanup_e2e_test_users RPC 실패: ${error.message}`)
   }
+}
+
+export interface SeedAdminResult {
+  masterId: string
+  partnerId: string
 }
 
 /**
@@ -115,8 +120,12 @@ async function purgeTestUsers(admin: AdminClient): Promise<void> {
  *
  * 멱등성: ensureUser(create-or-update) + profiles upsert로 보장.
  * purgeTestUsers가 선행하지만, deleteUser가 실패해도 ensureUser가 복구한다.
+ *
+ * 반환값(masterId/partnerId)을 globalSetup에서 파일로 저장하여 테스트에서 재사용한다.
+ * auth.admin.listUsers 기반 조회는 CI 환경에서 빈 결과를 반환하는 사례가 있어
+ * ensureUser에서 직접 얻은 ID를 파일로 전달하는 방식으로 대체한다.
  */
-export async function seedAdminTestUsers(): Promise<void> {
+export async function seedAdminTestUsers(): Promise<SeedAdminResult> {
   const admin = createAdminClient()
 
   // ── Step 1: 기존 테스트 사용자 삭제 시도 (best-effort) ─────────────────────
@@ -177,6 +186,7 @@ export async function seedAdminTestUsers(): Promise<void> {
   }
 
   console.log('[globalSetup] Admin 테스트 사용자 2명 seed 완료')
+  return { masterId, partnerId }
 }
 
 /** E2E Admin 테스트 사용자 및 파트너 삭제 */

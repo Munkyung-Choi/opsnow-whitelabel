@@ -1,10 +1,10 @@
+import fs from 'fs'
 import { test, expect } from '@playwright/test'
-import { PARTNER_AUTH_FILE } from '../../fixtures/auth-files'
+import { PARTNER_AUTH_FILE, E2E_ADMIN_IDS_FILE } from '../../fixtures/auth-files'
 import { createAdminClient } from '../../fixtures/supabase-admin'
 import {
   TEST_ADMIN_PARTNER_SLUG,
   TEST_ADMIN_CREDENTIALS,
-  findUserIdByEmail,
 } from '../../fixtures/seed-admin-users'
 
 // WL-51 — Impersonation E2E
@@ -33,13 +33,21 @@ test.beforeAll(async () => {
   }
   E2E_PARTNER_ID = partner.id
 
-  // E2E master_admin의 ID를 이메일로 직접 조회한다.
-  // profiles에 static seed master_admin(master@test.opsnow.com)이 공존하므로
-  // role+partner_id 조합으로는 단일 행을 특정할 수 없어 email 기반 조회로 전환한다.
-  MASTER_UID = await findUserIdByEmail(admin, TEST_ADMIN_CREDENTIALS.master.email) ?? ''
+  // globalSetup에서 ensureUser가 직접 반환한 masterId를 파일로 읽는다.
+  // auth.admin.listUsers가 CI 환경에서 빈 결과를 반환하는 사례가 있어
+  // 파일 기반 조회로 대체한다 (storageState와 동일 패턴).
+  let adminIds: { masterId: string; partnerId: string }
+  try {
+    adminIds = JSON.parse(fs.readFileSync(E2E_ADMIN_IDS_FILE, 'utf-8'))
+  } catch (e) {
+    throw new Error(
+      `[impersonation.spec] e2e-admin-ids.json 읽기 실패 — globalSetup이 정상 완료되었는지 확인: ${e}`
+    )
+  }
+  MASTER_UID = adminIds.masterId
   if (!MASTER_UID) {
     throw new Error(
-      `[impersonation.spec] E2E master_admin을 auth.users에서 찾지 못함 — email: ${TEST_ADMIN_CREDENTIALS.master.email}`
+      `[impersonation.spec] masterId가 비어 있음 — email: ${TEST_ADMIN_CREDENTIALS.master.email}`
     )
   }
 })
