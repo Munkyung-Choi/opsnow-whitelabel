@@ -103,6 +103,29 @@ const eslintConfig = defineConfig([
       "max-lines": ["error", { max: 500, skipBlankLines: true, skipComments: true }],
     },
   },
+  // WL-151 — partners.features 직접 접근 차단. hasFeature(partner, 'key') 경유 강제.
+  // 근거: src/types/supabase.ts가 features를 Json(유니언)으로 생성해 TypeScript가
+  //       `partner.features.analytics` 타입 오류를 잡지 못함. Zod 런타임 검증 우회 방지.
+  // 커버 패턴: partner.features.analytics, partner.features['analytics'], partner.features[key]
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "MemberExpression[object.type='MemberExpression'][object.property.name='features']",
+          message:
+            "partners.features 직접 접근 금지. hasFeature(partner, 'key') 경유하세요. (WL-151/WL-124)",
+        },
+      ],
+    },
+  },
+  // 예외: hasFeature 구현 + Zod schema 정의 파일은 직접 접근이 본연의 책임
+  {
+    files: ["src/lib/features/**"],
+    rules: { "no-restricted-syntax": "off" },
+  },
 ]);
 
 export default eslintConfig;

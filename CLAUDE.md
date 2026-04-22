@@ -358,6 +358,7 @@ Low 트랙·단순 질의응답·현황 조회는 생략 가능하다.
 3. **기존 부채에 편승 금지**: `eslint.config.mjs`의 개별 `max-lines` override(proxy.ts 500 / parsers.ts 500 / FaqHubClient.tsx 400 등)는 **Ratchet 방식** — 현재 수치를 상한으로 고정하고 개선 시 하향만 허용한다. 신규 코드 작성 시 기존 override 숫자 이하로 유지하고, 가능하면 축소 커밋을 함께 제안한다.
 4. **Complexity warn 누적 방지**: `complexity: 15` 경고가 `warn` 상태라도 신규 코드에서는 발생시키지 않는다. 기존 warn은 점진 개선 대상이며 리팩터 기회가 있을 때 함께 처리한다.
 5. **불가피한 초과 시**: tech-debt.md에 DEBT 신규 등록 후 `eslint.config.mjs`에 개별 override를 추가한다. 무단 override 금지.
+6. **`partners.features` 접근 규칙 (WL-151)**: `partner.features.xxx` 직접 접근 금지 — ESLint `no-restricted-syntax`가 차단한다. 반드시 `hasFeature(partner, 'key')` 경유. Zod 런타임 검증 우회 방지. `src/lib/features/**` 하위만 예외(구현 레이어).
 
 ### 외부 LLM 피드백 검증 원칙
 
