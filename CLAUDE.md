@@ -88,6 +88,8 @@
 ### High / Critical 트랙 (안전 우선)
 
 1. **Context**: Jira 티켓 확인 + Confluence 설계 문서 인덱싱. **트랙 등급·스코프 항목·완료 기준(AC)·영향 파일을 즉시 선언한다 — 사람의 추가 지시를 기다리지 않는다.**
+   - **영향 파일 이력 검증 (Pre-flight 필수)**: 변경 대상 파일 각각에 `git log --all -- <파일경로>`를 실행하여 과거 삭제·이름 변경·용도 변경 이력을 확인한다. 이 단계 없이 Design으로 진입하면 잘못된 전제 위에 설계가 올라간다 (WL-156 전례: `src/middleware.ts` 이력 미확인 → "proxy.ts 비활성" 전제 오류 → 피벗).
+   - **전제 검증 — Premise Gate (🟥Critical 트랙 한정)**: 티켓 설명에서 현재 코드 상태에 대한 사실 주장을 목록으로 추출하고, 각각을 Grep/Read/git log로 검증한다. 검증 결과를 보고한 뒤에만 Design으로 진입한다. High 트랙은 권장 사항이며, Critical 트랙에서는 생략 불가.
 2. **Design**: 아키텍처 설계안 작성 (데이터 흐름, 파트너 격리 전략 포함).
 3. **Audit**: Security Auditor를 **별도 sub-agent로 분리 스폰**하여 교차검증 수행. 스폰 프롬프트 → `docs/agents/auditor.md §6`.
    - sub-agent 결과를 메인 컨텍스트로 통합한 뒤 Auditor Digest 초안을 작성한다.
