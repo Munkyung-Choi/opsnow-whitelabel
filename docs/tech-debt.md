@@ -198,6 +198,28 @@
 
 ---
 
+### MISS-002 — 클라우드 DB 마이그레이션 적용 후 `gen:types` 재실행 누락
+
+- **발생일**: 2026-04-22 ~ 2026-04-24 (10커밋 이상 CI 연속 failure)
+- **발견 경로**: `/dev-start` 복원 중 CI 상태 확인. `gh run list`로 10커밋 이상 `Supabase Type Drift` failure 확인 후 로그 분석.
+- **영역**: `src/types/supabase.ts` / CI `Supabase Type Drift` 체크
+- **영향도**: Major (CI 전체 빨강 — 모든 후속 커밋이 "CI 미통과" 상태로 누적)
+- **Miss 내용**: WL-150에서 `is_valid_partner_features` DB 함수를 마이그레이션으로 추가하고 **코드 커밋 시점**에는 `gen:types`를 실행했으나, 해당 마이그레이션이 **클라우드(Supabase)에 실제 적용된 시점** 이후에는 재실행하지 않았다. `af45273` 커밋까지 CI 통과 → `51ea9dd`("Cloud 적용 기록") 이후 DB와 타입이 불일치하여 CI 실패 시작.
+- **왜 놓쳤는가**:
+  - 마이그레이션 파일 작성 → 코드 커밋 시점에만 `gen:types` 실행을 떠올리도록 훈련됨
+  - SQL Editor(Human이 직접 적용)로 클라우드에 마이그레이션을 배포하는 단계가 코드 커밋과 시간적으로 분리되어 있어 `gen:types` 트리거 인식이 없었음
+  - 클라우드 적용 결과는 커밋 메시지("Cloud 적용 기록")에만 기록되고 타입 재생성 단계가 생략됨
+- **학습**:
+  - `gen:types` 트리거는 두 가지: (A) 마이그레이션 파일 작성 시, **(B) 클라우드에 실제 적용(SQL Editor 포함) 후**
+  - 클라우드 적용 커밋/기록 직후 반드시 `npm run gen:types` 실행 → 변경 있으면 즉시 커밋
+  - CI `Supabase Type Drift` 체크가 실패하면 **타입 재생성 누락이 1순위 원인**임을 기억
+- **재발 방지 체크포인트**:
+  - SQL Editor로 마이그레이션 적용 직후: `npm run gen:types` → diff 확인 → 변경 있으면 `fix(types): ...` 커밋
+  - CI `Supabase Type Drift` failure 발생 시: `supabase gen types ... > /tmp/gen.ts && diff src/types/supabase.ts /tmp/gen.ts` 로 즉시 원인 확인
+- **연관**: WL-150, `4cade3b` (복구 커밋)
+
+---
+
 ---
 
 ### DEBT-006 — proxy.ts(Edge) ↔ resolve-partner-from-host.ts(Node.js) 서브도메인 파싱 로직 중복
