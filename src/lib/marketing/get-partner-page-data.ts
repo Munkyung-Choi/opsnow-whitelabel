@@ -60,7 +60,13 @@ export function extractI18n(value: Json | null | undefined, locale: Locale): str
       try {
         const parsed: unknown = JSON.parse(value);
         if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          return extractFromObj(parsed as Record<string, unknown>, locale) ?? value;
+          const obj = parsed as Record<string, unknown>;
+          const extracted = extractFromObj(obj, locale);
+          if (extracted !== null) return extracted;
+          // i18n 객체(ko/en/ja/zh 키 보유)이나 모든 값이 빈 문자열 → null 반환
+          // 비-i18n JSON 객체(e.g. {"url":"..."})는 원본 문자열 유지 (backward-compatible)
+          const isI18nObj = ['ko', 'en', 'ja', 'zh'].some((k) => typeof obj[k] === 'string');
+          return isI18nObj ? null : value;
         }
       } catch {
         // JSON 파싱 실패 — 레거시 plain string으로 취급

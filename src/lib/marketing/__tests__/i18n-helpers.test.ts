@@ -41,10 +41,12 @@ describe('extractI18n', () => {
     it('JSON 문자열 — locale 키 빈 문자열 → en 폴백', () => {
       expect(extractI18n('{"ko":"","en":"hello"}', 'ko')).toBe('hello');
     });
-    it('JSON 문자열 — ko/en 모두 빈 문자열 → 원본 JSON 문자열 반환 (extractFromObj null → ?? value fallback)', () => {
-      // 모든 locale 값이 빈 문자열이면 extractFromObj가 null을 반환하고,
-      // extractI18n의 `?? value` fallback이 원본 문자열을 그대로 반환한다.
-      expect(extractI18n('{"ko":"","en":""}', 'ko')).toBe('{"ko":"","en":""}');
+    it('JSON 문자열 — ko/en 모두 빈 문자열 → null (i18n 객체 탐지 후 raw JSON 노출 방지)', () => {
+      expect(extractI18n('{"ko":"","en":""}', 'ko')).toBeNull();
+    });
+    it('JSON 문자열 — 비-i18n 객체(string 값 없음) → 원본 문자열 유지', () => {
+      // ko/en/ja/zh 키가 없고 string 값도 없는 JSON 객체 → extractFromObj null → 원본 반환
+      expect(extractI18n('{"count":5,"active":true}', 'ko')).toBe('{"count":5,"active":true}');
     });
   });
 
