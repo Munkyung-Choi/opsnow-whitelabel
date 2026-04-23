@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
+import { getObservabilityEnv } from '@/lib/env';
 
 // WL-156 — Resend SDK Edge Runtime lazy singleton.
+// WL-158 — process.env 직접 접근을 getObservabilityEnv()로 중앙화.
 // Edge 호환성: resend v6+ · svix · postal-mime · standardwebhooks 모두 fetch 기반,
 // Node builtin 미사용 (Pre-flight 실증 2026-04-23).
 
@@ -11,7 +13,7 @@ function getResend(): Resend | null {
   if (_resendInitAttempted) return _resend;
   _resendInitAttempted = true;
   try {
-    const apiKey = process.env.RESEND_API_KEY;
+    const { RESEND_API_KEY: apiKey } = getObservabilityEnv();
     if (!apiKey) {
       console.error('[SendEmailAlert] init skipped — RESEND_API_KEY missing');
       return null;
@@ -31,8 +33,7 @@ interface EmailAlertParams {
 
 export async function sendEmailAlert({ subject, payload }: EmailAlertParams): Promise<void> {
   const resend = getResend();
-  const from = process.env.RESEND_ALERT_FROM;
-  const to = process.env.RESEND_ALERT_TO;
+  const { RESEND_ALERT_FROM: from, RESEND_ALERT_TO: to } = getObservabilityEnv();
 
   if (!resend || !from || !to) {
     console.error('[SendEmailAlert] config missing — skipped', {

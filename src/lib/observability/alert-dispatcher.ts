@@ -1,7 +1,9 @@
 import { Redis } from '@upstash/redis';
 import { sendEmailAlert } from './send-email-alert';
+import { getObservabilityEnv } from '@/lib/env';
 
 // WL-156 — Rate Limit 알림 디스패처.
+// WL-158 — process.env 직접 접근을 getObservabilityEnv()로 중앙화.
 // 설계 원칙:
 //   - Upstash SET NX + EX 300s 원자 suppression (Journal 2026-04-22 L8: isNewAlert 네이밍)
 //   - Redis 장애 시 Fail-Safe 침묵 — 이메일 폭주 방지
@@ -16,7 +18,8 @@ function getRedis(): Redis | null {
   if (_redisInitAttempted) return _redis;
   _redisInitAttempted = true;
   try {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = getObservabilityEnv();
+    if (!UPSTASH_REDIS_REST_URL || !UPSTASH_REDIS_REST_TOKEN) {
       console.error('[AlertDispatcher] init skipped — UPSTASH_REDIS_REST_URL/TOKEN missing');
       return null;
     }
