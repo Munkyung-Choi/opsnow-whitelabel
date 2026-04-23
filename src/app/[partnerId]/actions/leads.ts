@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { leadSchema, type LeadFormState } from '@/lib/schemas/lead';
 import { resolvePartnerIdFromHost } from '@/lib/marketing/resolve-partner-from-host';
+import { sendEmailAlert } from '@/lib/observability/send-email-alert';
 
 // WL-154 — DEBT-007 Issue 2 상환
 // service_role 경유 (RLS 우회). 신뢰 경계는 host 기반 resolvePartnerIdFromHost().
@@ -53,6 +54,10 @@ export async function submitLead(
 
   if (error) {
     console.error('[submitLead] insert error:', error.message);
+    void sendEmailAlert({
+      subject: `[Lead Failure] partner_id=${partnerId}`,
+      payload: { partnerId, error: error.message, timestamp: new Date().toISOString() },
+    }).catch((err) => console.error('[submitLead] alert failed:', err));
     return { status: 'error', message: '제출 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' };
   }
 
