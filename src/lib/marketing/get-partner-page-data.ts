@@ -154,7 +154,7 @@ function localizeContentRow(row: ContentRow, locale: Locale, businessName: strin
  * plain string / number / boolean / null → 변환 없이 통과 (Backward Compatible).
  * 재귀 깊이: 현재 실측 meta 구조(1~2레벨)를 커버하며 최대 10레벨로 제한.
  */
-function deepLocalizeJson(value: Json, locale: Locale, depth = 0): Json {
+export function deepLocalizeJson(value: Json, locale: Locale, depth = 0): Json {
   if (depth > 10 || value === null || typeof value !== 'object') return value;
   if (Array.isArray(value)) {
     return (value as Json[]).map((item) => deepLocalizeJson(item, locale, depth + 1));
