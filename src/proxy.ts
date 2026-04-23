@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, NextFetchEvent } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
 import { type Locale, SUPPORTED_LOCALES, COUNTRY_LOCALE_MAP, validateLocale } from '@/lib/i18n/locales';
 import type { Ratelimit } from '@upstash/ratelimit';
 import { getPartnerRateLimiter, getAdminRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit';
+import { dispatchRateLimitAlert, type AlertContextType } from '@/lib/observability/alert-dispatcher';
 // 기존 소비자(import { Locale/validateLocale } from '@/proxy') 하위 호환 re-export
 export type { Locale } from '@/lib/i18n/locales';
 export { validateLocale }; // 내부 import 바인딩을 그대로 재노출
@@ -283,15 +284,21 @@ function buildRewriteUrl(
 // [WL-145/WL-146] Rate Limit 헬퍼 — Upstash Redis 기반 sliding window.
 // init 실패·runtime 에러 모두 Fail-open (null 반환) — 가용성 우선.
 // WL-146에서 limiter 매개변수화 — partner/admin 독립 인스턴스 주입.
+// [WL-156] 429 차단 시 dispatchRateLimitAlert를 event.waitUntil로 단일 등록 —
+//   Auditor 취약점 #1(context 주입 경로) + #4(waitUntil 이중화) 해소.
 async function checkRateLimit(
   key: string,
-  limiter: Ratelimit | null
+  limiter: Ratelimit | null,
+  alertContext: { context: AlertContextType; ip: string; event: NextFetchEvent }
 ): Promise<NextResponse | null> {
   if (!limiter) return null;
   try {
     const { success, limit, remaining, reset } = await limiter.limit(key);
     if (!success) {
-      console.error(`[RateLimit] blocked key=${key}`);
+      alertContext.event.waitUntil(
+        dispatchRateLimitAlert({ key, ip: alertContext.ip, context: alertContext.context })
+      );
+      console.error(`[RateLimit] blocked key=${key} context=${alertContext.context}`);
       return new NextResponse('Too Many Requests', {
         status: 429,
         headers: getRateLimitHeaders(limit, remaining, reset),
@@ -316,9 +323,10 @@ function getClientIp(request: NextRequest): string {
   return 'unknown';
 }
 
-export async function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const host = request.headers.get('host') ?? '';
   const pathname = request.nextUrl.pathname;
+  const ip = getClientIp(request);
 
   // [WL-65] /not-found 경로는 파트너 라우팅 대상에서 제외 — redirect 루프 방지
   if (pathname.startsWith('/not-found')) {
@@ -342,8 +350,9 @@ export async function proxy(request: NextRequest) {
   // Credential Stuffing 탐색 대상. isAdminHost 분기 진입 전 IP 기반 rate limit 적용.
   if (pathname.startsWith('/auth')) {
     const authLimited = await checkRateLimit(
-      `ip:${getClientIp(request)}`,
-      getAdminRateLimiter()
+      `ip:${ip}`,
+      getAdminRateLimiter(),
+      { context: 'auth-ip', ip, event }
     );
     if (authLimited) return authLimited;
     return NextResponse.next();
@@ -353,8 +362,9 @@ export async function proxy(request: NextRequest) {
   if (isAdminHost(host)) {
     // [WL-146] supabase.auth.getUser() 호출 전 IP 기반 rate limit — Supabase Auth API 부하 증폭 방어.
     const adminLimited = await checkRateLimit(
-      `ip:${getClientIp(request)}`,
-      getAdminRateLimiter()
+      `ip:${ip}`,
+      getAdminRateLimiter(),
+      { context: 'admin-ip', ip, event }
     );
     if (adminLimited) return adminLimited;
 
@@ -405,7 +415,11 @@ export async function proxy(request: NextRequest) {
       const partner = await resolvePartnerBySubdomain(devSlug);
       if (partner) {
         // [WL-145] DEV fallback 경로에도 rate limit 적용 — Preview URL 공격면 차단
-        const limited = await checkRateLimit(partner.id, getPartnerRateLimiter());
+        const limited = await checkRateLimit(
+          partner.id,
+          getPartnerRateLimiter(),
+          { context: 'dev-partner', ip, event }
+        );
         if (limited) return limited;
         const { locale: pathLocale, cleanPathname } = extractPathLocale(pathname);
         const locale = pathLocale ?? detectLocale(request, partner.default_locale);
@@ -425,7 +439,11 @@ export async function proxy(request: NextRequest) {
   // resolvePartnerFromHost 호출 전에 적용하여 존재하지 않는 서브도메인 무차별 공격이
   // Supabase partners 조회 + partnerCache FIFO 퇴출을 유발하지 못하도록 차단.
   const cleanHost = host.split(':')[0];
-  const hostLimited = await checkRateLimit(`host:${cleanHost}`, getPartnerRateLimiter());
+  const hostLimited = await checkRateLimit(
+    `host:${cleanHost}`,
+    getPartnerRateLimiter(),
+    { context: 'host', ip, event }
+  );
   if (hostLimited) return hostLimited;
 
   // *.localhost 서브도메인 + 프로덕션 호스트 처리
@@ -442,7 +460,11 @@ export async function proxy(request: NextRequest) {
   }
 
   // [WL-145] Partner ID 기반 rate limit — Noisy Neighbor 방어 메인 게이트
-  const partnerLimited = await checkRateLimit(partner.id, getPartnerRateLimiter());
+  const partnerLimited = await checkRateLimit(
+    partner.id,
+    getPartnerRateLimiter(),
+    { context: 'partner', ip, event }
+  );
   if (partnerLimited) return partnerLimited;
 
   // URL 경로 locale 최우선 추출 (/ko/faq → locale='ko', path='/faq')
@@ -462,6 +484,9 @@ export async function proxy(request: NextRequest) {
   return NextResponse.rewrite(url);
 }
 
+// [WL-46] Next.js 16.x는 src/proxy.ts를 미들웨어 진입점으로 인식한다 —
+// middleware.ts 추가 시 빌드 충돌 발생 (commit b381220 참조).
+// 따라서 `export const config` matcher는 반드시 proxy.ts에 존재해야 한다.
 export const config = {
   // [WL-68] images/ 경로 추가 — public/ 정적 파일을 미들웨어가 가로채면
   // 파트너 라우트로 rewrite되어 404가 발생하므로 명시적으로 제외
