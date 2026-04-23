@@ -454,6 +454,7 @@ export type Database = {
     Functions: {
       cleanup_e2e_test_users: { Args: never; Returns: number }
       get_my_role: { Args: never; Returns: string }
+      is_valid_partner_features: { Args: { f: Json }; Returns: boolean }
       update_partner_feature: {
         Args: {
           p_enabled: boolean
