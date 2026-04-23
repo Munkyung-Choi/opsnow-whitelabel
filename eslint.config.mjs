@@ -84,12 +84,6 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["src/lib/marketing/parsers.ts"],
-    rules: {
-      "max-lines": ["error", { max: 500, skipBlankLines: true, skipComments: true }],
-    },
-  },
-  {
     files: ["src/components/marketing/FaqHubClient.tsx"],
     rules: {
       "max-lines": ["error", { max: 400, skipBlankLines: true, skipComments: true }],
